@@ -257,7 +257,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
 
   void startTimer() {
     _isButtonDisabled = true;
-    _start = 59;
+    _start = 60;
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_start == 0) {
         setState(() {
@@ -270,6 +271,14 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         });
       }
     });
+  }
+
+  String _maskedPhone() {
+    final phone = widget.fullPhone;
+    if (phone.length <= 3) return '${widget.countryCode}$phone';
+    final visible = phone.substring(phone.length - 3);
+    final masked = 'X' * (phone.length - 3);
+    return '${widget.countryCode}$masked$visible';
   }
 
   // void resendCode() {
@@ -317,14 +326,6 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
   //   }
   // }
 
-  String _maskedPhone() {
-    final phone = widget.fullPhone;
-    if (phone.length <= 6) return phone;
-    final visible = phone.substring(phone.length - 3);
-    final masked = 'X' * (phone.length - 3);
-    return '${widget.countryCode}$masked$visible';
-  }
-
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
@@ -336,6 +337,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Scrollable content ──────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -343,6 +345,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+
                     // Title
                     anim.AnimatedWidgetWrapper(
                       animationType: anim.AnimationType.fadeSlideInFromLeft,
@@ -350,16 +353,19 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       child: Text('Enter OTP', style: kHeadTitleR),
                     ),
                     const SizedBox(height: 12),
-                    // Subtitle with masked phone highlighted
+
+                    // Subtitle — masked phone highlighted in blue
                     anim.AnimatedWidgetWrapper(
                       animationType: anim.AnimationType.fadeSlideInFromLeft,
                       duration: anim.AnimationDuration.normal,
                       delayMilliseconds: 100,
                       child: RichText(
                         text: TextSpan(
-                          style: kSubHeadingR.copyWith(
-                            color: kSecondaryTextColor,
+                          style: const TextStyle(
+                            fontFamily: 'ClashGrotesk',
                             fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: kSecondaryTextColor,
                             height: 1.5,
                           ),
                           children: [
@@ -368,7 +374,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                             ),
                             TextSpan(
                               text: _maskedPhone(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: kPrimaryColor,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -381,7 +387,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    // 4-digit OTP fields with underline style
+
+                    // 4-digit OTP — underline style, large digits
                     anim.AnimatedWidgetWrapper(
                       animationType: anim.AnimationType.fadeSlideInFromBottom,
                       duration: anim.AnimationDuration.normal,
@@ -392,14 +399,16 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                         obscureText: false,
                         keyboardType: TextInputType.number,
                         animationType: AnimationType.scale,
-                        textStyle: kHeadTitleR.copyWith(
+                        textStyle: const TextStyle(
+                          fontFamily: 'ClashGrotesk',
                           color: kTextColor,
-                          fontSize: 32,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w500,
                         ),
                         pinTheme: PinTheme(
                           shape: PinCodeFieldShape.underline,
-                          fieldHeight: 60,
-                          fieldWidth: 60,
+                          fieldHeight: 64,
+                          fieldWidth: 64,
                           selectedColor: kPrimaryColor,
                           activeColor: kPrimaryColor,
                           inactiveColor: kBorder,
@@ -416,7 +425,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    // "Didn't get SMS?" + countdown
+
+                    // "Didn't get SMS?" + countdown / resend
                     anim.AnimatedWidgetWrapper(
                       animationType: anim.AnimationType.fadeSlideInFromLeft,
                       duration: anim.AnimationDuration.normal,
@@ -424,49 +434,55 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: double.infinity,
                             child: Text(
                               "Didi'nt get SMS?",
                               textAlign: TextAlign.center,
-                              style: kSubHeadingR.copyWith(
+                              style: TextStyle(
+                                fontFamily: 'ClashGrotesk',
                                 fontSize: 14,
+                                fontWeight: FontWeight.w500,
                                 color: kSecondaryTextColor,
                               ),
                             ),
                           ),
                           const SizedBox(height: 6),
-                          _isButtonDisabled
-                              ? RichText(
-                                  text: TextSpan(
-                                    style: kSubHeadingR.copyWith(
-                                      fontSize: 14,
-                                      color: kSecondaryTextColor,
-                                    ),
-                                    children: [
-                                      const TextSpan(text: 'Get a new OTP in '),
-                                      TextSpan(
-                                        text:
-                                            '00:${_start.toString().padLeft(2, '0')}',
-                                        style: TextStyle(
-                                          color: kPrimaryColor,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : GestureDetector(
-                                  onTap: startTimer,
-                                  child: Text(
-                                    'Resend OTP',
-                                    style: kSubHeadingR.copyWith(
-                                      fontSize: 14,
+                          if (_isButtonDisabled)
+                            RichText(
+                              text: TextSpan(
+                                style: const TextStyle(
+                                  fontFamily: 'ClashGrotesk',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: kSecondaryTextColor,
+                                ),
+                                children: [
+                                  const TextSpan(text: 'Get a new OTP in '),
+                                  TextSpan(
+                                    text:
+                                        '00:${_start.toString().padLeft(2, '0')}',
+                                    style: const TextStyle(
                                       color: kPrimaryColor,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
+                                ],
+                              ),
+                            )
+                          else
+                            GestureDetector(
+                              onTap: startTimer,
+                              child: const Text(
+                                'Resend OTP',
+                                style: TextStyle(
+                                  fontFamily: 'ClashGrotesk',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: kPrimaryColor,
                                 ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -474,7 +490,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                 ),
               ),
             ),
-            // Verify OTP button pinned to bottom
+
+            // ── Verify OTP button pinned to bottom ───────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: anim.AnimatedWidgetWrapper(
