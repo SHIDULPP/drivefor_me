@@ -1,4 +1,5 @@
 import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
+import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/splash_screen.dart';
 import 'package:flutter/material.dart';
 //router file
@@ -107,6 +108,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       page = PhoneNumberScreen();
       transitionToUse = TransitionType.fade;
       transitionDuration = const Duration(milliseconds: 500);
+      break;
+    case 'registration':
+      page = const RegistrationPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
       break;
 
     default:

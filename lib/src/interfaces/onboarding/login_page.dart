@@ -6,6 +6,7 @@ import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/loading_provider.dart';
 import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -502,7 +503,16 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                   label: 'Verify OTP',
                   buttonHeight: 56,
                   fontSize: 16,
-                  onPressed: isLoading ? null : () {},
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegistrationPage(),
+                            ),
+                          );
+                        },
                   isLoading: isLoading,
                 ),
               ),
