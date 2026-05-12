@@ -1,15 +1,21 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/providers/screen_size_provider.dart';
-import 'package:driveforme_user/src/interfaces//animations/index.dart' as anim;
+import 'package:driveforme_user/src/data/providers/loading_provider.dart';
+import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:pin_code_fields/pin_code_fields.dart'
+    show PinCodeTextField, PinTheme, PinCodeFieldShape, AnimationType
+// ignore: library_prefixes
+;
+import 'package:pin_code_fields/pin_code_fields.dart';
 
 final countryCodeProvider = StateProvider<String?>((ref) => '91');
 
@@ -198,4 +204,414 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
       ),
     );
   }
+}
+
+class OTPScreen extends ConsumerStatefulWidget {
+  final String fullPhone;
+  final String countryCode;
+  // final String verificationId; // Not needed for backend OTP
+  // final String resendToken; // Not needed for backend OTP
+
+  const OTPScreen({
+    required this.fullPhone,
+    required this.countryCode,
+    // this.verificationId, // Not needed for backend OTP
+    // this.resendToken, // Not needed for backend OTP
+    super.key,
+  });
+
+  @override
+  ConsumerState<OTPScreen> createState() => _OTPScreenState();
+}
+
+class _OTPScreenState extends ConsumerState<OTPScreen> {
+  Timer? _timer;
+  int _start = 59;
+  bool _isButtonDisabled = true;
+
+  late TextEditingController _otpController;
+
+  @override
+  void initState() {
+    super.initState();
+    _otpController = TextEditingController();
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  void startTimer() {
+    _isButtonDisabled = true;
+    _start = 59;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_start == 0) {
+        setState(() {
+          _isButtonDisabled = false;
+        });
+        timer.cancel();
+      } else {
+        setState(() {
+          _start--;
+        });
+      }
+    });
+  }
+
+  // void resendCode() {
+  //   final connectivityStatus = ref.read(connectivityProvider);
+  //   if (connectivityStatus == NetworkStatus.offline) {
+  //     SnackbarService().showSnackBar(context, 'noInternet'.tr());
+  //     return;
+  //   }
+
+  //   startTimer();
+  //   _resendOtp();
+  // }
+
+  // Future<void> _resendOtp() async {
+  //   try {
+  //     final secureStorage = ref.read(secureStorageServiceProvider);
+  //     String? fcmToken;
+  //     final existingFcmToken = await secureStorage.getFcmToken();
+  //     if (existingFcmToken == null || existingFcmToken.isEmpty) {
+  //       await getFcmToken(context, ref);
+  //       fcmToken = await secureStorage.getFcmToken();
+  //     } else {
+  //       fcmToken = existingFcmToken;
+  //     }
+
+  //     final authLoginApi = ref.read(authLoginApiProvider);
+  //     final response = await authLoginApi.Login(
+  //       widget.fullPhone,
+  //       fcmToken ?? '',
+  //     );
+
+  //     if (response.success) {
+  //       SnackbarService().showSnackBar(context, 'otpResentSuccess'.tr());
+  //       log('OTP resent successfully', name: 'OTPScreen');
+  //     } else {
+  //       SnackbarService().showSnackBar(
+  //         context,
+  //         response.message ?? 'failedToResendOtp'.tr(),
+  //       );
+  //       log('Error resending OTP: ${response.message}', name: 'OTPScreen');
+  //     }
+  //   } catch (e) {
+  //     SnackbarService().showSnackBar(context, 'Error: $e');
+  //     log('Error resending OTP: $e', name: 'OTPScreen');
+  //   }
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoading = ref.watch(loadingProvider);
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    // Keep user state alive
+    // ref.watch(userProvider);
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: kWhite,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 120,
+                child: Image.asset(
+                  'assets/png/mmc_logo.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+
+              SizedBox(height: 30),
+              anim.AnimatedWidgetWrapper(
+                animationType: anim.AnimationType.fadeSlideInFromLeft,
+                duration: anim.AnimationDuration.normal,
+                child: Text(
+                  'enterOtp',
+                  style: kHeadTitleM.copyWith(fontSize: 25),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: bottomInset),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        anim.AnimatedWidgetWrapper(
+                          animationType: anim.AnimationType.fadeSlideInFromLeft,
+                          duration: anim.AnimationDuration.normal,
+                          delayMilliseconds: 100,
+                          child: Text(
+                            '${'otpSentToPhone'} ${widget.fullPhone}',
+                            style: kSmallTitleR.copyWith(
+                              color: kSecondaryTextColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        anim.AnimatedWidgetWrapper(
+                          animationType:
+                              anim.AnimationType.fadeSlideInFromBottom,
+                          duration: anim.AnimationDuration.normal,
+                          delayMilliseconds: 200,
+                          child: PinCodeTextField(
+                            appContext: context,
+                            length: 6,
+                            obscureText: false,
+                            keyboardType: TextInputType.number,
+                            animationType: AnimationType.scale,
+
+                            textStyle: const TextStyle(
+                              color: kTextColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w300,
+                            ),
+                            pinTheme: PinTheme(
+                              shape: PinCodeFieldShape.box,
+                              borderRadius: BorderRadius.circular(5),
+                              fieldHeight: 50,
+                              fieldWidth: 40,
+
+                              selectedColor: kPrimaryColor,
+                              activeColor: kBorder,
+                              inactiveColor: kBorder,
+                              activeFillColor: kWhite,
+                              selectedFillColor: kWhite,
+                              inactiveFillColor: kWhite,
+                              borderWidth: .5,
+                            ),
+                            animationDuration: const Duration(
+                              milliseconds: 300,
+                            ),
+                            backgroundColor: Colors.transparent,
+                            enableActiveFill: true,
+                            controller: _otpController,
+                            onChanged: (value) {},
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        anim.AnimatedWidgetWrapper(
+                          animationType: anim.AnimationType.fadeSlideInFromLeft,
+                          duration: anim.AnimationDuration.normal,
+                          delayMilliseconds: 300,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _isButtonDisabled
+                                    ? '${'resendOtpIn'} $_start ${'seconds'}'
+                                    : 'didntReceiveCode',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: _isButtonDisabled
+                                      ? kSecondaryTextColor
+                                      : kSecondaryTextColor,
+                                ),
+                              ),
+                              // GestureDetector(
+                              //   onTap: _isButtonDisabled ? null : resendCode,
+                              //   child: Text(
+                              //     _isButtonDisabled ? '' : 'resendCode'.tr(),
+                              //     style: TextStyle(
+                              //       fontWeight: FontWeight.w500,
+                              //       fontSize: 14,
+                              //       color: _isButtonDisabled
+                              //           ? kSecondaryTextColor
+                              //           : kPrimaryColor,
+                              //     ),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 36),
+                          child: anim.AnimatedWidgetWrapper(
+                            animationType: anim.AnimationType.fadeScaleUp,
+                            duration: anim.AnimationDuration.normal,
+                            delayMilliseconds: 400,
+                            child: SizedBox(
+                              height: 50,
+                              width: double.infinity,
+                              child: primaryButton(
+                                label: 'verify',
+                                onPressed: isLoading ? null : () {},
+                                // _handleOtpVerification(context, ref),
+                                isLoading: isLoading,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Future<void> _handleOtpVerification(
+  //   BuildContext context,
+  //   WidgetRef ref,
+  // ) async {
+  //   final connectivityStatus = ref.read(connectivityProvider);
+  //   if (connectivityStatus == NetworkStatus.offline) {
+  //     SnackbarService().showSnackBar(context, 'noInternet');
+  //     return;
+  //   }
+
+  //   final otp = _otpController.text;
+
+  //   if (otp.isEmpty || otp.length != 6) {
+  //     SnackbarService().showSnackBar(context, 'pleaseEnterValidOtp');
+  //     return;
+  //   }
+
+  //   try {
+  //     ref.read(loadingProvider.notifier).startLoading();
+
+  //     // Step 1: Verify OTP with backend API
+  //     final authLoginApi = ref.read(authLoginApiProvider);
+
+  //     // Debug: Log the request data
+  //     log('Sending verifyOtp request with data:', name: 'OTPScreen');
+  //     log('Phone: ${widget.fullPhone}', name: 'OTPScreen');
+  //     log('OTP: $otp', name: 'OTPScreen');
+
+  //     final response = await authLoginApi.verifyOtp(widget.fullPhone, otp);
+
+  //     ref.read(loadingProvider.notifier).stopLoading();
+
+  //     if (response.success && response.data != null) {
+  //       final data = response.data!;
+  //       log('Response data received: $data', name: 'OTPScreen');
+
+  //       // Extract the nested data object (backend wraps response in data key)
+  //       final nestedData = data['data'] as Map<String, dynamic>?;
+  //       if (nestedData == null) {
+  //         log('No nested data found', name: 'OTPScreen');
+  //         SnackbarService().showSnackBar(context, 'invalidResponseData');
+  //         return;
+  //       }
+
+  //       final token = nestedData['token'] as String?;
+  //       final userData = nestedData['user'] as Map<String, dynamic>?;
+
+  //       log(
+  //         'Token extracted: ${token != null ? "YES" : "NO"}',
+  //         name: 'OTPScreen',
+  //       );
+  //       log(
+  //         'User data extracted: ${userData != null ? "YES" : "NO"}',
+  //         name: 'OTPScreen',
+  //       );
+
+  //       if (token != null && userData != null) {
+  //         final user = UserModel.fromJson(userData);
+  //         final secureStorage = SecureStorageService();
+
+  //         // Save bearer token to secure storage
+  //         await secureStorage.saveBearerToken(token);
+  //         if (user.id != null) {
+  //           await secureStorage.saveUserId(user.id!);
+  //         }
+
+  //         // Store user in provider
+  //         ref.read(userProvider.notifier).setUser(user);
+
+  //         // Set user data in global variables for quick synchronous access
+  //         GlobalVariables.setUserId(user.id);
+  //         GlobalVariables.setUserName(user.name);
+  //         GlobalVariables.setUserStatus(user.status);
+  //         GlobalVariables.setGuestMode(false);
+
+  //         log('OTP verified and login successful', name: 'OTPScreen');
+  //         log(
+  //           'User data set in global variables - ID: ${user.id}',
+  //           name: 'OTPScreen',
+  //         );
+
+  //         // Check for Demo Account and show EULA
+  //         if (context.mounted) {
+  //           final isDemo = await secureStorage.isDemoAccount();
+  //           if (isDemo) {
+  //             final agreed = await showDialog<bool>(
+  //               context: context,
+  //               barrierDismissible: false,
+  //               builder: (context) => const EulaDialog(),
+  //             );
+
+  //             if (agreed != true) {
+  //               return; // Stop execution if not agreed (should exit app from dialog)
+  //             }
+  //           }
+  //         }
+
+  //         if (context.mounted) {
+  //           // Navigate based on user status from API response, removing all previous routes
+  //           final userStatus = userData['status'] as String?;
+
+  //           if (user.referralDecisionTaken == true) {
+  //             if (userStatus == 'active') {
+  //               Navigator.of(
+  //                 context,
+  //               ).pushNamedAndRemoveUntil('navbar', (route) => false);
+  //             } else {
+  //               String routeName;
+  //               switch (userStatus) {
+  //                 case 'inactive':
+  //                   routeName = 'registration';
+  //                   break;
+  //                 case 'pending':
+  //                   routeName = 'requestSent';
+  //                   break;
+  //                 case 'rejected':
+  //                   routeName = 'requestRejected';
+  //                   break;
+  //                 case 'suspended':
+  //                   routeName = 'accountSuspended';
+  //                   break;
+  //                 default:
+  //                   routeName = 'navbar';
+  //               }
+  //               Navigator.of(
+  //                 context,
+  //               ).pushNamedAndRemoveUntil(routeName, (route) => false);
+  //             }
+  //           } else {
+  //             Navigator.of(
+  //               context,
+  //             ).pushNamedAndRemoveUntil('addReferral', (route) => false);
+  //           }
+  //         }
+  //       } else {
+  //         SnackbarService().showSnackBar(context, 'invalidResponseData');
+  //       }
+  //     } else {
+  //       SnackbarService().showSnackBar(
+  //         context,
+  //         response.message ?? 'failedToSendOTP',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     ref.read(loadingProvider.notifier).stopLoading();
+  //     SnackbarService().showSnackBar(context, 'Error: $e');
+  //     log('Error verifying OTP: $e', name: 'OTPScreen');
+  //   }
+  // }
 }
