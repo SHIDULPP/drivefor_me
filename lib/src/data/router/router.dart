@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/splash_screen.dart';
@@ -112,6 +113,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'registration':
       page = const RegistrationPage();
       transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'navbar':
+      page = const NavBar();
+      transitionToUse = TransitionType.fade;
       transitionDuration = const Duration(milliseconds: 400);
       break;
 

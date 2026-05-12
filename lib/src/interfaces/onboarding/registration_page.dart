@@ -4,6 +4,7 @@ import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
 import 'package:driveforme_user/src/interfaces/components/dropdown.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,7 +46,10 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
 
   void _handleSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: submit registration
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const NavBar()),
+        (route) => false,
+      );
     }
   }
 
@@ -117,8 +121,8 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                           textInputAction: TextInputAction.next,
                           onFieldSubmitted: (_) =>
                               FocusScope.of(context).requestFocus(_emailFocus),
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? '' : null,
+                          // validator: (v) =>
+                          //     (v == null || v.trim().isEmpty) ? '' : null,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -136,13 +140,13 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                           controller: _emailController,
                           focusNode: _emailFocus,
                           textInputAction: TextInputAction.next,
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) return '';
-                            final emailRegex = RegExp(
-                              r'^[\w\.\+\-]+@[\w\-]+\.[a-zA-Z]{2,}$',
-                            );
-                            return emailRegex.hasMatch(v.trim()) ? null : '';
-                          },
+                          // validator: (v) {
+                          //   if (v == null || v.trim().isEmpty) return '';
+                          //   final emailRegex = RegExp(
+                          //     r'^[\w\.\+\-]+@[\w\-]+\.[a-zA-Z]{2,}$',
+                          //   );
+                          //   return emailRegex.hasMatch(v.trim()) ? null : '';
+                          // },
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -158,8 +162,8 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                           type: CustomFieldType.date,
                           hint: 'DD-MM-YYYY',
                           controller: _dobController,
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? '' : null,
+                          // validator: (v) =>
+                          //     (v == null || v.trim().isEmpty) ? '' : null,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -174,10 +178,10 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                         child: FormField<String>(
                           key: _fieldKeys['gender'],
                           initialValue: selectedGender,
-                          validator: (value) =>
-                              selectedGender == null || selectedGender!.isEmpty
-                              ? "genderIsRequired"
-                              : null,
+                          // validator: (value) =>
+                          //     selectedGender == null || selectedGender!.isEmpty
+                          //     ? "genderIsRequired"
+                          //     : null,
                           builder: (FormFieldState<String> state) {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
