@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/providers/loading_provider.dart';
 import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
+import 'package:driveforme_user/src/interfaces/components/dropdown.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,14 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   final _nameFocus = FocusNode();
   final _emailFocus = FocusNode();
 
-  String? _selectedGender;
+  String? selectedGender;
+
+  final Map<String, GlobalKey> _fieldKeys = {
+    'name': GlobalKey(),
+    'email': GlobalKey(),
+    'dob': GlobalKey(), // Added DOB key
+    'gender': GlobalKey(),
+  };
 
   @override
   void dispose() {
@@ -163,9 +171,49 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                         animationType: anim.AnimationType.fadeSlideInFromBottom,
                         duration: anim.AnimationDuration.normal,
                         delayMilliseconds: 300,
-                        child: _GenderDropdown(
-                          value: _selectedGender,
-                          onChanged: (v) => setState(() => _selectedGender = v),
+                        child: FormField<String>(
+                          key: _fieldKeys['gender'],
+                          initialValue: selectedGender,
+                          validator: (value) =>
+                              selectedGender == null || selectedGender!.isEmpty
+                              ? "genderIsRequired"
+                              : null,
+                          builder: (FormFieldState<String> state) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AnimatedDropdown<String>(
+                                  hint: "Select Gender",
+                                  value: selectedGender,
+                                  items: const ['Male', 'Female', 'Other'],
+                                  itemLabel: (value) => value,
+                                  borderColor: state.hasError
+                                      ? Colors.red
+                                      : null,
+                                  onChanged: (v) {
+                                    state.didChange(v);
+                                    setState(() {
+                                      selectedGender = v;
+                                    });
+                                  },
+                                ),
+                                if (state.hasError)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 6,
+                                      left: 12,
+                                    ),
+                                    child: Text(
+                                      state.errorText!,
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -214,71 +262,6 @@ class _FieldLabel extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: kTextColor,
       ),
-    );
-  }
-}
-
-class _GenderDropdown extends StatelessWidget {
-  final String? value;
-  final void Function(String?) onChanged;
-
-  const _GenderDropdown({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      onChanged: onChanged,
-      validator: (v) => (v == null || v.isEmpty) ? '' : null,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      style: const TextStyle(
-        fontFamily: 'ClashGrotesk',
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: kTextColor,
-      ),
-      icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: Color(0xFF111111),
-      ),
-      dropdownColor: kWhite,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: const Color(0xFFF5F5FA),
-        hintText: 'Select gender',
-        hintStyle: const TextStyle(
-          fontFamily: 'ClashGrotesk',
-          color: Color(0xFF9C9C9C),
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        errorStyle: const TextStyle(height: 0),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 15,
-          vertical: 15,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Color(0xFFE8E8EF), width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Color(0xFFE8E8EF), width: 1),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-      ),
-      items: const [
-        DropdownMenuItem(value: 'Male', child: Text('Male')),
-        DropdownMenuItem(value: 'Female', child: Text('Female')),
-        DropdownMenuItem(value: 'Other', child: Text('Other')),
-      ],
     );
   }
 }
