@@ -190,7 +190,17 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                           width: double.infinity,
                           child: primaryButton(
                             label: 'Get OTP',
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const OTPScreen(
+                                    fullPhone: '1234567890',
+                                    countryCode: '+91',
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -307,159 +317,180 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
   //   }
   // }
 
+  String _maskedPhone() {
+    final phone = widget.fullPhone;
+    if (phone.length <= 6) return phone;
+    final visible = phone.substring(phone.length - 3);
+    final masked = 'X' * (phone.length - 3);
+    return '${widget.countryCode}$masked$visible';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    // Keep user state alive
-    // ref.watch(userProvider);
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: kWhite,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 120,
-                child: Image.asset(
-                  'assets/png/mmc_logo.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-
-              SizedBox(height: 30),
-              anim.AnimatedWidgetWrapper(
-                animationType: anim.AnimationType.fadeSlideInFromLeft,
-                duration: anim.AnimationDuration.normal,
-                child: Text(
-                  'enterOtp',
-                  style: kHeadTitleM.copyWith(fontSize: 25),
-                ),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: bottomInset),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        anim.AnimatedWidgetWrapper(
-                          animationType: anim.AnimationType.fadeSlideInFromLeft,
-                          duration: anim.AnimationDuration.normal,
-                          delayMilliseconds: 100,
-                          child: Text(
-                            '${'otpSentToPhone'} ${widget.fullPhone}',
-                            style: kSmallTitleR.copyWith(
-                              color: kSecondaryTextColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        anim.AnimatedWidgetWrapper(
-                          animationType:
-                              anim.AnimationType.fadeSlideInFromBottom,
-                          duration: anim.AnimationDuration.normal,
-                          delayMilliseconds: 200,
-                          child: PinCodeTextField(
-                            appContext: context,
-                            length: 6,
-                            obscureText: false,
-                            keyboardType: TextInputType.number,
-                            animationType: AnimationType.scale,
-
-                            textStyle: const TextStyle(
-                              color: kTextColor,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w300,
-                            ),
-                            pinTheme: PinTheme(
-                              shape: PinCodeFieldShape.box,
-                              borderRadius: BorderRadius.circular(5),
-                              fieldHeight: 50,
-                              fieldWidth: 40,
-
-                              selectedColor: kPrimaryColor,
-                              activeColor: kBorder,
-                              inactiveColor: kBorder,
-                              activeFillColor: kWhite,
-                              selectedFillColor: kWhite,
-                              inactiveFillColor: kWhite,
-                              borderWidth: .5,
-                            ),
-                            animationDuration: const Duration(
-                              milliseconds: 300,
-                            ),
-                            backgroundColor: Colors.transparent,
-                            enableActiveFill: true,
-                            controller: _otpController,
-                            onChanged: (value) {},
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        anim.AnimatedWidgetWrapper(
-                          animationType: anim.AnimationType.fadeSlideInFromLeft,
-                          duration: anim.AnimationDuration.normal,
-                          delayMilliseconds: 300,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _isButtonDisabled
-                                    ? '${'resendOtpIn'} $_start ${'seconds'}'
-                                    : 'didntReceiveCode',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                  color: _isButtonDisabled
-                                      ? kSecondaryTextColor
-                                      : kSecondaryTextColor,
-                                ),
-                              ),
-                              // GestureDetector(
-                              //   onTap: _isButtonDisabled ? null : resendCode,
-                              //   child: Text(
-                              //     _isButtonDisabled ? '' : 'resendCode'.tr(),
-                              //     style: TextStyle(
-                              //       fontWeight: FontWeight.w500,
-                              //       fontSize: 14,
-                              //       color: _isButtonDisabled
-                              //           ? kSecondaryTextColor
-                              //           : kPrimaryColor,
-                              //     ),
-                              //   ),
-                              // ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 36),
-                          child: anim.AnimatedWidgetWrapper(
-                            animationType: anim.AnimationType.fadeScaleUp,
-                            duration: anim.AnimationDuration.normal,
-                            delayMilliseconds: 400,
-                            child: SizedBox(
-                              height: 50,
-                              width: double.infinity,
-                              child: primaryButton(
-                                label: 'verify',
-                                onPressed: isLoading ? null : () {},
-                                // _handleOtpVerification(context, ref),
-                                isLoading: isLoading,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    // Title
+                    anim.AnimatedWidgetWrapper(
+                      animationType: anim.AnimationType.fadeSlideInFromLeft,
+                      duration: anim.AnimationDuration.normal,
+                      child: Text('Enter OTP', style: kHeadTitleR),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    // Subtitle with masked phone highlighted
+                    anim.AnimatedWidgetWrapper(
+                      animationType: anim.AnimationType.fadeSlideInFromLeft,
+                      duration: anim.AnimationDuration.normal,
+                      delayMilliseconds: 100,
+                      child: RichText(
+                        text: TextSpan(
+                          style: kSubHeadingR.copyWith(
+                            color: kSecondaryTextColor,
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                          children: [
+                            const TextSpan(
+                              text: 'We have send a 4 digit OTP to ',
+                            ),
+                            TextSpan(
+                              text: _maskedPhone(),
+                              style: TextStyle(
+                                color: kPrimaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const TextSpan(
+                              text: ' number and you can use to login',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // 4-digit OTP fields with underline style
+                    anim.AnimatedWidgetWrapper(
+                      animationType: anim.AnimationType.fadeSlideInFromBottom,
+                      duration: anim.AnimationDuration.normal,
+                      delayMilliseconds: 200,
+                      child: PinCodeTextField(
+                        appContext: context,
+                        length: 4,
+                        obscureText: false,
+                        keyboardType: TextInputType.number,
+                        animationType: AnimationType.scale,
+                        textStyle: kHeadTitleR.copyWith(
+                          color: kTextColor,
+                          fontSize: 32,
+                        ),
+                        pinTheme: PinTheme(
+                          shape: PinCodeFieldShape.underline,
+                          fieldHeight: 60,
+                          fieldWidth: 60,
+                          selectedColor: kPrimaryColor,
+                          activeColor: kPrimaryColor,
+                          inactiveColor: kBorder,
+                          activeFillColor: Colors.transparent,
+                          selectedFillColor: Colors.transparent,
+                          inactiveFillColor: Colors.transparent,
+                          borderWidth: 1.5,
+                        ),
+                        animationDuration: const Duration(milliseconds: 300),
+                        backgroundColor: Colors.transparent,
+                        enableActiveFill: true,
+                        controller: _otpController,
+                        onChanged: (value) {},
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    // "Didn't get SMS?" + countdown
+                    anim.AnimatedWidgetWrapper(
+                      animationType: anim.AnimationType.fadeSlideInFromLeft,
+                      duration: anim.AnimationDuration.normal,
+                      delayMilliseconds: 300,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              "Didi'nt get SMS?",
+                              textAlign: TextAlign.center,
+                              style: kSubHeadingR.copyWith(
+                                fontSize: 14,
+                                color: kSecondaryTextColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          _isButtonDisabled
+                              ? RichText(
+                                  text: TextSpan(
+                                    style: kSubHeadingR.copyWith(
+                                      fontSize: 14,
+                                      color: kSecondaryTextColor,
+                                    ),
+                                    children: [
+                                      const TextSpan(text: 'Get a new OTP in '),
+                                      TextSpan(
+                                        text:
+                                            '00:${_start.toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          color: kPrimaryColor,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : GestureDetector(
+                                  onTap: startTimer,
+                                  child: Text(
+                                    'Resend OTP',
+                                    style: kSubHeadingR.copyWith(
+                                      fontSize: 14,
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // Verify OTP button pinned to bottom
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: anim.AnimatedWidgetWrapper(
+                animationType: anim.AnimationType.fadeScaleUp,
+                duration: anim.AnimationDuration.normal,
+                delayMilliseconds: 400,
+                child: primaryButton(
+                  label: 'Verify OTP',
+                  buttonHeight: 56,
+                  fontSize: 16,
+                  onPressed: isLoading ? null : () {},
+                  isLoading: isLoading,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
