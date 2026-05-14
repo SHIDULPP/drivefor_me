@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          height: 340,
+          height: 270,
           width: double.infinity,
           decoration: const BoxDecoration(
             color: Color(0xFF04599C),
@@ -105,56 +105,58 @@ class HomePage extends StatelessWidget {
           right: 24,
           bottom: -70,
           child: Container(
-            height: 230,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
             decoration: BoxDecoration(
               color: const Color(0xFFF7F5F5),
               borderRadius: BorderRadius.circular(28),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Book Your',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Personal Driver',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFFB77728),
-                              ),
-                            ),
-                          ],
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    /// text on the left
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Book Your',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Personal Driver',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFB77728),
+                          ),
+                        ),
+                      ],
+                    ),
 
-                      /// replace with your image
-                      Expanded(
-                        child: Image.asset(
-                          'assets/pngs/car_driving.png',
-                          fit: BoxFit.contain,
-                        ),
+                    /// car + driver image on the right
+                    Expanded(
+                      child: Image.asset(
+                        'assets/pngs/car_driving.png',
+                        height: 110,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.centerRight,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
 
+                const SizedBox(height: 16),
+
+                /// search bar below
                 Container(
-                  height: 62,
+                  height: 48,
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF4F5EF),
@@ -166,13 +168,13 @@ class HomePage extends StatelessWidget {
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.search, size: 30, color: Colors.black87),
-                      SizedBox(width: 14),
+                      Icon(Icons.search, size: 26, color: Colors.black87),
+                      SizedBox(width: 12),
                       Text(
                         'Where to go?',
                         style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black87,
+                          fontSize: 16,
+                          color: Colors.black54,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -189,7 +191,7 @@ class HomePage extends StatelessWidget {
 
   Widget _buildSupportCard() {
     return Padding(
-      padding: const EdgeInsets.only(top: 90),
+      padding: const EdgeInsets.only(top: 70),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.all(22),
@@ -206,7 +208,7 @@ class HomePage extends StatelessWidget {
                   const Text(
                     'Need help booking a driver?',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -214,7 +216,7 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 8),
                   const Text(
                     'Call our team and get instant assistance.',
-                    style: TextStyle(fontSize: 15, color: Colors.white),
+                    style: TextStyle(fontSize: 14, color: Colors.white),
                   ),
                   const SizedBox(height: 20),
 
@@ -263,7 +265,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(width: 12),
 
             /// replace with support image
-            Image.asset('assets/pngs/support_headphone.png', height: 140),
+            Image.asset('assets/pngs/support_headphone.png', height: 100),
           ],
         ),
       ),
