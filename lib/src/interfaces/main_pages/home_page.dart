@@ -243,48 +243,58 @@ class _BookingCard extends StatelessWidget {
 class _SupportCard extends StatelessWidget {
   const _SupportCard();
 
+  static const _cardRadius = 24.0;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 180,
       decoration: BoxDecoration(
         color: _kBrandBlue,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(_cardRadius),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 96, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Need help booking a driver?',
-                  style: TextStyle(
-                    fontFamily: 'ClashGrotesk',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 24, 96, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Need help booking a driver?',
+                      style: TextStyle(
+                        fontFamily: 'ClashGrotesk',
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Call our team and get instant assistance.',
+                      style: TextStyle(
+                        fontFamily: 'ClashGrotesk',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white.withValues(alpha: 0.88),
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 6),
-                Text(
-                  'Call our team and get instant assistance.',
-                  style: TextStyle(
-                    fontFamily: 'ClashGrotesk',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withValues(alpha: 0.88),
-                    height: 1.3,
-                  ),
-                ),
-                SizedBox(height: 24),
-                _PhonePill(),
-              ],
-            ),
+              ),
+              SizedBox(height: 30),
+              // const Spacer(),
+              const Align(
+                alignment: Alignment.bottomLeft,
+                child: _PhoneStrip(),
+              ),
+            ],
           ),
           Positioned(
             right: 8,
@@ -303,30 +313,40 @@ class _SupportCard extends StatelessWidget {
   }
 }
 
-class _PhonePill extends StatelessWidget {
-  const _PhonePill();
+/// Flush left, square left edge, pill-shaped right, gold border on top + right.
+class _PhoneStrip extends StatelessWidget {
+  const _PhoneStrip();
+
+  static const _pillRadius = 50.0;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 7, 14, 7),
+      padding: const EdgeInsets.fromLTRB(14, 9, 22, 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(50),
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(_pillRadius),
+          bottomRight: Radius.circular(_pillRadius),
+        ),
+        border: const Border(
+          top: BorderSide(color: _kGoldBorder, width: 1.2),
+          right: BorderSide(color: _kGoldBorder, width: 1.2),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            height: 34,
-            width: 34,
+            height: 36,
+            width: 36,
             decoration: const BoxDecoration(
               color: _kCallGold,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.call, color: Colors.white, size: 17),
+            child: const Icon(Icons.call, color: Colors.white, size: 18),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -336,7 +356,7 @@ class _PhonePill extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'ClashGrotesk',
                   fontWeight: FontWeight.w700,
-                  fontSize: 13,
+                  fontSize: 14,
                   color: Colors.black,
                   height: 1.15,
                 ),
