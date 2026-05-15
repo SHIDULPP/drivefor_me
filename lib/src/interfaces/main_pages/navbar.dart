@@ -184,7 +184,7 @@ class _FloatingNavBar extends StatelessWidget {
               onTap: () => onTap(selectedIndex),
               child: _ActiveCircle(
                 diameter: circleDiameter,
-                icon: _navItems[selectedIndex].activeIcon,
+                icon: _navItems[selectedIndex].inactiveIcon,
               ),
             ),
           ),
@@ -223,7 +223,12 @@ class _ActiveCircle extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: SvgPicture.asset(icon, width: 26, height: 26),
+      child: SvgPicture.asset(
+        icon,
+        width: 26,
+        height: 26,
+        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      ),
     );
   }
 }
@@ -255,22 +260,29 @@ class _NotchBarPainter extends CustomPainter {
     final centerX = itemWidth * selectedIndex + itemWidth / 2;
 
     const cornerRadius = 34.0;
+    final notchWidth = notchRadius * 1.8;
+    const notchDepth = 48.0;
 
-    final notchWidth = notchRadius * 2.4;
-    const notchDepth = 50.0;
+    final notchStart = (centerX - notchWidth < cornerRadius)
+        ? cornerRadius
+        : centerX - notchWidth;
+    final notchEnd = (centerX + notchWidth > size.width - cornerRadius)
+        ? size.width - cornerRadius
+        : centerX + notchWidth;
 
     path.moveTo(0, cornerRadius);
-
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
 
     // LEFT SIDE BEFORE NOTCH
-    path.lineTo(centerX - notchWidth, 0);
+    if (notchStart > cornerRadius) {
+      path.lineTo(notchStart, 0);
+    }
 
     // LEFT CURVE DOWN
     path.cubicTo(
-      centerX - notchWidth + 25,
+      notchStart + (centerX - notchStart) * 0.4,
       0,
-      centerX - notchWidth + 35,
+      notchStart + (centerX - notchStart) * 0.6,
       notchDepth,
       centerX,
       notchDepth,
@@ -278,16 +290,18 @@ class _NotchBarPainter extends CustomPainter {
 
     // RIGHT CURVE UP
     path.cubicTo(
-      centerX + notchWidth - 35,
+      notchEnd - (notchEnd - centerX) * 0.6,
       notchDepth,
-      centerX + notchWidth - 25,
+      notchEnd - (notchEnd - centerX) * 0.4,
       0,
-      centerX + notchWidth,
+      notchEnd,
       0,
     );
 
     // TOP RIGHT
-    path.lineTo(size.width - cornerRadius, 0);
+    if (notchEnd < size.width - cornerRadius) {
+      path.lineTo(size.width - cornerRadius, 0);
+    }
 
     path.quadraticBezierTo(size.width, 0, size.width, cornerRadius);
 
