@@ -1,4 +1,3 @@
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/providers/nav_provider.dart';
 import 'package:driveforme_user/src/data/services/haptic_helper.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/home_page.dart';
@@ -8,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-// ── Nav item model ────────────────────────────────────────────────────────────
+const _kBrandBlue = Color(0xFF04599C);
+const _kInactiveGrey = Color(0xFF888888);
 
 class _NavItem {
   final String label;
@@ -40,8 +40,6 @@ const _navItems = [
   ),
 ];
 
-// ── NavBar widget ─────────────────────────────────────────────────────────────
-
 class NavBar extends ConsumerStatefulWidget {
   const NavBar({super.key});
 
@@ -64,7 +62,7 @@ class _NavBarState extends ConsumerState<NavBar> {
         }
       },
       child: Scaffold(
-        backgroundColor: kWhite,
+        backgroundColor: const Color(0xFFF2F4F7),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           switchInCurve: Curves.easeOut,
@@ -90,8 +88,6 @@ class _NavBarState extends ConsumerState<NavBar> {
   }
 }
 
-// ── Floating nav bar with notch ───────────────────────────────────────────────
-
 class _FloatingNavBar extends StatelessWidget {
   final int selectedIndex;
   final void Function(int) onTap;
@@ -100,18 +96,18 @@ class _FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Total bar height (visible white area) + extra for the floating circle
-    const double barHeight = 72;
-    const double circleRadius = 34;
-    const double circleElevation = 28; // how far the circle floats above bar
+    const double barHeight = 68;
+    const double circleDiameter = 64;
+    const double circleRadius = circleDiameter / 2;
+    const double circleLift = 26;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return SizedBox(
-      height:
-          barHeight + circleElevation + MediaQuery.of(context).padding.bottom,
+      height: barHeight + circleLift + bottomInset,
       child: Stack(
         clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
         children: [
-          // ── White bar with notch ──────────────────────────────────────
           Positioned(
             left: 0,
             right: 0,
@@ -120,91 +116,76 @@ class _FloatingNavBar extends StatelessWidget {
               painter: _NotchBarPainter(
                 selectedIndex: selectedIndex,
                 itemCount: _navItems.length,
-                circleRadius: circleRadius + 6, // notch slightly wider
-                bottomPadding: MediaQuery.of(context).padding.bottom,
+                notchRadius: circleRadius + 10,
+                bottomPadding: bottomInset,
               ),
-              child: SizedBox(
-                height: barHeight + MediaQuery.of(context).padding.bottom,
-              ),
+              child: SizedBox(height: barHeight + bottomInset),
             ),
           ),
-
-          // ── Inactive tap targets ──────────────────────────────────────
           Positioned(
             left: 0,
             right: 0,
-            bottom: MediaQuery.of(context).padding.bottom,
-            child: SizedBox(
-              height: barHeight,
-              child: Row(
-                children: List.generate(_navItems.length, (i) {
-                  final item = _navItems[i];
-                  final isSelected = i == selectedIndex;
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => onTap(i),
-                      behavior: HitTestBehavior.opaque,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Reserve space for the floating circle on active
-                          SizedBox(height: isSelected ? circleElevation : 0),
-                          if (!isSelected) ...[
-                            SvgPicture.asset(
-                              item.inactiveIcon,
-                              width: 26,
-                              height: 26,
-                              colorFilter: const ColorFilter.mode(
-                                Color(0xFF9CA3AF),
-                                BlendMode.srcIn,
-                              ),
+            bottom: bottomInset,
+            height: barHeight,
+            child: Row(
+              children: List.generate(_navItems.length, (i) {
+                final item = _navItems[i];
+                final isSelected = i == selectedIndex;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => onTap(i),
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        SizedBox(height: isSelected ? circleLift + 6 : 8),
+                        if (!isSelected) ...[
+                          SvgPicture.asset(
+                            item.inactiveIcon,
+                            width: 24,
+                            height: 24,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            item.label,
+                            style: const TextStyle(
+                              fontFamily: 'ClashGrotesk',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _kInactiveGrey,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.label,
-                              style: const TextStyle(
-                                fontFamily: 'ClashGrotesk',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF9CA3AF),
-                              ),
+                          ),
+                        ] else ...[
+                          const SizedBox(height: circleDiameter - 8),
+                          Text(
+                            item.label,
+                            style: const TextStyle(
+                              fontFamily: 'ClashGrotesk',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _kBrandBlue,
                             ),
-                          ] else ...[
-                            // Label below the floating circle
-                            const SizedBox(height: 4),
-                            Text(
-                              item.label,
-                              style: const TextStyle(
-                                fontFamily: 'ClashGrotesk',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: kPrimaryColor,
-                              ),
-                            ),
-                          ],
+                          ),
                         ],
-                      ),
+                        const SizedBox(height: 8),
+                      ],
                     ),
-                  );
-                }),
-              ),
+                  ),
+                );
+              }),
             ),
           ),
-
-          // ── Floating active circle ────────────────────────────────────
           AnimatedPositioned(
-            duration: const Duration(milliseconds: 280),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            bottom:
-                MediaQuery.of(context).padding.bottom +
-                barHeight -
-                circleRadius -
-                circleElevation +
-                8,
+            bottom: bottomInset + barHeight - circleRadius - 6,
             left: _circleLeft(context, selectedIndex, circleRadius),
-            child: _ActiveCircle(
-              radius: circleRadius,
-              icon: _navItems[selectedIndex].activeIcon,
+            child: GestureDetector(
+              onTap: () => onTap(selectedIndex),
+              child: _ActiveCircle(
+                diameter: circleDiameter,
+                icon: _navItems[selectedIndex].activeIcon,
+              ),
             ),
           ),
         ],
@@ -213,117 +194,111 @@ class _FloatingNavBar extends StatelessWidget {
   }
 
   double _circleLeft(BuildContext context, int index, double radius) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final itemWidth = screenWidth / _navItems.length;
     return itemWidth * index + itemWidth / 2 - radius;
   }
 }
 
-// ── Active floating circle ────────────────────────────────────────────────────
-
 class _ActiveCircle extends StatelessWidget {
-  final double radius;
+  final double diameter;
   final String icon;
 
-  const _ActiveCircle({required this.radius, required this.icon});
+  const _ActiveCircle({required this.diameter, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: radius * 2,
-      height: radius * 2,
+      width: diameter,
+      height: diameter,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: kPrimaryColor,
+        color: _kBrandBlue,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0D2A4D).withValues(alpha: 0.55),
-            blurRadius: 14,
-            spreadRadius: 2,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF0D2A4D).withValues(alpha: 0.35),
+            blurRadius: 16,
+            spreadRadius: 0,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Center(
-        child: SvgPicture.asset(
-          icon,
-          width: radius * 0.9,
-          height: radius * 0.9,
-          colorFilter: const ColorFilter.mode(kWhite, BlendMode.srcIn),
-        ),
+      alignment: Alignment.center,
+      child: SvgPicture.asset(
+        icon,
+        width: 26,
+        height: 26,
       ),
     );
   }
 }
 
-// ── Custom painter for the notched white bar ──────────────────────────────────
-
 class _NotchBarPainter extends CustomPainter {
   final int selectedIndex;
   final int itemCount;
-  final double circleRadius;
+  final double notchRadius;
   final double bottomPadding;
 
   const _NotchBarPainter({
     required this.selectedIndex,
     required this.itemCount,
-    required this.circleRadius,
+    required this.notchRadius,
     required this.bottomPadding,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = kWhite
-      ..style = PaintingStyle.fill;
-
-    final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.08)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    const topCornerRadius = 22.0;
+    const notchDepth = 30.0;
 
     final itemWidth = size.width / itemCount;
     final centerX = itemWidth * selectedIndex + itemWidth / 2;
-
-    // Notch geometry
-    const double notchDepth = 28.0;
-    final double notchWidth = circleRadius * 2 + 16;
-    final double notchLeft = centerX - notchWidth / 2;
-    final double notchRight = centerX + notchWidth / 2;
-    const double curveControl = 18.0;
+    final notchHalfWidth = notchRadius + 6;
 
     final path = Path();
 
-    // Start top-left
-    path.moveTo(0, 0);
+    // Top edge with outer rounded corners and centre notch
+    path.moveTo(0, topCornerRadius);
+    path.quadraticBezierTo(0, 0, topCornerRadius, 0);
 
-    // Line to notch left approach
-    path.lineTo(notchLeft - curveControl, 0);
+    final notchStart = centerX - notchHalfWidth;
+    final notchEnd = centerX + notchHalfWidth;
 
-    // Smooth curve down into notch
-    path.cubicTo(notchLeft, 0, notchLeft, notchDepth, centerX, notchDepth);
+    path.lineTo(notchStart - 14, 0);
 
-    // Smooth curve back up from notch
     path.cubicTo(
-      notchRight,
-      notchDepth,
-      notchRight,
+      notchStart,
       0,
-      notchRight + curveControl,
+      notchStart + 8,
+      notchDepth,
+      centerX,
+      notchDepth,
+    );
+
+    path.cubicTo(
+      notchEnd - 8,
+      notchDepth,
+      notchEnd,
+      0,
+      notchEnd + 14,
       0,
     );
 
-    // Line to top-right
-    path.lineTo(size.width, 0);
+    path.lineTo(size.width - topCornerRadius, 0);
+    path.quadraticBezierTo(size.width, 0, size.width, topCornerRadius);
 
-    // Down the right side, bottom, left side
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
 
-    // Draw shadow first
-    canvas.drawPath(path, shadowPaint);
-    // Draw white fill
-    canvas.drawPath(path, paint);
+    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.12), 10, false);
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override

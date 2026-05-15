@@ -1,0 +1,43 @@
+---
+description: Xyvin-style Flutter layering, Riverpod, routing (shared with 24-connect)
+alwaysApply: true
+---
+
+# Flutter app architecture (Xyvin / 24-connect pattern)
+
+This project (`driveforme_user`) follows the same conventions as **24-connect-app**.
+
+## Layout
+
+- `lib/main.dart` — bootstrap only (`WidgetsBinding` when needed, optional Firebase/dotenv, `runApp`).
+- `lib/src/data/` — models, providers, services, router, constants, utils (no feature widgets).
+- `lib/src/interfaces/` — all `Widget` code: `onboarding/`, `main_pages/<feature>/`, `components/`.
+
+Imports: `package:driveforme_user/...` (paths under `lib/`).
+
+## State (Riverpod 3)
+
+- Prefer `riverpod_annotation` + `part '*.g.dart'` + `build_runner` when adding generated providers (add deps to match 24-connect if you adopt codegen).
+- Shared HTTP: one `ApiProvider` + `@riverpod` factory; `BASE_URL` / `API_KEY` from dotenv; Bearer via `AuthProvider` / secure storage when you add APIs.
+- Feature APIs: small `*Api` classes; inject `apiProviderProvider`.
+- Async domain: `@Riverpod(keepAlive: true) class X extends _$X` with `Future<T> build()`; parse responses into models; optional cache fallback; `refresh()` → `ref.invalidateSelf()`.
+- Lightweight shell UI state: `StateProvider` / `StateNotifierProvider` (`flutter_riverpod/legacy.dart`) is fine for tabs and similar.
+
+## Navigation
+
+- `MaterialApp`: `navigatorKey` from `NavigationService`, `onGenerateRoute`, string `initialRoute`.
+- Central `generateRoute(RouteSettings)`; optional `Map` args for `PageRouteBuilder` transitions (match 24-connect router style as you grow).
+
+## Cross-cutting
+
+- `ProviderScope` at root; nested `ProviderScope(overrides: [...])` for `ScreenSizeScope` / responsive data.
+- Secrets: `.env` + `flutter_dotenv` when backend is wired; list in `pubspec` assets if bundled.
+- i18n: `easy_localization` + `assets/translations/` when you add locales.
+- Theming: root `ThemeData`; brand tokens in `lib/src/data/constants/` (this app uses `colour_constants.dart` — keep tokens centralized).
+
+## Do / Don’t
+
+- **Do** keep API parsing and persistence in the data layer.
+- **Do** use `*_provider.dart`, `*_service.dart`, `*_model.dart` naming.
+- **Don’t** add `go_router` unless the team explicitly migrates.
+- **Don’t** put HTTP clients or token storage inside `interfaces/`.
