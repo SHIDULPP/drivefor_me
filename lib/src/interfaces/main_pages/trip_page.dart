@@ -1,14 +1,6 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
+import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:flutter/material.dart';
-
-const _kScreenBg = Color(0xFFF2F4F7);
-const _kBrandBlue = Color(0xFF04599C);
-const _kTabGold = Color(0xFFC58A38);
-const _kActiveGreen = Color(0xFF17A34A);
-const _kActiveGreenBg = Color(0xFFE4F3E7);
-const _kDropBlue = Color(0xFF0B5EA8);
-const _kChipGreyBg = Color(0xFFF3F4EE);
-const _kMutedText = Color(0xFF888888);
-const _kLineGrey = Color(0xFFD8D8DE);
 
 class TripsPage extends StatefulWidget {
   const TripsPage({super.key});
@@ -26,11 +18,11 @@ class _TripsPageState extends State<TripsPage> {
     final topInset = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
-      backgroundColor: _kScreenBg,
+      backgroundColor: kScreenBg,
       body: Column(
         children: [
           ColoredBox(
-            color: _kBrandBlue,
+            color: kBrandBlue,
             child: SizedBox(height: topInset),
           ),
           _TripsTabBar(
@@ -78,8 +70,8 @@ class _TripsTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.only(top: 4, bottom: 0),
+      color: kWhite,
+      padding: const EdgeInsets.only(top: 4),
       child: Row(
         children: List.generate(tabs.length, (i) {
           return Expanded(
@@ -117,13 +109,7 @@ class _TabItem extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             label,
-            style: TextStyle(
-              fontFamily: 'ClashGrotesk',
-              fontSize: 14,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-              color: selected ? _kTabGold : Colors.black,
-              height: 1.2,
-            ),
+            style: selected ? kTabLabelM : kTabLabelR,
           ),
           const SizedBox(height: 14),
           AnimatedContainer(
@@ -131,7 +117,7 @@ class _TabItem extends StatelessWidget {
             height: 2,
             width: selected ? 52 : 0,
             decoration: BoxDecoration(
-              color: _kTabGold,
+              color: kGoldAccent,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -150,11 +136,11 @@ class _OngoingTripCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: kWhite,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: kBlack.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -166,7 +152,7 @@ class _OngoingTripCard extends StatelessWidget {
           Row(
             children: [
               _StatusChip(
-                background: _kActiveGreenBg,
+                background: kActiveGreenBg,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -174,42 +160,31 @@ class _OngoingTripCard extends StatelessWidget {
                       width: 7,
                       height: 7,
                       decoration: const BoxDecoration(
-                        color: _kActiveGreen,
+                        color: kActiveGreen,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      'Active Trip',
-                      style: TextStyle(
-                        fontFamily: 'ClashGrotesk',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _kActiveGreen,
-                      ),
-                    ),
+                    Text('Active Trip', style: kTripBadgeSB),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
               _StatusChip(
-                background: _kChipGreyBg,
+                background: kChipGreyBg,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.arrow_right_alt_rounded,
                       size: 18,
-                      color: Colors.black.withValues(alpha: 0.65),
+                      color: kBlack.withValues(alpha: 0.65),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'One Way',
-                      style: TextStyle(
-                        fontFamily: 'ClashGrotesk',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black.withValues(alpha: 0.75),
+                      style: kTripChipR.copyWith(
+                        color: kBlack.withValues(alpha: 0.75),
                       ),
                     ),
                   ],
@@ -219,7 +194,7 @@ class _OngoingTripCard extends StatelessWidget {
               Icon(
                 Icons.more_horiz_rounded,
                 size: 26,
-                color: Colors.black.withValues(alpha: 0.85),
+                color: kBlack.withValues(alpha: 0.85),
               ),
             ],
           ),
@@ -231,16 +206,7 @@ class _OngoingTripCard extends StatelessWidget {
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  '₹ 235',
-                  style: TextStyle(
-                    fontFamily: 'ClashGrotesk',
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: _kBrandBlue,
-                    height: 1.1,
-                  ),
-                ),
+                child: Text('₹ 235', style: kLabel22B),
               ),
             ],
           ),
@@ -252,27 +218,15 @@ class _OngoingTripCard extends StatelessWidget {
               Icon(
                 Icons.access_time_rounded,
                 size: 18,
-                color: Colors.black.withValues(alpha: 0.45),
+                color: kBlack.withValues(alpha: 0.45),
               ),
               const SizedBox(width: 8),
               RichText(
                 text: TextSpan(
-                  style: TextStyle(
-                    fontFamily: 'ClashGrotesk',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: _kMutedText,
-                    height: 1.3,
-                  ),
-                  children: const [
-                    TextSpan(text: 'Estimated arrival in '),
-                    TextSpan(
-                      text: '10 min',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  style: kCaption13R.copyWith(height: 1.3),
+                  children: [
+                    const TextSpan(text: 'Estimated arrival in '),
+                    TextSpan(text: '10 min', style: kCaption13SB),
                   ],
                 ),
               ),
@@ -285,29 +239,17 @@ class _OngoingTripCard extends StatelessWidget {
               Icon(
                 Icons.calendar_month_outlined,
                 size: 18,
-                color: Colors.black.withValues(alpha: 0.45),
+                color: kBlack.withValues(alpha: 0.45),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: RichText(
                   text: TextSpan(
-                    style: TextStyle(
-                      fontFamily: 'ClashGrotesk',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: _kMutedText,
-                      height: 1.35,
-                    ),
-                    children: const [
-                      TextSpan(text: 'Today, '),
-                      TextSpan(
-                        text: '01:15 PM',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextSpan(text: ' • 1 hrs 15 min • 12 km'),
+                    style: kCaption12R.copyWith(height: 1.35),
+                    children: [
+                      const TextSpan(text: 'Today, '),
+                      TextSpan(text: '01:15 PM', style: kCaption13SB),
+                      const TextSpan(text: ' • 1 hrs 15 min • 12 km'),
                     ],
                   ),
                 ),
@@ -349,9 +291,9 @@ class _RouteStops extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _RouteRow(
+        const _RouteRow(
           icon: Icons.location_on_rounded,
-          iconColor: _kActiveGreen,
+          iconColor: kActiveGreen,
           label: 'Edappally, Lulu Mall',
         ),
         Padding(
@@ -360,12 +302,12 @@ class _RouteStops extends StatelessWidget {
             width: 1.5,
             height: 22,
             margin: const EdgeInsets.symmetric(vertical: 2),
-            color: _kLineGrey,
+            color: kLineGrey,
           ),
         ),
-        _RouteRow(
+        const _RouteRow(
           icon: Icons.location_on_rounded,
-          iconColor: _kDropBlue,
+          iconColor: kDropBlue,
           label: 'Infopark, Kakkanad',
         ),
       ],
@@ -396,12 +338,8 @@ class _RouteRow extends StatelessWidget {
             padding: const EdgeInsets.only(top: 1),
             child: Text(
               label,
-              style: TextStyle(
-                fontFamily: 'ClashGrotesk',
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: Colors.black.withValues(alpha: 0.9),
-                height: 1.25,
+              style: kLabel15M.copyWith(
+                color: kTextColor.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -418,7 +356,7 @@ class _DashedDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: const Size(double.infinity, 1),
-      painter: _DashedLinePainter(color: _kLineGrey),
+      painter: _DashedLinePainter(color: kLineGrey),
     );
   }
 }
@@ -458,15 +396,7 @@ class _EmptyTripsMessage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 48),
       child: Center(
-        child: Text(
-          'No $tab trips',
-          style: TextStyle(
-            fontFamily: 'ClashGrotesk',
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: _kMutedText,
-          ),
-        ),
+        child: Text('No $tab trips', style: kEmptyStateM),
       ),
     );
   }
@@ -480,23 +410,14 @@ class _TrackTripButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _kBrandBlue,
+      color: kBrandBlue,
       borderRadius: BorderRadius.circular(6),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(6),
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text(
-            'Track Trip',
-            style: TextStyle(
-              fontFamily: 'ClashGrotesk',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              height: 1.1,
-            ),
-          ),
+          child: Text('Track Trip', style: kTrackTripSB),
         ),
       ),
     );

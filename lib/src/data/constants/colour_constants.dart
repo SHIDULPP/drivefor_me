@@ -34,3 +34,20 @@ const Color kGreen = Color.fromARGB(255, 76, 175, 80);
 const Color kOrange = Color(0xFFFF6900);
 const Color kBlue = Color(0xFF2B74E1);
 const Color kLightGreen = Color.fromARGB(255, 192, 252, 194);
+
+// ── Main app screens (home, trips, nav) ───────────────────────────────────────
+
+const Color kScreenBg = Color(0xFFF2F4F7);
+const Color kBrandBlue = Color(0xFF04599C);
+const Color kGold = Color(0xFFB77728);
+const Color kGoldAccent = Color(0xFFC58A38);
+
+const Color kActiveGreen = Color(0xFF17A34A);
+const Color kActiveGreenBg = Color(0xFFE4F3E7);
+const Color kDropBlue = Color(0xFF0B5EA8);
+
+const Color kChipGreyBg = Color(0xFFF3F4EE);
+const Color kSearchFieldBg = Color(0xFFF4F5EF);
+const Color kDecorText = Color(0xFFD8D8DD);
+const Color kLineGrey = Color(0xFFD8D8DE);
+const Color kMutedText = Color(0xFF888888);

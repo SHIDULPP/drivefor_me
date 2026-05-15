@@ -1,11 +1,6 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
+import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:flutter/material.dart';
-
-const _kScreenBg = Color(0xFFF2F4F7);
-const _kBrandBlue = Color(0xFF04599C);
-const _kGold = Color(0xFFB77728);
-const _kGoldBorder = Color(0xFFC58A38);
-const _kCallGold = Color(0xFFC58A38);
-const _kDecorText = Color(0xFFD8D8DD);
 
 /// Nav bar body clearance: bar (68) + floating lift (26) + safe padding.
 double _navBarClearance(BuildContext context) =>
@@ -17,7 +12,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _kScreenBg,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -46,7 +41,6 @@ class _HeaderWithBookingCard extends StatelessWidget {
 
   static const _headerHeight = 220.0;
   static const _cardTop = 120.0;
-  // cardTop + booking card (~158) + small buffer
   static const _stackHeight = 262.0;
 
   @override
@@ -60,7 +54,7 @@ class _HeaderWithBookingCard extends StatelessWidget {
             width: double.infinity,
             height: _headerHeight,
             decoration: const BoxDecoration(
-              color: _kBrandBlue,
+              color: kBrandBlue,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32),
                 bottomRight: Radius.circular(32),
@@ -74,33 +68,21 @@ class _HeaderWithBookingCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Hii Catherine!',
-                        style: TextStyle(
-                          fontFamily: 'ClashGrotesk',
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          height: 1.15,
-                        ),
-                      ),
+                      Text('Hii Catherine!', style: kLabel22White),
                       const SizedBox(height: 6),
                       Row(
                         children: [
                           const Icon(
                             Icons.location_on_outlined,
-                            color: Colors.white,
+                            color: kWhite,
                             size: 16,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               'Edappally, Lulu Mall',
-                              style: TextStyle(
-                                fontFamily: 'ClashGrotesk',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white.withValues(alpha: 0.95),
+                              style: kCaption14R.copyWith(
+                                color: kWhite.withValues(alpha: 0.95),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -114,11 +96,11 @@ class _HeaderWithBookingCard extends StatelessWidget {
                   height: 46,
                   width: 46,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.14),
+                    color: kWhite.withValues(alpha: 0.14),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: kBlack.withValues(alpha: 0.1),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -126,7 +108,7 @@ class _HeaderWithBookingCard extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.notifications_none_rounded,
-                    color: Colors.white,
+                    color: kWhite,
                     size: 24,
                   ),
                 ),
@@ -153,11 +135,11 @@ class _BookingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: kWhite,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: kBlack.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -175,24 +157,9 @@ class _BookingCard extends StatelessWidget {
                 children: [
                   Text(
                     'Book Your',
-                    style: TextStyle(
-                      fontFamily: 'ClashGrotesk',
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      height: 1.1,
-                    ),
+                    style: kLabel17B.copyWith(color: kTextColor),
                   ),
-                  Text(
-                    'Personal Driver',
-                    style: TextStyle(
-                      fontFamily: 'ClashGrotesk',
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: _kGold,
-                      height: 1.1,
-                    ),
-                  ),
+                  Text('Personal Driver', style: kLabel17BGold),
                 ],
               ),
               Expanded(
@@ -210,25 +177,22 @@ class _BookingCard extends StatelessWidget {
             height: 42,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF4F5EF),
+              color: kSearchFieldBg,
               borderRadius: BorderRadius.circular(50),
-              border: Border.all(color: _kGoldBorder, width: 1.1),
+              border: Border.all(color: kGoldAccent, width: 1.1),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.search_rounded,
                   size: 20,
-                  color: Colors.black.withValues(alpha: 0.45),
+                  color: kBlack.withValues(alpha: 0.45),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   'Where to go?',
-                  style: TextStyle(
-                    fontFamily: 'ClashGrotesk',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black.withValues(alpha: 0.45),
+                  style: kCaption14R.copyWith(
+                    color: kBlack.withValues(alpha: 0.45),
                   ),
                 ),
               ],
@@ -250,7 +214,7 @@ class _SupportCard extends StatelessWidget {
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: _kBrandBlue,
+        color: kBrandBlue,
         borderRadius: BorderRadius.circular(_cardRadius),
       ),
       clipBehavior: Clip.antiAlias,
@@ -266,30 +230,19 @@ class _SupportCard extends StatelessWidget {
                   children: [
                     Text(
                       'Need help booking a driver?',
-                      style: TextStyle(
-                        fontFamily: 'ClashGrotesk',
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        height: 1.2,
-                      ),
+                      style: kSupportTitleB,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Call our team and get instant assistance.',
-                      style: TextStyle(
-                        fontFamily: 'ClashGrotesk',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white.withValues(alpha: 0.88),
-                        height: 1.3,
+                      style: kSupportSubtitleR.copyWith(
+                        color: kWhite.withValues(alpha: 0.88),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 30),
-              // const Spacer(),
+              const SizedBox(height: 30),
               const Align(
                 alignment: Alignment.bottomLeft,
                 child: _PhoneStrip(),
@@ -313,7 +266,6 @@ class _SupportCard extends StatelessWidget {
   }
 }
 
-/// Flush left, square left edge, pill-shaped right, gold border on top + right.
 class _PhoneStrip extends StatelessWidget {
   const _PhoneStrip();
 
@@ -324,14 +276,14 @@ class _PhoneStrip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 9, 22, 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: kWhite,
         borderRadius: const BorderRadius.only(
           topRight: Radius.circular(_pillRadius),
           bottomRight: Radius.circular(_pillRadius),
         ),
         border: const Border(
-          top: BorderSide(color: _kGoldBorder, width: 1.2),
-          right: BorderSide(color: _kGoldBorder, width: 1.2),
+          top: BorderSide(color: kGoldAccent, width: 1.2),
+          right: BorderSide(color: kGoldAccent, width: 1.2),
         ),
       ),
       child: Row(
@@ -341,34 +293,21 @@ class _PhoneStrip extends StatelessWidget {
             height: 36,
             width: 36,
             decoration: const BoxDecoration(
-              color: _kCallGold,
+              color: kGoldAccent,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.call, color: Colors.white, size: 18),
+            child: const Icon(Icons.call, color: kWhite, size: 18),
           ),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '+91 75929 33933',
-                style: TextStyle(
-                  fontFamily: 'ClashGrotesk',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: Colors.black,
-                  height: 1.15,
-                ),
-              ),
+              Text('+91 75929 33933', style: kPhoneNumberB),
               Text(
                 '24/7 Support',
-                style: TextStyle(
-                  fontFamily: 'ClashGrotesk',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.black.withValues(alpha: 0.55),
-                  height: 1.15,
+                style: kPhoneSupportR.copyWith(
+                  color: kBlack.withValues(alpha: 0.55),
                 ),
               ),
             ],
@@ -389,48 +328,24 @@ class _DecorativeFooter extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Text(
             'YOUR TRUSTED\nDRIVER,\nJUST A TAP AWAY!',
-            style: TextStyle(
-              fontFamily: 'ClashGrotesk',
-              fontSize: 36,
-              height: 1.05,
-              fontWeight: FontWeight.w900,
-              color: _kDecorText,
-              letterSpacing: -0.3,
-            ),
+            style: kDecorTitleEB,
           ),
           const SizedBox(height: 14),
           Center(
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: TextStyle(
-                  fontFamily: 'ClashGrotesk',
-                  color: Colors.black.withValues(alpha: 0.8),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  height: 1.35,
+                style: kFooterCaptionR.copyWith(
+                  color: kBlack.withValues(alpha: 0.8),
                 ),
-                children: const [
-                  TextSpan(text: 'Powered by '),
-                  TextSpan(
-                    text: 'Skybertech',
-                    style: TextStyle(
-                      color: _kBrandBlue,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  TextSpan(text: ' & Developed by '),
-                  TextSpan(
-                    text: 'Xyvin Technologies',
-                    style: TextStyle(
-                      color: _kBrandBlue,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                children: [
+                  const TextSpan(text: 'Powered by '),
+                  TextSpan(text: 'Skybertech', style: kFooterBrandB),
+                  const TextSpan(text: ' & Developed by '),
+                  TextSpan(text: 'Xyvin Technologies', style: kFooterBrandB),
                 ],
               ),
             ),

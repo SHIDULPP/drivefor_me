@@ -1,3 +1,5 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
+import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/nav_provider.dart';
 import 'package:driveforme_user/src/data/services/haptic_helper.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/home_page.dart';
@@ -6,9 +8,6 @@ import 'package:driveforme_user/src/interfaces/main_pages/trip_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-const _kBrandBlue = Color(0xFF04599C);
-const _kInactiveGrey = Color(0xFF888888);
 
 class _NavItem {
   final String label;
@@ -62,7 +61,7 @@ class _NavBarState extends ConsumerState<NavBar> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF2F4F7),
+        backgroundColor: kScreenBg,
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           switchInCurve: Curves.easeOut,
@@ -146,26 +145,10 @@ class _FloatingNavBar extends StatelessWidget {
                             height: 24,
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            item.label,
-                            style: const TextStyle(
-                              fontFamily: 'ClashGrotesk',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: _kInactiveGrey,
-                            ),
-                          ),
+                          Text(item.label, style: kNavLabelR),
                         ] else ...[
                           const SizedBox(height: circleDiameter - 8),
-                          Text(
-                            item.label,
-                            style: const TextStyle(
-                              fontFamily: 'ClashGrotesk',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _kBrandBlue,
-                            ),
-                          ),
+                          Text(item.label, style: kNavLabelM),
                         ],
                         const SizedBox(height: 8),
                       ],
@@ -213,7 +196,7 @@ class _ActiveCircle extends StatelessWidget {
       height: diameter,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _kBrandBlue,
+        color: kBrandBlue,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.18),
@@ -227,7 +210,7 @@ class _ActiveCircle extends StatelessWidget {
         icon,
         width: 26,
         height: 26,
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        colorFilter: const ColorFilter.mode(kWhite, BlendMode.srcIn),
       ),
     );
   }
@@ -248,10 +231,8 @@ class _NotchBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const bgColor = Colors.white;
-
     final paint = Paint()
-      ..color = bgColor
+      ..color = kWhite
       ..style = PaintingStyle.fill;
 
     final path = Path();

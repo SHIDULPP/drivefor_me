@@ -30,6 +30,15 @@ const double kSubHeading = 18;
 const double kBody = 32;
 const double kSize30 = 30;
 const double kSize28 = 28;
+const double kSize11 = 11;
+const double kSize12 = 12;
+const double kSize13 = 13;
+const double kSize14 = 14;
+const double kSize15 = 15;
+const double kSize17 = 17;
+const double kSize22 = 22;
+const double kSize34 = 34;
+const double kSize36 = 36;
 
 // ================= BASE STYLE =================
 
@@ -114,3 +123,52 @@ final kSmallerTitleM = kStyle(kMedium, kSize28);
 final kSmallerTitleSB = kStyle(kSemiBold, kSize28);
 final kSmallerTitleB = kStyle(kBold, kSize28);
 final kSmallerTitleEB = kStyle(kExtraBold, kSize28);
+
+// ── Compact UI (home, trips, bottom nav) ──────────────────────────────────────
+
+final kCaption11R = kStyle(kRegular, kSize11);
+final kCaption12R = kStyle(kRegular, kSize12, color: kMutedText);
+final kCaption13R = kStyle(kRegular, kSize13, color: kMutedText);
+final kCaption13SB = kStyle(kSemiBold, kSize13, color: kTextColor);
+final kCaption14R = kStyle(kRegular, kSize14);
+final kCaption14M = kStyle(kMedium, kSize14);
+final kCaption14B = kStyle(kSemiBold, kSize14, color: kTextColor);
+final kCaption15M = kStyle(kMedium, kSize15, color: kMutedText);
+
+final kLabel15M = kStyle(kMedium, kSize15, color: kTextColor, height: 1.25);
+final kLabel17B = kStyle(kSemiBold, kSize17, height: 1.1);
+final kLabel17BGold = kStyle(kSemiBold, kSize17, color: kGold, height: 1.1);
+final kLabel22B = kStyle(kSemiBold, kSize22, color: kBrandBlue, height: 1.1);
+final kLabel22White = kStyle(kSemiBold, kSize22, color: kWhite, height: 1.15);
+
+final kTabLabelR = kStyle(kRegular, kSize14, color: kTextColor);
+final kTabLabelM = kStyle(kMedium, kSize14, color: kGoldAccent);
+
+final kNavLabelR = kStyle(kRegular, kSize12, color: kMutedText);
+final kNavLabelM = kStyle(kMedium, kSize12, color: kBrandBlue);
+
+final kTripBadgeSB = kStyle(kSemiBold, kSize13, color: kActiveGreen);
+final kTripChipR = kStyle(kRegular, kSize13);
+final kTrackTripSB = kStyle(kSemiBold, kSize14, color: kWhite, height: 1.1);
+
+final kSupportTitleB = kStyle(kSemiBold, kSize17, color: kWhite, height: 1.2);
+final kSupportSubtitleR = kStyle(kRegular, kSize12, color: kWhite, height: 1.3);
+final kPhoneNumberB = kStyle(
+  kSemiBold,
+  kSize14,
+  color: kTextColor,
+  height: 1.15,
+);
+final kPhoneSupportR = kStyle(kRegular, kSize11, height: 1.15);
+
+final kDecorTitleEB = kStyle(
+  kExtraBold,
+  kSize36,
+  color: kDecorText,
+  height: 1.05,
+  letterSpacing: -0.3,
+);
+final kFooterCaptionR = kStyle(kRegular, kSize13, height: 1.35);
+final kFooterBrandB = kStyle(kSemiBold, kSize13, color: kBrandBlue);
+
+final kEmptyStateM = kStyle(kMedium, kSize15, color: kMutedText);
