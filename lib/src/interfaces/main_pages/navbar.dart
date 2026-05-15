@@ -97,9 +97,9 @@ class _FloatingNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double barHeight = 68;
-    const double circleDiameter = 64;
+    const double circleDiameter = 72;
     const double circleRadius = circleDiameter / 2;
-    const double circleLift = 26;
+    const double circleLift = 36;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return SizedBox(
@@ -177,7 +177,7 @@ class _FloatingNavBar extends StatelessWidget {
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
+            curve: Curves.fastOutSlowIn,
             bottom: bottomInset + barHeight - circleRadius - 6,
             left: _circleLeft(context, selectedIndex, circleRadius),
             child: GestureDetector(
@@ -216,19 +216,14 @@ class _ActiveCircle extends StatelessWidget {
         color: _kBrandBlue,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0D2A4D).withValues(alpha: 0.35),
-            blurRadius: 16,
-            spreadRadius: 0,
-            offset: const Offset(0, 6),
+            color: Colors.black.withOpacity(0.18),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       alignment: Alignment.center,
-      child: SvgPicture.asset(
-        icon,
-        width: 26,
-        height: 26,
-      ),
+      child: SvgPicture.asset(icon, width: 26, height: 26),
     );
   }
 }
@@ -248,60 +243,69 @@ class _NotchBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const topCornerRadius = 22.0;
-    const notchDepth = 30.0;
+    const bgColor = Colors.white;
 
-    final itemWidth = size.width / itemCount;
-    final centerX = itemWidth * selectedIndex + itemWidth / 2;
-    final notchHalfWidth = notchRadius + 6;
+    final paint = Paint()
+      ..color = bgColor
+      ..style = PaintingStyle.fill;
 
     final path = Path();
 
-    // Top edge with outer rounded corners and centre notch
-    path.moveTo(0, topCornerRadius);
-    path.quadraticBezierTo(0, 0, topCornerRadius, 0);
+    final itemWidth = size.width / itemCount;
+    final centerX = itemWidth * selectedIndex + itemWidth / 2;
 
-    final notchStart = centerX - notchHalfWidth;
-    final notchEnd = centerX + notchHalfWidth;
+    const cornerRadius = 34.0;
 
-    path.lineTo(notchStart - 14, 0);
+    final notchWidth = notchRadius * 2.4;
+    const notchDepth = 50.0;
 
+    path.moveTo(0, cornerRadius);
+
+    path.quadraticBezierTo(0, 0, cornerRadius, 0);
+
+    // LEFT SIDE BEFORE NOTCH
+    path.lineTo(centerX - notchWidth, 0);
+
+    // LEFT CURVE DOWN
     path.cubicTo(
-      notchStart,
+      centerX - notchWidth + 25,
       0,
-      notchStart + 8,
+      centerX - notchWidth + 35,
       notchDepth,
       centerX,
       notchDepth,
     );
 
+    // RIGHT CURVE UP
     path.cubicTo(
-      notchEnd - 8,
+      centerX + notchWidth - 35,
       notchDepth,
-      notchEnd,
+      centerX + notchWidth - 25,
       0,
-      notchEnd + 14,
+      centerX + notchWidth,
       0,
     );
 
-    path.lineTo(size.width - topCornerRadius, 0);
-    path.quadraticBezierTo(size.width, 0, size.width, topCornerRadius);
+    // TOP RIGHT
+    path.lineTo(size.width - cornerRadius, 0);
 
+    path.quadraticBezierTo(size.width, 0, size.width, cornerRadius);
+
+    // RIGHT SIDE
     path.lineTo(size.width, size.height);
+
+    // BOTTOM
     path.lineTo(0, size.height);
+
     path.close();
 
-    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.12), 10, false);
+    canvas.drawShadow(path, Colors.black.withOpacity(0.12), 16, false);
 
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.fill,
-    );
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(_NotchBarPainter old) =>
-      old.selectedIndex != selectedIndex;
+  bool shouldRepaint(covariant _NotchBarPainter oldDelegate) {
+    return oldDelegate.selectedIndex != selectedIndex;
+  }
 }
