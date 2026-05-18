@@ -35,7 +35,9 @@ const double kSize12 = 12;
 const double kSize13 = 13;
 const double kSize14 = 14;
 const double kSize15 = 15;
+const double kSize16 = 16;
 const double kSize17 = 17;
+const double kSize18 = 18;
 const double kSize22 = 22;
 const double kSize34 = 34;
 const double kSize36 = 36;
@@ -172,3 +174,14 @@ final kFooterCaptionR = kStyle(kRegular, kSize13, height: 1.35);
 final kFooterBrandB = kStyle(kSemiBold, kSize13, color: kBrandBlue);
 
 final kEmptyStateM = kStyle(kMedium, kSize15, color: kMutedText);
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+
+final kProfileNameB = kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
+final kProfilePhoneR = kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
+final kMenuItemM = kStyle(kMedium, kSize16, color: kTextColor);
+final kMenuItemDangerM = kStyle(kMedium, kSize16, color: kRed);
+final kSectionLabelR = kStyle(kRegular, kSize13, color: kMutedText);
+final kQuickActionM = kStyle(kMedium, kSize13, color: kTextColor);
+final kVersionR = kStyle(kRegular, kSize12, color: kMutedText);
+final kEditProfileM = kStyle(kMedium, kSize14, color: kBrandBlue);
