@@ -256,3 +256,22 @@ final kBookingConfirmedAccentSB =
     kStyle(kSemiBold, kSize30, color: kBrandBlue, height: 1.15);
 final kBookingConfirmedSubtitleR =
     kStyle(kRegular, kSize16, color: kTripMutedLabel, height: 1.4);
+
+// ── Waiting for driver ────────────────────────────────────────────────────────
+
+final kWaitingDriverTripTitleSB =
+    kStyle(kSemiBold, kSize18, color: kTextColor, height: 1.15);
+final kWaitingDriverTripIdR =
+    kStyle(kRegular, kSize14, color: kTripMutedLabel, height: 1.15);
+final kWaitingDriverHelpM =
+    kStyle(kMedium, kSize15, color: kTextColor, height: 1.1);
+final kWaitingDriverHeadlineSB =
+    kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.25);
+final kWaitingDriverHeadlineAccentSB =
+    kStyle(kSemiBold, kSize22, color: kBrandBlue, height: 1.25);
+final kWaitingDriverStatusBlueSB =
+    kStyle(kSemiBold, kSize20, color: kBrandBlue, height: 1.2);
+final kWaitingDriverStatusBlackSB =
+    kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.15);
+final kWaitingDriverDescriptionR =
+    kStyle(kRegular, kSize15, color: kTextColor, height: 1.4);

@@ -1,9 +1,32 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
 
-class BookingConfirmedPage extends StatelessWidget {
+class BookingConfirmedPage extends StatefulWidget {
   const BookingConfirmedPage({super.key});
+
+  @override
+  State<BookingConfirmedPage> createState() => _BookingConfirmedPageState();
+}
+
+class _BookingConfirmedPageState extends State<BookingConfirmedPage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), _goToWaitingDriver);
+  }
+
+  void _goToWaitingDriver() {
+    if (!mounted) return;
+    NavigationService().pushNamedReplacement(
+      'waiting_driver',
+      arguments: {
+        'tripTitle': 'One Way Trip',
+        'tripId': '#ID2562',
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/waiting_driver_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/search_loacation.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
@@ -130,6 +131,15 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       break;
     case 'booking_confirmed':
       page = const BookingConfirmedPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'waiting_driver':
+      final waitingArgs = settings?.arguments as Map?;
+      page = WaitingDriverPage(
+        tripTitle: waitingArgs?['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: waitingArgs?['tripId'] as String? ?? '#ID2562',
+      );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;
