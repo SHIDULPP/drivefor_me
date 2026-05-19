@@ -854,7 +854,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 72,
+        height: 85,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
