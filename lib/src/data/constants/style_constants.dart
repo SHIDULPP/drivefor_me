@@ -41,6 +41,10 @@ const double kSize18 = 18;
 const double kSize22 = 22;
 const double kSize34 = 34;
 const double kSize36 = 36;
+const double kSize10 = 10;
+const double kSize20 = 20;
+const double kSize24 = 24;
+const double kSize26 = 26;
 
 // ================= BASE STYLE =================
 
@@ -185,3 +189,70 @@ final kSectionLabelR = kStyle(kRegular, kSize13, color: kMutedText);
 final kQuickActionM = kStyle(kMedium, kSize13, color: kTextColor);
 final kVersionR = kStyle(kRegular, kSize12, color: kMutedText);
 final kEditProfileM = kStyle(kMedium, kSize14, color: kBrandBlue);
+
+// ── Trip booking (Ride Now / create trip flow) ────────────────────────────────
+
+final kTripPageTitleSB = kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.15);
+final kTripForPillM = kStyle(kMedium, kSize14, color: kTextColor);
+final kTripSectionTitleSB =
+    kStyle(kSemiBold, kSubHeading, color: kTextColor, height: 1.2);
+final kTripSubSectionSB = kStyle(kSemiBold, kSize14, color: kTextColor);
+final kTripLocationLabelR =
+    kStyle(kRegular, kSize12, color: kTripMutedLabel);
+final kTripLocationValueM = kStyle(kMedium, kSize16, color: kTextColor);
+final kTripTimePillM = kStyle(kMedium, kSize14, color: kTextColor);
+final kTripSegmentActiveM = kStyle(kMedium, kSize14, color: kWhite);
+final kTripSegmentInactiveM = kStyle(kMedium, kSize14, color: kTextColor);
+final kTripVehicleAddM = kStyle(kMedium, kSize16, color: kTextColor);
+final kTripTypeChipM = kStyle(kMedium, kSize15, color: kTextColor);
+final kTripDurationPriceB = kStyle(kSemiBold, kSize16, color: kBrandBlue);
+final kTripDurationMetaR = kStyle(kRegular, kSize13, color: kTripBodyMuted);
+final kTripChipDurationSB = kStyle(kSemiBold, kSize14, color: kTextColor);
+final kTripChipHourB = kStyle(kSemiBold, kSize16, color: kTextColor);
+final kTripChipHourMutedB =
+    kStyle(kSemiBold, kSize16, color: kTripDarkText);
+final kTripChipUnitM = kStyle(kMedium, kSize12, color: kBrandBlue);
+final kTripChipCustomM = kStyle(kMedium, kSize12, color: kBrandBlue);
+final kTripOvernightTitleSB =
+    kStyle(kSemiBold, kSize13, color: kTextColor, height: 1.1);
+final kTripOvernightSubR =
+    kStyle(kRegular, kSize11, color: kTripMutedLabel, height: 1.2);
+final kTripWaitingNoteM = kStyle(kMedium, kSize12, color: kTripGold);
+final kTripProtectionTitleSB =
+    kStyle(kSemiBold, kSize18, color: kTextColor);
+final kTripProtectionAddonB = kStyle(kSemiBold, kSize14, color: kBrandBlue);
+final kTripProtectionDescR =
+    kStyle(kRegular, kSize13, color: kTripMutedLabel);
+final kTripPaymentTitleSB = kStyle(kSemiBold, kSize16, color: kTextColor);
+final kTripPaymentSubtitleR =
+    kStyle(kRegular, kSize13, color: kTripMutedLabel);
+final kTripPaymentPriceB = kStyle(kSemiBold, kSize18, color: kBrandBlue);
+final kTripPaymentTrailingR =
+    kStyle(kRegular, kSize13, color: kTripMutedLabel);
+final kTripSecureBannerR =
+    kStyle(kRegular, kSize12, color: kActiveGreen);
+final kTripSecureBannerB =
+    kStyle(kSemiBold, kSize12, color: kActiveGreen);
+final kTripTotalLabelR = kStyle(kRegular, kSize13, color: kTripMutedLabel);
+final kTripTotalPriceB =
+    kStyle(kSemiBold, kSize26, color: kBrandBlue, height: 1.1);
+final kTripModalTitleSB = kStyle(kSemiBold, kSize22, color: kTextColor);
+final kTripModalSummaryR = kStyle(kRegular, kSize14, color: kTextColor);
+final kTripModalSummaryB = kStyle(kSemiBold, kSize14, color: kTextColor);
+final kTripPickerSelectedM = kStyle(kMedium, kSize18, color: kBrandBlue);
+final kTripPickerUnselectedM =
+    kStyle(kMedium, kSize18, color: kTripPickerMuted);
+final kTripModalButtonM = kStyle(kMedium, kSize16, color: kWhite);
+final kTripStaySheetTitleSB =
+    kStyle(kSemiBold, kSize18, color: kTextColor);
+final kTripStayCounterB =
+    kStyle(kSemiBold, kSize28, color: kTripStayCounter, height: 1.1);
+
+// ── Booking confirmed ─────────────────────────────────────────────────────────
+
+final kBookingConfirmedTitleSB =
+    kStyle(kSemiBold, kSize30, color: kTextColor, height: 1.15);
+final kBookingConfirmedAccentSB =
+    kStyle(kSemiBold, kSize30, color: kBrandBlue, height: 1.15);
+final kBookingConfirmedSubtitleR =
+    kStyle(kRegular, kSize16, color: kTripMutedLabel, height: 1.4);

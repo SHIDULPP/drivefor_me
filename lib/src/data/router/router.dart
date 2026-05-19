@@ -1,7 +1,10 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/search_loacation.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/splash_screen.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/create_trip.dart';
 import 'package:flutter/material.dart';
 //router file
 
@@ -115,11 +118,25 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;
+    case 'create_trip':
+      page = const CreateTripPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
     case 'navbar':
       page = const NavBar();
       transitionToUse = TransitionType.fade;
       transitionDuration = const Duration(milliseconds: 400);
       break;
+    case 'booking_confirmed':
+      page = const BookingConfirmedPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'search_location':
+      page = const SearchLocationPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
 
     default:
       if (settings?.name?.startsWith('/app') == true) {

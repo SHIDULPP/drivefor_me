@@ -53,3 +53,21 @@ const Color kLineGrey = Color(0xFFD8D8DE);
 const Color kMutedText = Color(0xFF888888);
 const Color kCardBorder = Color(0xFFE4E4EA);
 const Color kChevronGrey = Color(0xFF8E8E93);
+
+// ── Trip booking (create trip, booking confirmed) ─────────────────────────────
+
+const Color kTripGold = Color(0xFFC18131);
+const Color kTripCreamBg = Color(0xFFF5F5EF);
+const Color kTripSelectedTint = Color(0xFFFFFDF9);
+const Color kTripBorder = Color(0xFFE2E2EC);
+const Color kTripMutedLabel = Color(0xFFA0A0A0);
+const Color kTripBodyMuted = Color(0xFF6F6F6F);
+const Color kTripIconMuted = Color(0xFFBDBDC7);
+const Color kTripRadioMuted = Color(0xFFAFAFB8);
+const Color kTripDestIconBg = Color(0xFFE7E7EF);
+const Color kTripCtaBlue = Color(0xFF165A91);
+const Color kTripPickerMuted = Color(0xFFC6C6CD);
+const Color kTripCloseBtnBg = Color(0xFFE2EAED);
+const Color kTripSecureBannerBg = Color(0xFFE6F3EA);
+const Color kTripDarkText = Color(0xFF222222);
+const Color kTripStayCounter = Color(0xFF0C242A);

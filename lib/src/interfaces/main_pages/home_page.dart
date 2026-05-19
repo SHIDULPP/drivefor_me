@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
 
 /// Nav bar body clearance: bar (68) + floating lift (26) + safe padding.
@@ -173,29 +174,34 @@ class _BookingCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Container(
-            height: 42,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: kSearchFieldBg,
-              borderRadius: BorderRadius.circular(50),
-              border: Border.all(color: kGoldAccent, width: 1.1),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.search_rounded,
-                  size: 20,
-                  color: kBlack.withValues(alpha: 0.45),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Where to go?',
-                  style: kCaption14R.copyWith(
+          GestureDetector(
+            onTap: () {
+              NavigationService().pushNamed('create_trip');
+            },
+            child: Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: kSearchFieldBg,
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(color: kGoldAccent, width: 1.1),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search_rounded,
+                    size: 20,
                     color: kBlack.withValues(alpha: 0.45),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Text(
+                    'Where to go?',
+                    style: kCaption14R.copyWith(
+                      color: kBlack.withValues(alpha: 0.45),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -228,10 +234,7 @@ class _SupportCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Need help booking a driver?',
-                      style: kSupportTitleB,
-                    ),
+                    Text('Need help booking a driver?', style: kSupportTitleB),
                     const SizedBox(height: 6),
                     Text(
                       'Call our team and get instant assistance.',
@@ -329,10 +332,7 @@ class _DecorativeFooter extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'YOUR TRUSTED\nDRIVER,\nJUST A TAP AWAY!',
-            style: kDecorTitleEB,
-          ),
+          Text('YOUR TRUSTED\nDRIVER,\nJUST A TAP AWAY!', style: kDecorTitleEB),
           const SizedBox(height: 14),
           Center(
             child: RichText(
