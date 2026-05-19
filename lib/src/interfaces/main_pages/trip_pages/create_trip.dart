@@ -3,6 +3,7 @@ import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/components/select_rider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -68,12 +69,15 @@ class _CreateTripPageState extends State<CreateTripPage> {
                       color: kTripCreamBg,
                       borderRadius: BorderRadius.circular(22),
                     ),
-                    child: Row(
-                      children: [
-                        Text('For: My Self', style: kTripForPillM),
-                        SizedBox(width: 10),
-                        Icon(Icons.keyboard_arrow_down),
-                      ],
+                    child: GestureDetector(
+                      onTap: () => showSelectRiderBottomSheet(context),
+                      child: Row(
+                        children: [
+                          Text('For: My Self', style: kTripForPillM),
+                          SizedBox(width: 10),
+                          Icon(Icons.keyboard_arrow_down),
+                        ],
+                      ),
                     ),
                   ),
                 ],
