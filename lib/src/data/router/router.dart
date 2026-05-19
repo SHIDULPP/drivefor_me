@@ -134,9 +134,16 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionDuration = const Duration(milliseconds: 400);
       break;
     case 'search_location':
-      page = const SearchLocationPage();
+      final args = settings?.arguments as Map?;
+      final String title = args?['title'] ?? 'Where are you leaving from?';
+      final bool showCurrentLocation = args?['showCurrentLocation'] ?? true;
+      page = SearchLocationPage(
+        title: title,
+        showCurrentLocation: showCurrentLocation,
+      );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
+      break;
 
     default:
       if (settings?.name?.startsWith('/app') == true) {

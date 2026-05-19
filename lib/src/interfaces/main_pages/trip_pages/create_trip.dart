@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -292,7 +293,13 @@ class _CreateTripPageState extends State<CreateTripPage> {
                     /// from
                     GestureDetector(
                       onTap: () {
-                        NavigationService().pushNamed('search_location');
+                        NavigationService().pushNamed(
+                          'search_location',
+                          arguments: {
+                            'title': 'Where are you leaving from?',
+                            'showCurrentLocation': true,
+                          },
+                        );
                       },
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,15 +345,34 @@ class _CreateTripPageState extends State<CreateTripPage> {
 
                     Divider(color: Colors.grey.shade300),
 
-                    const SizedBox(height: 14),
-
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('To', style: kTripLocationLabelR),
+                    GestureDetector(
+                      onTap: () {
+                        NavigationService().pushNamed(
+                          'search_location',
+                          arguments: {
+                            'title': 'Where are you heading?',
+                            'showCurrentLocation': false,
+                          },
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('To', style: kTripLocationLabelR),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Enter destination',
+                            style: kTripLocationValueM.copyWith(
+                              color: kTripMutedLabel,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-
                     const SizedBox(height: 16),
-
                     Divider(color: Colors.grey.shade300),
                   ],
                 ),
@@ -376,32 +402,37 @@ class _CreateTripPageState extends State<CreateTripPage> {
 
           const SizedBox(height: 24),
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: kTripGold),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  height: 54,
-                  width: 54,
-                  decoration: const BoxDecoration(
-                    color: kTripCreamBg,
-                    shape: BoxShape.circle,
+          GestureDetector(
+            onTap: () {
+              showAddVehicleBottomSheet(context);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: kTripGold),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    height: 54,
+                    width: 54,
+                    decoration: const BoxDecoration(
+                      color: kTripCreamBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, size: 34),
                   ),
-                  child: const Icon(Icons.add, size: 34),
-                ),
 
-                const SizedBox(width: 20),
+                  const SizedBox(width: 20),
 
-                Expanded(
-                  child: Text('Add Your Vehicle', style: kTripVehicleAddM),
-                ),
+                  Expanded(
+                    child: Text('Add Your Vehicle', style: kTripVehicleAddM),
+                  ),
 
-                const Icon(Icons.speed, size: 40, color: kBrandBlue),
-              ],
+                  const Icon(Icons.speed, size: 40, color: kBrandBlue),
+                ],
+              ),
             ),
           ),
         ],

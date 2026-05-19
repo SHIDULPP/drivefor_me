@@ -3,7 +3,13 @@ import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:flutter/material.dart';
 
 class SearchLocationPage extends StatelessWidget {
-  const SearchLocationPage({super.key});
+  final String title;
+  final bool showCurrentLocation;
+  const SearchLocationPage({
+    super.key,
+    required this.title,
+    this.showCurrentLocation = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,7 @@ class SearchLocationPage extends StatelessWidget {
 
                   Expanded(
                     child: Text(
-                      'Where are you leaving from?',
+                      title,
                       style: kStyle(kSemiBold, 14, color: kTextColor),
                     ),
                   ),
@@ -101,31 +107,32 @@ class SearchLocationPage extends StatelessWidget {
                     const SizedBox(height: 42),
 
                     /// ================= CURRENT LOCATION =================
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 36),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.my_location,
-                            size: 34,
-                            color: kTextColor,
-                          ),
-
-                          const SizedBox(width: 24),
-
-                          Text(
-                            'Use current location',
-                            style: kStyle(
-                              kSemiBold,
-                              16,
-                              color: const Color(0xFF39463D),
+                    if (showCurrentLocation) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 36),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.my_location,
+                              size: 34,
+                              color: kTextColor,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    const SizedBox(height: 44),
+                            const SizedBox(width: 24),
+
+                            Text(
+                              'Use current location',
+                              style: kStyle(
+                                kSemiBold,
+                                16,
+                                color: const Color(0xFF39463D),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 44),
+                    ],
 
                     /// ================= RECENT =================
                     Padding(
