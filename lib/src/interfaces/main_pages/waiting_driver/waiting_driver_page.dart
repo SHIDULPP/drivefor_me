@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -21,11 +22,11 @@ extension WaitingDriverStageX on WaitingDriverStage {
   double get progress {
     switch (this) {
       case WaitingDriverStage.matchingNearby:
-        return 0.3;
+        return 1 / 3;
       case WaitingDriverStage.expandingSearch:
-        return 0.7;
+        return 2 / 3;
       case WaitingDriverStage.bestDriverMatch:
-        return 0.8;
+        return 1.0;
     }
   }
 
@@ -57,34 +58,64 @@ class WaitingDriverPage extends StatefulWidget {
   State<WaitingDriverPage> createState() => _WaitingDriverPageState();
 }
 
-class _WaitingDriverPageState extends State<WaitingDriverPage> {
+class _WaitingDriverPageState extends State<WaitingDriverPage>
+    with SingleTickerProviderStateMixin {
   static const _stageDuration = Duration(seconds: 5);
 
   late WaitingDriverStage _stage;
+  late AnimationController _progressController;
   Timer? _stageTimer;
+  bool _navigatedToDriverFound = false;
 
   @override
   void initState() {
     super.initState();
     _stage = widget.initialStage;
-    _scheduleNextStage();
+    _progressController = AnimationController(
+      vsync: this,
+      duration: _stageDuration,
+      value: 0,
+    )..addStatusListener(_onProgressAnimationStatus);
+    _runStage(_stage);
   }
 
-  void _scheduleNextStage() {
+  void _onProgressAnimationStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    if (_stage != WaitingDriverStage.bestDriverMatch) return;
+    _goToDriverFound();
+  }
+
+  void _runStage(WaitingDriverStage stage) {
     _stageTimer?.cancel();
-    final next = _stage.next;
+    setState(() => _stage = stage);
+
+    _progressController.duration = _stageDuration;
+    _progressController.animateTo(stage.progress, curve: Curves.easeOutCubic);
+
+    final next = stage.next;
     if (next == null) return;
 
     _stageTimer = Timer(_stageDuration, () {
       if (!mounted) return;
-      setState(() => _stage = next);
-      _scheduleNextStage();
+      _runStage(next);
     });
+  }
+
+  void _goToDriverFound() {
+    if (_navigatedToDriverFound || !mounted) return;
+    _navigatedToDriverFound = true;
+    _stageTimer?.cancel();
+    _progressController.stop();
+    NavigationService().pushNamedReplacement(
+      'driver_found',
+      arguments: {'tripTitle': widget.tripTitle, 'tripId': widget.tripId},
+    );
   }
 
   @override
   void dispose() {
     _stageTimer?.cancel();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -115,6 +146,7 @@ class _WaitingDriverPageState extends State<WaitingDriverPage> {
           ),
           _WaitingDriverSheet(
             stage: _stage,
+            progress: _progressController,
             onCancel: () => Navigator.of(context).maybePop(),
           ),
         ],
@@ -223,9 +255,14 @@ class _HelpButton extends StatelessWidget {
 
 class _WaitingDriverSheet extends StatelessWidget {
   final WaitingDriverStage stage;
+  final Animation<double> progress;
   final VoidCallback onCancel;
 
-  const _WaitingDriverSheet({required this.stage, required this.onCancel});
+  const _WaitingDriverSheet({
+    required this.stage,
+    required this.progress,
+    required this.onCancel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -249,13 +286,11 @@ class _WaitingDriverSheet extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            child: TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOutCubic,
-              tween: Tween(end: stage.progress),
-              builder: (context, value, _) {
+            child: AnimatedBuilder(
+              animation: progress,
+              builder: (context, _) {
                 return LinearProgressIndicator(
-                  value: value,
+                  value: progress.value,
                   minHeight: 4,
                   backgroundColor: kActiveGreenBg,
                   color: kActiveGreen,

@@ -275,3 +275,36 @@ final kWaitingDriverStatusBlackSB =
     kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.15);
 final kWaitingDriverDescriptionR =
     kStyle(kRegular, kSize15, color: kTextColor, height: 1.4);
+
+// ── Driver found ──────────────────────────────────────────────────────────────
+
+final kDriverFoundTitleSB =
+    kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.15);
+final kDriverFoundSubtitleR =
+    kStyle(kRegular, kSize14, color: kMutedText, height: 1.3);
+final kDriverFoundNameSB =
+    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
+final kDriverFoundRatingM =
+    kStyle(kMedium, kSize13, color: kTextColor, height: 1.1);
+final kDriverFoundMetaR =
+    kStyle(kRegular, kSize12, color: kMutedText, height: 1.2);
+final kDriverFoundOtpTitleSB =
+    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
+final kDriverFoundOtpDigitSB =
+    kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.0);
+final kDriverFoundOtpHintR =
+    kStyle(kRegular, kSize12, color: kMutedText, height: 1.3);
+final kDriverFoundRouteSB =
+    kStyle(kSemiBold, kSize14, color: kTextColor, height: 1.15);
+final kDriverFoundPriceSB =
+    kStyle(kSemiBold, kSize18, color: kTripCtaBlue, height: 1.1);
+final kDriverFoundTripMetaR =
+    kStyle(kRegular, kSize13, color: kTripBodyMuted, height: 1.2);
+final kDriverFoundSectionTitleSB =
+    kStyle(kSemiBold, kSize15, color: kTextColor, height: 1.2);
+final kDriverFoundPolicyR =
+    kStyle(kRegular, kSize13, color: kMutedText, height: 1.45);
+final kDriverFoundPolicyTimerSB =
+    kStyle(kSemiBold, kSize13, color: kTripCtaBlue, height: 1.45);
+final kDriverFoundLearnMoreM =
+    kStyle(kMedium, kSize13, color: kTripCtaBlue, height: 1.2);

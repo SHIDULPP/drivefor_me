@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/waiting_driver_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/search_loacation.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
@@ -139,6 +140,26 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       page = WaitingDriverPage(
         tripTitle: waitingArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: waitingArgs?['tripId'] as String? ?? '#ID2562',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'driver_found':
+      final driverArgs = settings?.arguments as Map?;
+      page = DriverFoundPage(
+        tripTitle: driverArgs?['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: driverArgs?['tripId'] as String? ?? '# ID2562',
+        pickup: driverArgs?['pickup'] as String? ?? 'Edappally',
+        dropoff: driverArgs?['dropoff'] as String? ?? 'Infopark',
+        price: driverArgs?['price'] as String? ?? '₹ 235',
+        distance: driverArgs?['distance'] as String? ?? '12 km',
+        duration: driverArgs?['duration'] as String? ?? '2 hrs',
+        driverName: driverArgs?['driverName'] as String? ?? 'Ajith Kumar',
+        driverRating:
+            (driverArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: driverArgs?['driverTrips'] as int? ?? 120,
+        vehicleTypes:
+            driverArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
