@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/waiting_driver_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/search_loacation.dart';
@@ -160,6 +161,27 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverTrips: driverArgs?['driverTrips'] as int? ?? 120,
         vehicleTypes:
             driverArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'trip_progress':
+      final tripArgs = settings?.arguments as Map?;
+      page = TripProgressPage(
+        tripTitle: tripArgs?['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: tripArgs?['tripId'] as String? ?? '# ID2562',
+        headingTo: tripArgs?['headingTo'] as String? ?? 'Infopark',
+        driverName: tripArgs?['driverName'] as String? ?? 'Ajith Kumar',
+        driverRating: (tripArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: tripArgs?['driverTrips'] as int? ?? 120,
+        vehicleTypes: tripArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+        completedStops: tripArgs?['completedStops'] as int? ?? 3,
+        showTimeLimitReached: tripArgs?['showTimeLimitReached'] as bool? ?? true,
+        pickup: tripArgs?['pickup'] as String? ?? 'Edappally',
+        dropoff: tripArgs?['dropoff'] as String? ?? 'Infopark',
+        price: tripArgs?['price'] as String? ?? '₹ 235',
+        distance: tripArgs?['distance'] as String? ?? '12 km',
+        duration: tripArgs?['duration'] as String? ?? '2 hrs 30 min',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);

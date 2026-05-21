@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -67,6 +68,28 @@ class _DriverFoundPageState extends State<DriverFoundPage> {
         _cancelRemaining -= const Duration(seconds: 1);
       });
     });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TripProgressPage(
+              tripTitle: widget.tripTitle,
+              tripId: widget.tripId,
+              pickup: widget.pickup,
+              dropoff: widget.dropoff,
+              price: widget.price,
+              distance: widget.distance,
+              duration: widget.duration,
+              driverName: widget.driverName,
+              driverRating: widget.driverRating,
+              driverTrips: widget.driverTrips,
+              vehicleTypes: widget.vehicleTypes,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -76,8 +99,14 @@ class _DriverFoundPageState extends State<DriverFoundPage> {
   }
 
   String get _cancelTimerLabel {
-    final minutes = _cancelRemaining.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = (_cancelRemaining.inSeconds % 60).toString().padLeft(2, '0');
+    final minutes = _cancelRemaining.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    final seconds = (_cancelRemaining.inSeconds % 60).toString().padLeft(
+      2,
+      '0',
+    );
     return '$minutes:$seconds remaining';
   }
 
