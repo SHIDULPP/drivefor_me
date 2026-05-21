@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 
 class TripProgressPage extends StatefulWidget {
@@ -19,6 +20,7 @@ class TripProgressPage extends StatefulWidget {
   final String price;
   final String distance;
   final String duration;
+  final TripCompletedPaymentType paymentType;
 
   const TripProgressPage({
     super.key,
@@ -36,6 +38,7 @@ class TripProgressPage extends StatefulWidget {
     this.price = '₹ 235',
     this.distance = '12 km',
     this.duration = '2 hrs 30 min',
+    this.paymentType = TripCompletedPaymentType.offline,
   });
 
   @override
@@ -60,6 +63,26 @@ class _TripProgressPageState extends State<TripProgressPage> {
         _cancelRemaining -= const Duration(seconds: 1);
       });
     });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TripCompletedPage(
+              paymentType: widget.paymentType,
+              tripTypeLabel:
+                  widget.paymentType == TripCompletedPaymentType.online
+                  ? 'Short Trip'
+                  : 'Long Trip',
+              destinationName: widget.dropoff,
+              totalFare: widget.price,
+              tripFare: widget.price,
+              tripDuration: widget.duration,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -69,11 +92,14 @@ class _TripProgressPageState extends State<TripProgressPage> {
   }
 
   String get _cancelTimerLabel {
-    final minutes = _cancelRemaining.inMinutes.remainder(60).toString().padLeft(
+    final minutes = _cancelRemaining.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    final seconds = (_cancelRemaining.inSeconds % 60).toString().padLeft(
       2,
       '0',
     );
-    final seconds = (_cancelRemaining.inSeconds % 60).toString().padLeft(2, '0');
     return '$minutes:$seconds remaining';
   }
 
@@ -205,8 +231,8 @@ class _EmergencyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 112,
-      height: 86,
+      width: 93,
+      height: 56,
       decoration: BoxDecoration(
         color: kWhite,
         borderRadius: BorderRadius.circular(16),
@@ -227,9 +253,12 @@ class _EmergencyButton extends StatelessWidget {
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('SOS', style: TextStyle(fontSize: 36, color: kRed, height: 0.9)),
+              Text(
+                'SOS',
+                style: TextStyle(fontSize: 18, color: kRed, height: 0.9),
+              ),
               SizedBox(height: 2),
-              Text('Emergency', style: TextStyle(fontSize: 15, color: kRed)),
+              Text('Emergency', style: TextStyle(fontSize: 12, color: kRed)),
             ],
           ),
         ),
@@ -340,7 +369,9 @@ class _TripProgressSheet extends StatelessWidget {
               text: TextSpan(
                 style: kDriverFoundPolicyR.copyWith(height: 1.25),
                 children: [
-                  const TextSpan(text: 'Free cancellation until 60 mins before pickup. '),
+                  const TextSpan(
+                    text: 'Free cancellation until 60 mins before pickup. ',
+                  ),
                   TextSpan(
                     text: timerLabel,
                     style: kDriverFoundPolicyTimerSB.copyWith(
@@ -409,7 +440,11 @@ class _DriverProgressCard extends StatelessWidget {
                     width: 78,
                     height: 78,
                     color: kChipGreyBg,
-                    child: const Icon(Icons.person, color: kMutedText, size: 36),
+                    child: const Icon(
+                      Icons.person,
+                      color: kMutedText,
+                      size: 36,
+                    ),
                   ),
                 ),
               ),
@@ -418,7 +453,10 @@ class _DriverProgressCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(driverName, style: kDriverFoundNameSB.copyWith(fontSize: 16)),
+                    Text(
+                      driverName,
+                      style: kDriverFoundNameSB.copyWith(fontSize: 16),
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -451,7 +489,10 @@ class _DriverProgressCard extends StatelessWidget {
           const SizedBox(height: 16),
           _JourneyProgress(completedStops: completedStops),
           const SizedBox(height: 14),
-          if (showTimeLimitReached) const _TimeLimitReachedBanner() else const _EtaRow(),
+          if (showTimeLimitReached)
+            const _TimeLimitReachedBanner()
+          else
+            const _EtaRow(),
         ],
       ),
     );
@@ -562,7 +603,10 @@ class _JourneyProgress extends StatelessWidget {
                   child: Text(
                     label,
                     textAlign: TextAlign.center,
-                    style: kDriverFoundMetaR.copyWith(fontSize: 14, color: kTextColor),
+                    style: kDriverFoundMetaR.copyWith(
+                      fontSize: 14,
+                      color: kTextColor,
+                    ),
                   ),
                 ),
               )
@@ -696,7 +740,10 @@ class _TripSummaryCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(price, style: kDriverFoundPriceSB.copyWith(fontSize: 20)),
+                    Text(
+                      price,
+                      style: kDriverFoundPriceSB.copyWith(fontSize: 20),
+                    ),
                     if (showUpdatingTag)
                       Text(
                         '(Updating...)',

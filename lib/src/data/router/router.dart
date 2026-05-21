@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/waiting_driver_page.dart';
@@ -132,7 +133,14 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionDuration = const Duration(milliseconds: 400);
       break;
     case 'booking_confirmed':
-      page = const BookingConfirmedPage();
+      final bookingArgs = settings?.arguments as Map?;
+      page = BookingConfirmedPage(
+        paymentType: parseTripCompletedPaymentType(
+          bookingArgs?['paymentType'] ??
+              bookingArgs?['isOnlinePayment'] ??
+              bookingArgs?['isOnline'],
+        ),
+      );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;
@@ -141,6 +149,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       page = WaitingDriverPage(
         tripTitle: waitingArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: waitingArgs?['tripId'] as String? ?? '#ID2562',
+        paymentType: parseTripCompletedPaymentType(
+          waitingArgs?['paymentType'] ??
+              waitingArgs?['isOnlinePayment'] ??
+              waitingArgs?['isOnline'],
+        ),
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -161,6 +174,46 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverTrips: driverArgs?['driverTrips'] as int? ?? 120,
         vehicleTypes:
             driverArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+        paymentType: parseTripCompletedPaymentType(
+          driverArgs?['paymentType'] ??
+              driverArgs?['isOnlinePayment'] ??
+              driverArgs?['isOnline'],
+        ),
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'trip_completed':
+      final completedArgs = settings?.arguments as Map?;
+      final paymentType = parseTripCompletedPaymentType(
+        completedArgs?['paymentType'] ??
+            completedArgs?['isOnlinePayment'] ??
+            completedArgs?['isOnline'],
+      );
+      page = TripCompletedPage(
+        paymentType: paymentType,
+        tripTypeLabel: completedArgs?['tripTypeLabel'] as String? ??
+            (paymentType == TripCompletedPaymentType.online
+                ? 'Short Trip'
+                : 'Long Trip'),
+        destinationName:
+            completedArgs?['destinationName'] as String? ?? 'Infopark',
+        destinationAddress: completedArgs?['destinationAddress'] as String? ??
+            'Infoparks Kerala, Infopark Kochi Phase 1, P.O, Infopark, Kochi, Kakkanad, Kerala 682042',
+        totalFare: completedArgs?['totalFare'] as String? ?? '₹ 335',
+        prepaidAmount: completedArgs?['prepaidAmount'] as String? ?? '₹ 255',
+        prepaidDuration:
+            completedArgs?['prepaidDuration'] as String? ?? '2 hrs 30 min',
+        tripFare: completedArgs?['tripFare'] as String? ?? '₹ 335',
+        tripDuration: completedArgs?['tripDuration'] as String? ?? '2 hrs 30 min',
+        extraTimeAmount:
+            completedArgs?['extraTimeAmount'] as String? ?? '₹ 255',
+        extraTimeDuration:
+            completedArgs?['extraTimeDuration'] as String? ?? '30 min',
+        remainingDue: completedArgs?['remainingDue'] as String? ?? '₹ 120',
+        remainingDuration:
+            completedArgs?['remainingDuration'] as String? ?? '30 min',
+        totalAmount: completedArgs?['totalAmount'] as String? ?? '₹ 590',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -182,6 +235,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         price: tripArgs?['price'] as String? ?? '₹ 235',
         distance: tripArgs?['distance'] as String? ?? '12 km',
         duration: tripArgs?['duration'] as String? ?? '2 hrs 30 min',
+        paymentType: parseTripCompletedPaymentType(
+          tripArgs?['paymentType'] ??
+              tripArgs?['isOnlinePayment'] ??
+              tripArgs?['isOnline'],
+        ),
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);

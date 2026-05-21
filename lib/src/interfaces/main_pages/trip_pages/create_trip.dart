@@ -148,7 +148,13 @@ class _CreateTripPageState extends State<CreateTripPage> {
                             ? 'Pay Online & find driver'
                             : 'Confirm Cash on Pay',
                         onPressed: () {
-                          NavigationService().pushNamed('booking_confirmed');
+                          NavigationService().pushNamed(
+                            'booking_confirmed',
+                            arguments: {
+                              'paymentType':
+                                  selectedPaymentIndex == 1 ? 'online' : 'offline',
+                            },
+                          );
                         },
                         buttonHeight: 64,
                         fontSize: 18,

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,6 +27,7 @@ class DriverFoundPage extends StatefulWidget {
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
+  final TripCompletedPaymentType paymentType;
 
   const DriverFoundPage({
     super.key,
@@ -40,6 +42,7 @@ class DriverFoundPage extends StatefulWidget {
     this.driverRating = 4.8,
     this.driverTrips = 120,
     this.vehicleTypes = 'Manual + Auto',
+    this.paymentType = TripCompletedPaymentType.offline,
   });
 
   @override
@@ -85,6 +88,7 @@ class _DriverFoundPageState extends State<DriverFoundPage> {
               driverRating: widget.driverRating,
               driverTrips: widget.driverTrips,
               vehicleTypes: widget.vehicleTypes,
+              paymentType: widget.paymentType,
             ),
           ),
         );

@@ -1,10 +1,16 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 
 class BookingConfirmedPage extends StatefulWidget {
-  const BookingConfirmedPage({super.key});
+  final TripCompletedPaymentType paymentType;
+
+  const BookingConfirmedPage({
+    super.key,
+    this.paymentType = TripCompletedPaymentType.offline,
+  });
 
   @override
   State<BookingConfirmedPage> createState() => _BookingConfirmedPageState();
@@ -24,6 +30,7 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage> {
       arguments: {
         'tripTitle': 'One Way Trip',
         'tripId': '#ID2562',
+        ...tripPaymentArguments(widget.paymentType),
       },
     );
   }
