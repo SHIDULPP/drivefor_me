@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 
@@ -248,7 +249,7 @@ class _EmergencyButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: () => NavigationService().pushNamed('sos_countdown'),
           borderRadius: BorderRadius.circular(16),
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,

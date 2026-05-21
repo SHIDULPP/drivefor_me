@@ -1,11 +1,15 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/thank_you_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/payment_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/waiting_driver_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/sos/sos_countdown_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/sos/sos_help_on_way_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/sos/sos_select_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/search_loacation.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
@@ -201,6 +205,45 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverTrips: ratingArgs?['driverTrips'] as int? ?? 120,
         vehicleTypes:
             ratingArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'thank_you':
+      page = const ThankYouPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'sos_select':
+      final sosArgs = settings?.arguments as Map?;
+      page = SosSelectPage(
+        locationLabel: sosArgs?['locationLabel'] as String? ??
+            'Live location shared . MG road, Erankulam',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'sos_countdown':
+      final countdownArgs = settings?.arguments as Map?;
+      page = SosCountdownPage(
+        locationLabel: countdownArgs?['locationLabel'] as String? ??
+            'MG Road, Eranakulam, Kochi, GPS Active',
+        initialSeconds: countdownArgs?['initialSeconds'] as int? ?? 6,
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'sos_help_on_way':
+      final helpArgs = settings?.arguments as Map?;
+      page = SosHelpOnWayPage(
+        referenceNumber: helpArgs?['referenceNumber'] as String? ??
+            'SOS - 2014 - 9568',
+        locationLine1: helpArgs?['locationLine1'] as String? ??
+            'MG Road, Eranakulam',
+        locationLine2: helpArgs?['locationLine2'] as String? ??
+            'Kochi, Kerala, 9.9312 N, 76.2673 E',
+        supportPhone:
+            helpArgs?['supportPhone'] as String? ?? '+91 6282359916',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);

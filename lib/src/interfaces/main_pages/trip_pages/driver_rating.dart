@@ -1,6 +1,8 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/thank_you_page.dart';
 import 'package:flutter/material.dart';
 
 class DriverRatingPage extends StatefulWidget {
@@ -36,6 +38,20 @@ class _DriverRatingPageState extends State<DriverRatingPage> {
   int _selectedRating = 1;
   final Set<String> _selectedTags = {'Excellent Service'};
   final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const ThankYouPage(),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -118,7 +134,9 @@ class _DriverRatingPageState extends State<DriverRatingPage> {
               padding: EdgeInsets.fromLTRB(20, 0, 20, bottomInset + 16),
               child: primaryButton(
                 label: 'Submit Rating',
-                onPressed: () => Navigator.of(context).maybePop(),
+                onPressed: () {
+                  NavigationService().pushNamedReplacement('thank_you');
+                },
                 buttonColor: kTripCtaBlue,
                 buttonHeight: 58,
                 fontSize: 18,

@@ -71,3 +71,12 @@ const Color kTripCloseBtnBg = Color(0xFFE2EAED);
 const Color kTripSecureBannerBg = Color(0xFFE6F3EA);
 const Color kTripDarkText = Color(0xFF222222);
 const Color kTripStayCounter = Color(0xFF0C242A);
+
+// ── SOS emergency ─────────────────────────────────────────────────────────────
+
+const Color kSosRed = Color(0xFFE32626);
+const Color kSosRedDark = Color(0xFF9B1F1F);
+const Color kSosCardBg = Color(0xFFF9E6E6);
+const Color kSosScreenBg = Color(0xFFF7F9F2);
+const Color kSosRefCardBg = Color(0xFFFCE8E8);
+const Color kSosSupportIconBg = Color(0xFFE8F0F8);
