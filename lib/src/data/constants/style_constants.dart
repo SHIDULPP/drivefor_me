@@ -308,3 +308,24 @@ final kDriverFoundPolicyTimerSB =
     kStyle(kSemiBold, kSize13, color: kTripCtaBlue, height: 1.45);
 final kDriverFoundLearnMoreM =
     kStyle(kMedium, kSize13, color: kTripCtaBlue, height: 1.2);
+
+// ── Driver rating ─────────────────────────────────────────────────────────────
+
+final kDriverRatingAppBarSB =
+    kStyle(kSemiBold, kSize20, color: kTextColor, height: 1.15);
+final kDriverRatingNameSB =
+    kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.1);
+final kDriverRatingQuestionSB =
+    kStyle(kSemiBold, kSize20, color: kTextColor, height: 1.2);
+final kDriverRatingStatR =
+    kStyle(kRegular, kSize14, color: kTextColor, height: 1.15);
+final kDriverRatingStatMutedR =
+    kStyle(kRegular, kSize14, color: kMutedText, height: 1.15);
+final kDriverRatingVehicleR =
+    kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
+final kDriverRatingChipR =
+    kStyle(kRegular, kSize15, color: kTextColor, height: 1.1);
+final kDriverRatingCommentR =
+    kStyle(kRegular, kSize15, color: kTextColor, height: 1.2);
+final kDriverRatingCommentHintR =
+    kStyle(kRegular, kSize15, color: kTripMutedLabel, height: 1.2);

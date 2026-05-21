@@ -1,14 +1,34 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:flutter/material.dart';
 
-class PaymentCompletedPage extends StatelessWidget {
+class PaymentCompletedPage extends StatefulWidget {
   final String paidAmount;
 
   const PaymentCompletedPage({
     super.key,
     this.paidAmount = '₹590',
   });
+
+  @override
+  State<PaymentCompletedPage> createState() => _PaymentCompletedPageState();
+}
+
+class _PaymentCompletedPageState extends State<PaymentCompletedPage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const DriverRatingPage(),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +67,7 @@ class PaymentCompletedPage extends StatelessWidget {
                   children: [
                     const TextSpan(text: 'Your payment '),
                     TextSpan(
-                      text: paidAmount,
+                      text: widget.paidAmount,
                       style: kStyle(kSemiBold, kSize16, color: kTextColor),
                     ),
                     const TextSpan(

@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/payment_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
@@ -188,6 +189,18 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       final paymentDoneArgs = settings?.arguments as Map?;
       page = PaymentCompletedPage(
         paidAmount: paymentDoneArgs?['paidAmount'] as String? ?? '₹590',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'driver_rating':
+      final ratingArgs = settings?.arguments as Map?;
+      page = DriverRatingPage(
+        driverName: ratingArgs?['driverName'] as String? ?? 'Ajith Kumar',
+        driverRating: (ratingArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: ratingArgs?['driverTrips'] as int? ?? 120,
+        vehicleTypes:
+            ratingArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
