@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +37,7 @@ Map<String, dynamic> tripPaymentArguments(TripCompletedPaymentType paymentType) 
   };
 }
 
-class TripCompletedPage extends StatelessWidget {
+class TripCompletedPage extends StatefulWidget {
   final TripCompletedPaymentType paymentType;
   final String tripTypeLabel;
   final String destinationName;
@@ -71,7 +72,34 @@ class TripCompletedPage extends StatelessWidget {
     this.totalAmount = '₹ 590',
   });
 
-  bool get _isOnline => paymentType == TripCompletedPaymentType.online;
+  @override
+  State<TripCompletedPage> createState() => _TripCompletedPageState();
+}
+
+class _TripCompletedPageState extends State<TripCompletedPage> {
+  bool get _isOnline =>
+      widget.paymentType == TripCompletedPaymentType.online;
+
+  String get _paidAmount {
+    if (_isOnline) {
+      return widget.remainingDue.replaceAll(' ', '');
+    }
+    return widget.totalAmount.replaceAll(' ', '');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), _goToPaymentCompleted);
+  }
+
+  void _goToPaymentCompleted() {
+    if (!mounted) return;
+    NavigationService().pushNamedReplacement(
+      'payment_completed',
+      arguments: {'paidAmount': _paidAmount},
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,25 +136,25 @@ class TripCompletedPage extends StatelessWidget {
                 style: kBookingConfirmedSubtitleR,
               ),
               const SizedBox(height: 22),
-              _TripTypePill(label: tripTypeLabel),
+              _TripTypePill(label: widget.tripTypeLabel),
               const SizedBox(height: 18),
               _DestinationBlock(
-                name: destinationName,
-                address: destinationAddress,
+                name: widget.destinationName,
+                address: widget.destinationAddress,
               ),
               const SizedBox(height: 22),
               _FareBreakdownCard(
                 isOnline: _isOnline,
-                totalFare: totalFare,
-                prepaidAmount: prepaidAmount,
-                prepaidDuration: prepaidDuration,
-                tripFare: tripFare,
-                tripDuration: tripDuration,
-                extraTimeAmount: extraTimeAmount,
-                extraTimeDuration: extraTimeDuration,
-                remainingDue: remainingDue,
-                remainingDuration: remainingDuration,
-                totalAmount: totalAmount,
+                totalFare: widget.totalFare,
+                prepaidAmount: widget.prepaidAmount,
+                prepaidDuration: widget.prepaidDuration,
+                tripFare: widget.tripFare,
+                tripDuration: widget.tripDuration,
+                extraTimeAmount: widget.extraTimeAmount,
+                extraTimeDuration: widget.extraTimeDuration,
+                remainingDue: widget.remainingDue,
+                remainingDuration: widget.remainingDuration,
+                totalAmount: widget.totalAmount,
               ),
               const SizedBox(height: 24),
             ],
@@ -137,7 +165,7 @@ class TripCompletedPage extends StatelessWidget {
           ? SafeArea(
               minimum: const EdgeInsets.fromLTRB(24, 0, 24, 16),
               child: primaryButton(
-                label: 'Pay $remainingDue',
+                label: 'Pay ${widget.remainingDue}',
                 onPressed: () {},
                 buttonColor: kTripCtaBlue,
                 buttonHeight: 58,

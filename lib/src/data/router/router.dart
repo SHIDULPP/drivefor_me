@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/payment_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
@@ -179,6 +180,14 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
               driverArgs?['isOnlinePayment'] ??
               driverArgs?['isOnline'],
         ),
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'payment_completed':
+      final paymentDoneArgs = settings?.arguments as Map?;
+      page = PaymentCompletedPage(
+        paidAmount: paymentDoneArgs?['paidAmount'] as String? ?? '₹590',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
