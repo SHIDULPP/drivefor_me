@@ -4,6 +4,7 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:flutter/material.dart';
@@ -192,9 +193,7 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                       onChat: () {
                         NavigationService().pushNamed(
                           'chat_screen',
-                          arguments: {
-                            'participantName': widget.driverName,
-                          },
+                          arguments: {'participantName': widget.driverName},
                         );
                       },
                     ),
@@ -630,7 +629,11 @@ class _ScheduledDriverCard extends StatelessWidget {
           _DriverActionButton(
             color: kActiveGreen,
             icon: Icons.chat_bubble_outline_rounded,
-            onTap: onChat,
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => ChatScreen()));
+            },
           ),
           const SizedBox(width: 8),
           _DriverActionButton(

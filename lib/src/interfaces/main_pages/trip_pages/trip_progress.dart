@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 
@@ -482,9 +483,21 @@ class _DriverProgressCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _ActionCircle(color: kActiveGreen, icon: Icons.chat_rounded),
+              _ActionCircle(
+                color: kActiveGreen,
+                icon: Icons.chat_rounded,
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (context) => ChatScreen()));
+                },
+              ),
               const SizedBox(width: 8),
-              _ActionCircle(color: kBlue, icon: Icons.phone_in_talk_rounded),
+              _ActionCircle(
+                color: kBlue,
+                icon: Icons.phone_in_talk_rounded,
+                onTap: () {},
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -520,8 +533,13 @@ class _DriverProgressCard extends StatelessWidget {
 class _ActionCircle extends StatelessWidget {
   final Color color;
   final IconData icon;
+  final VoidCallback onTap;
 
-  const _ActionCircle({required this.color, required this.icon});
+  const _ActionCircle({
+    required this.color,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -529,7 +547,7 @@ class _ActionCircle extends StatelessWidget {
       color: color,
       shape: const CircleBorder(),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
           width: 42,
