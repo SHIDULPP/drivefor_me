@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_scheduled.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/thank_you_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/payment_completed.dart';
@@ -145,6 +146,26 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
           bookingArgs?['paymentType'] ??
               bookingArgs?['isOnlinePayment'] ??
               bookingArgs?['isOnline'],
+        ),
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'trip_scheduled':
+      final scheduledArgs = settings?.arguments as Map?;
+      final scheduledAtRaw = scheduledArgs?['scheduledAt'];
+      final scheduledAt = scheduledAtRaw is DateTime
+          ? scheduledAtRaw
+          : DateTime.now().add(const Duration(hours: 1));
+      page = TripScheduledPage(
+        scheduledAt: scheduledAt,
+        tripId: scheduledArgs?['tripId'] as String? ?? '#ID2562',
+        pickup: scheduledArgs?['pickup'] as String? ?? 'Edappally, Lulu mall',
+        dropoff: scheduledArgs?['dropoff'] as String? ?? 'Infopark',
+        paymentType: parseTripCompletedPaymentType(
+          scheduledArgs?['paymentType'] ??
+              scheduledArgs?['isOnlinePayment'] ??
+              scheduledArgs?['isOnline'],
         ),
       );
       transitionToUse = TransitionType.slideFromRight;

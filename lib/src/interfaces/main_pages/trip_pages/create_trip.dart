@@ -159,12 +159,24 @@ class _CreateTripPageState extends State<CreateTripPage> {
                             ? 'Pay Online & find driver'
                             : 'Confirm Cash on Pay',
                         onPressed: () {
+                          final paymentType =
+                              selectedPaymentIndex == 1 ? 'online' : 'offline';
+                          if (!isRideNow && scheduledRideAt != null) {
+                            NavigationService().pushNamed(
+                              'trip_scheduled',
+                              arguments: {
+                                'paymentType': paymentType,
+                                'scheduledAt': scheduledRideAt,
+                                'tripId': '#ID2562',
+                                'pickup': 'Edappally, Lulu mall',
+                                'dropoff': 'Infopark',
+                              },
+                            );
+                            return;
+                          }
                           NavigationService().pushNamed(
                             'booking_confirmed',
-                            arguments: {
-                              'paymentType':
-                                  selectedPaymentIndex == 1 ? 'online' : 'offline',
-                            },
+                            arguments: {'paymentType': paymentType},
                           );
                         },
                         buttonHeight: 64,

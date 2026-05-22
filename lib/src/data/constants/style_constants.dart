@@ -257,6 +257,17 @@ final kBookingConfirmedAccentSB =
 final kBookingConfirmedSubtitleR =
     kStyle(kRegular, kSize16, color: kTripMutedLabel, height: 1.4);
 
+// ── Trip scheduled ────────────────────────────────────────────────────────────
+
+final kTripScheduledAccentSB =
+    kStyle(kSemiBold, kSize30, color: kTripCtaBlue, height: 1.15);
+final kTripScheduledDateB =
+    kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.2);
+final kTripScheduledBodyR =
+    kStyle(kRegular, kSize15, color: kTripBodyMuted, height: 1.45);
+final kTripScheduledLinkSB =
+    kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.1);
+
 // ── Waiting for driver ────────────────────────────────────────────────────────
 
 final kWaitingDriverTripTitleSB =
