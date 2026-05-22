@@ -268,6 +268,29 @@ final kTripScheduledBodyR =
 final kTripScheduledLinkSB =
     kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.1);
 
+// ── Scheduled trip details ────────────────────────────────────────────────────
+
+final kScheduledTripDateR =
+    kStyle(kRegular, kSize14, color: kTripBodyMuted, height: 1.2);
+final kScheduledTripCountdownSB =
+    kStyle(kSemiBold, kSize15, color: kActiveGreen, height: 1.2);
+final kScheduledTripStatLabelR =
+    kStyle(kRegular, kSize12, color: kTripMutedLabel, height: 1.1);
+final kScheduledTripStatValueSB =
+    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.1);
+final kScheduledTripRouteTitleSB =
+    kStyle(kSemiBold, kSize15, color: kTextColor, height: 1.2);
+final kScheduledTripRouteSubtitleR =
+    kStyle(kRegular, kSize12, color: kTripMutedLabel, height: 1.15);
+final kScheduledTripSectionSB =
+    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
+final kScheduledTripPaymentLabelR =
+    kStyle(kRegular, kSize14, color: kTripBodyMuted, height: 1.2);
+final kScheduledTripPaymentValueSB =
+    kStyle(kSemiBold, kSize14, color: kTextColor, height: 1.2);
+final kScheduledTripPaidSB =
+    kStyle(kSemiBold, kSize14, color: kActiveGreen, height: 1.2);
+
 // ── Waiting for driver ────────────────────────────────────────────────────────
 
 final kWaitingDriverTripTitleSB =

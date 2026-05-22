@@ -1,6 +1,5 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/providers/nav_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
@@ -30,9 +29,21 @@ class TripScheduledPage extends ConsumerWidget {
     NavigationService().pushNamedAndRemoveUntil('navbar');
   }
 
-  void _viewBooking(WidgetRef ref) {
-    ref.read(selectedIndexProvider.notifier).updateIndex(1);
-    NavigationService().pushNamedAndRemoveUntil('navbar');
+  void _viewBooking(BuildContext context, WidgetRef ref) {
+    NavigationService().pushNamed(
+      'scheduled_trip_details',
+      arguments: {
+        'scheduledAt': scheduledAt,
+        'tripId': tripId,
+        'pickup': pickup,
+        'dropoff': dropoff,
+        'paymentType':
+            paymentType == TripCompletedPaymentType.online ? 'online' : 'offline',
+        'paymentTypeLabel': paymentType == TripCompletedPaymentType.online
+            ? 'Online(Prepaid)'
+            : 'Cash',
+      },
+    );
   }
 
   @override
@@ -87,7 +98,7 @@ class TripScheduledPage extends ConsumerWidget {
               const Spacer(flex: 3),
               primaryButton(
                 label: 'View Booking',
-                onPressed: () => _viewBooking(ref),
+                onPressed: () => _viewBooking(context, ref),
                 buttonHeight: 56,
                 fontSize: 16,
                 buttonColor: kTripCtaBlue,

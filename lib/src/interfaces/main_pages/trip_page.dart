@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
 
 class TripsPage extends StatefulWidget {
@@ -41,6 +42,8 @@ class _TripsPageState extends State<TripsPage> {
               children: [
                 if (_selectedTab == 0)
                   const _OngoingTripCard()
+                else if (_selectedTab == 1)
+                  const _UpcomingTripCard()
                 else
                   _EmptyTripsMessage(tab: _tabs[_selectedTab]),
               ],
@@ -107,10 +110,7 @@ class _TabItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 14),
-          Text(
-            label,
-            style: selected ? kTabLabelM : kTabLabelR,
-          ),
+          Text(label, style: selected ? kTabLabelM : kTabLabelR),
           const SizedBox(height: 14),
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -264,6 +264,232 @@ class _OngoingTripCard extends StatelessWidget {
   }
 }
 
+class _UpcomingTripCard extends StatelessWidget {
+  const _UpcomingTripCard();
+
+  static const _scheduledBg = Color(0xFFFFF4E8);
+  static const _scheduledOrange = Color(0xFFF59E0B);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: kBlack.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _StatusChip(
+                background: _scheduledBg,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: _scheduledOrange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Scheduled',
+                      style: kStyle(
+                        kSemiBold,
+                        kSize13,
+                        color: _scheduledOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _StatusChip(
+                background: kChipGreyBg,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.autorenew_rounded,
+                      size: 18,
+                      color: kBlack.withValues(alpha: 0.65),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Round Trip',
+                      style: kTripChipR.copyWith(
+                        color: kBlack.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.more_horiz_rounded,
+                size: 26,
+                color: kBlack.withValues(alpha: 0.85),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(child: _RouteStops()),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text('₹ 235', style: kLabel22B),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const _DashedDivider(),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month_outlined,
+                size: 18,
+                color: kBlack.withValues(alpha: 0.45),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: kCaption13R.copyWith(height: 1.35),
+                    children: [
+                      TextSpan(text: 'Tomorrow, ', style: kCaption13SB),
+                      const TextSpan(text: '09:00 AM • 1 hrs 15 min • 12 km'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(child: _DriverProfilePill()),
+              const SizedBox(width: 10),
+              _ViewBookingsButton(
+                onPressed: () {
+                  NavigationService().pushNamed(
+                    'scheduled_trip_details',
+                    arguments: {
+                      'scheduledAt': DateTime.now().add(
+                        const Duration(hours: 12, minutes: 20),
+                      ),
+                      'tripId': '# ID2562',
+                      'pickup': 'Edappally, Lulu Mall',
+                      'dropoff': 'Infopark, Kakkanad',
+                      'paymentType': 'online',
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DriverProfilePill extends StatelessWidget {
+  const _DriverProfilePill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: kTripCreamBg,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        children: [
+          ClipOval(
+            child: Image.network(
+              'https://i.pravatar.cc/128?u=ajith_kumar_driver',
+              width: 32,
+              height: 32,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 32,
+                height: 32,
+                color: kTripDestIconBg,
+                child: const Icon(
+                  Icons.person,
+                  size: 18,
+                  color: kTripIconMuted,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Ajith Kumar',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: kLabel15M.copyWith(
+                color: kTextColor.withValues(alpha: 0.9),
+              ),
+            ),
+          ),
+          const Icon(Icons.star_rounded, size: 16, color: kGoldAccent),
+          const SizedBox(width: 2),
+          Text('4.8', style: kCaption13SB),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 20,
+            color: kBlack.withValues(alpha: 0.45),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ViewBookingsButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _ViewBookingsButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: kBrandBlue,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Text('View Bookings', style: kTrackTripSB),
+        ),
+      ),
+    );
+  }
+}
+
 class _StatusChip extends StatelessWidget {
   final Color background;
   final Widget child;
@@ -395,9 +621,7 @@ class _EmptyTripsMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 48),
-      child: Center(
-        child: Text('No $tab trips', style: kEmptyStateM),
-      ),
+      child: Center(child: Text('No $tab trips', style: kEmptyStateM)),
     );
   }
 }

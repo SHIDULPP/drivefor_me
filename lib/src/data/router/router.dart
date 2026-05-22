@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/scheduled_trip_screens/scheduled_trip_details.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_scheduled.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/thank_you_page.dart';
@@ -147,6 +148,39 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
               bookingArgs?['isOnlinePayment'] ??
               bookingArgs?['isOnline'],
         ),
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'scheduled_trip_details':
+      final detailsArgs = settings?.arguments as Map?;
+      final detailsScheduledRaw = detailsArgs?['scheduledAt'];
+      final detailsScheduledAt = detailsScheduledRaw is DateTime
+          ? detailsScheduledRaw
+          : DateTime.now().add(const Duration(hours: 12, minutes: 20));
+      page = ScheduledTripDetailsPage(
+        tripTitle: detailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: detailsArgs?['tripId'] as String? ?? '# ID2562',
+        scheduledAt: detailsScheduledAt,
+        pickup: detailsArgs?['pickup'] as String? ?? 'Edappally, Lulu Mall',
+        dropoff: detailsArgs?['dropoff'] as String? ?? 'Infopark, Kakkanad',
+        distance: detailsArgs?['distance'] as String? ?? '12 km',
+        duration: detailsArgs?['duration'] as String? ?? '2 hrs',
+        vehicleType: detailsArgs?['vehicleType'] as String? ?? 'Manual',
+        tripFare: detailsArgs?['tripFare'] as String? ?? '₹235',
+        paymentTypeLabel:
+            detailsArgs?['paymentTypeLabel'] as String? ?? 'Online(Prepaid)',
+        driverName: detailsArgs?['driverName'] as String? ?? 'Ajith Kumar',
+        driverRating: (detailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: detailsArgs?['driverTrips'] as int? ?? 120,
+        vehicleTypes:
+            detailsArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+        paymentType: parseTripCompletedPaymentType(
+          detailsArgs?['paymentType'] ??
+              detailsArgs?['isOnlinePayment'] ??
+              detailsArgs?['isOnline'],
+        ),
+        forcePickupTime: detailsArgs?['forcePickupTime'] == true,
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
