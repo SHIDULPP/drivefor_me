@@ -17,6 +17,7 @@ import 'package:driveforme_user/src/interfaces/onboarding/login_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
 import 'package:driveforme_user/src/interfaces/onboarding/splash_screen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/create_trip.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:flutter/material.dart';
 //router file
 
@@ -181,6 +182,15 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
               detailsArgs?['isOnline'],
         ),
         forcePickupTime: detailsArgs?['forcePickupTime'] == true,
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'chat_screen':
+      final chatArgs = settings?.arguments as Map?;
+      page = ChatScreen(
+        participantName:
+            chatArgs?['participantName'] as String? ?? 'Jacob John',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);

@@ -5,6 +5,7 @@ import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -66,7 +67,13 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
   }
 
   static DateTime _truncateToMinute(DateTime value) {
-    return DateTime(value.year, value.month, value.day, value.hour, value.minute);
+    return DateTime(
+      value.year,
+      value.month,
+      value.day,
+      value.hour,
+      value.minute,
+    );
   }
 
   @override
@@ -105,14 +112,9 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
   String get _dateLabel => 'Date : ${_dateFormat.format(widget.scheduledAt)}';
 
   void _onImAtPickup() {
-    NavigationService().pushNamedReplacement(
-      'waiting_driver',
-      arguments: {
-        'tripTitle': widget.tripTitle,
-        'tripId': widget.tripId,
-        ...tripPaymentArguments(widget.paymentType),
-      },
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => DriverFoundPage()));
   }
 
   @override
@@ -187,6 +189,14 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                       driverRating: widget.driverRating,
                       driverTrips: widget.driverTrips,
                       vehicleTypes: widget.vehicleTypes,
+                      onChat: () {
+                        NavigationService().pushNamed(
+                          'chat_screen',
+                          arguments: {
+                            'participantName': widget.driverName,
+                          },
+                        );
+                      },
                     ),
                     if (showCountdown) ...[
                       const SizedBox(height: 14),
@@ -227,7 +237,7 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
               ],
             ),
             padding: EdgeInsets.fromLTRB(20, 14, 20, bottomInset + 16),
-            child: _isPickupTime
+            child: !_isPickupTime
                 ? Row(
                     children: [
                       Expanded(
@@ -303,9 +313,17 @@ class _ScheduledTripHeader extends StatelessWidget {
             Expanded(
               child: Column(
                 children: [
-                  Text(tripTitle, textAlign: TextAlign.center, style: kWaitingDriverTripTitleSB),
+                  Text(
+                    tripTitle,
+                    textAlign: TextAlign.center,
+                    style: kWaitingDriverTripTitleSB,
+                  ),
                   const SizedBox(height: 2),
-                  Text(tripId, textAlign: TextAlign.center, style: kWaitingDriverTripIdR),
+                  Text(
+                    tripId,
+                    textAlign: TextAlign.center,
+                    style: kWaitingDriverTripIdR,
+                  ),
                 ],
               ),
             ),
@@ -354,7 +372,12 @@ class _ScheduledBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             'SCHEDULED',
-            style: kStyle(kSemiBold, kSize11, color: _scheduledText, letterSpacing: 0.4),
+            style: kStyle(
+              kSemiBold,
+              kSize11,
+              color: _scheduledText,
+              letterSpacing: 0.4,
+            ),
           ),
         ],
       ),
@@ -448,7 +471,11 @@ class _StatCell extends StatelessWidget {
         children: [
           Text(label, style: kScheduledTripStatLabelR),
           const SizedBox(height: 6),
-          Text(value, textAlign: TextAlign.center, style: kScheduledTripStatValueSB),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: kScheduledTripStatValueSB,
+          ),
         ],
       ),
     );
@@ -459,10 +486,7 @@ class _ScheduledRouteSection extends StatelessWidget {
   final String pickup;
   final String dropoff;
 
-  const _ScheduledRouteSection({
-    required this.pickup,
-    required this.dropoff,
-  });
+  const _ScheduledRouteSection({required this.pickup, required this.dropoff});
 
   @override
   Widget build(BuildContext context) {
@@ -536,12 +560,14 @@ class _ScheduledDriverCard extends StatelessWidget {
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
+  final VoidCallback onChat;
 
   const _ScheduledDriverCard({
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
+    required this.onChat,
   });
 
   @override
@@ -604,7 +630,7 @@ class _ScheduledDriverCard extends StatelessWidget {
           _DriverActionButton(
             color: kActiveGreen,
             icon: Icons.chat_bubble_outline_rounded,
-            onTap: () {},
+            onTap: onChat,
           ),
           const SizedBox(width: 8),
           _DriverActionButton(

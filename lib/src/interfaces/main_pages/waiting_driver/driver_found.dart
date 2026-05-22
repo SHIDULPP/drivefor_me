@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:flutter/material.dart';
@@ -470,7 +471,11 @@ class _DriverInfoCard extends StatelessWidget {
           _DriverActionButton(
             color: kActiveGreen,
             icon: Icons.chat_bubble_outline_rounded,
-            onTap: () {},
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => ChatScreen()));
+            },
           ),
           const SizedBox(width: 8),
           _DriverActionButton(
