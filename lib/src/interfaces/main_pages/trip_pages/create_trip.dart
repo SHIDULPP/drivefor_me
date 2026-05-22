@@ -3,7 +3,9 @@ import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/components/schedule_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/select_rider.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -27,7 +29,11 @@ class _CreateTripPageState extends State<CreateTripPage> {
   bool isOneWay = true;
 
   bool isShortTrip = true;
+  bool isRideNow = true;
+  DateTime? scheduledRideAt;
   int? selectedPaymentIndex;
+
+  static final _scheduleDisplayFormat = DateFormat('EEE, dd MMM • hh:mm a');
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +98,11 @@ class _CreateTripPageState extends State<CreateTripPage> {
 
               /// ================= VEHICLE CARD =================
               _buildVehicleCard(),
+
+              const SizedBox(height: 18),
+
+              /// ================= RIDE TIME =================
+              _buildRideTimeCard(),
 
               const SizedBox(height: 18),
 
@@ -446,6 +457,142 @@ class _CreateTripPageState extends State<CreateTripPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// ============================================================
+  /// RIDE TIME
+  /// ============================================================
+
+  static const _rideScheduleBg = Color(0xFFDDE6F0);
+
+  Widget _buildRideTimeCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: kTripCtaBlue,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.access_time_rounded,
+                  color: kWhite,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Ride Time', style: kTripSubSectionSB),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Book a ride now or schedule for later',
+                      style: kTripProtectionDescR,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _rideTimeOption(
+                  label: 'Now',
+                  selected: isRideNow,
+                  onTap: () => setState(() {
+                    isRideNow = true;
+                    scheduledRideAt = null;
+                  }),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _rideTimeOption(
+                  label: 'Schedule',
+                  selected: !isRideNow,
+                  onTap: _onScheduleTap,
+                ),
+              ),
+            ],
+          ),
+          if (!isRideNow && scheduledRideAt != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Scheduled: ${_scheduleDisplayFormat.format(scheduledRideAt!)}',
+              style: kStyle(kMedium, kSize13, color: kBrandBlue),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openScheduleSheet({bool openOnScheduleTab = false}) async {
+    final result = await showScheduleBottomSheet(
+      context,
+      initialDateTime: scheduledRideAt,
+      initialIsNow: openOnScheduleTab ? false : isRideNow,
+    );
+
+    if (!mounted) return;
+
+    if (result == null) {
+      if (openOnScheduleTab) {
+        setState(() => isRideNow = scheduledRideAt == null);
+      }
+      return;
+    }
+
+    setState(() {
+      isRideNow = result.isNow;
+      scheduledRideAt = result.scheduledAt;
+    });
+  }
+
+  Future<void> _onScheduleTap() async {
+    setState(() => isRideNow = false);
+    await _openScheduleSheet(openOnScheduleTab: true);
+  }
+
+  Widget _rideTimeOption({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 50,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? kTripCtaBlue : _rideScheduleBg,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Text(
+          label,
+          style: kStyle(
+            kSemiBold,
+            kSize16,
+            color: selected ? kWhite : kTripCtaBlue,
+          ),
+        ),
       ),
     );
   }
