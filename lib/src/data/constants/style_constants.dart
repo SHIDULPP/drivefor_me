@@ -189,6 +189,10 @@ final kSectionLabelR = kStyle(kRegular, kSize13, color: kMutedText);
 final kQuickActionM = kStyle(kMedium, kSize13, color: kTextColor);
 final kVersionR = kStyle(kRegular, kSize12, color: kMutedText);
 final kEditProfileM = kStyle(kMedium, kSize14, color: kBrandBlue);
+final kTripNotificationBodyR =
+    kStyle(kRegular, kSize14, color: kTripBodyMuted, height: 1.45);
+final kTripNotificationTimeM =
+    kStyle(kMedium, kSize12, color: kTripCtaBlue, height: 1.2);
 
 // ── Trip booking (Ride Now / create trip flow) ────────────────────────────────
 
@@ -297,6 +301,13 @@ final kCompletedTripTotalLabelSB =
     kStyle(kSemiBold, kSize15, color: kTripCtaBlue, height: 1.2);
 final kCompletedTripTotalValueSB =
     kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.2);
+
+// ── Cancelled trip details ────────────────────────────────────────────────────
+
+final kCancelledRefundAmountSB =
+    kStyle(kSemiBold, kSize16, color: kActiveGreen, height: 1.2);
+final kCancelledRefundDateSB =
+    kStyle(kSemiBold, kSize13, color: kActiveGreen, height: 1.2);
 
 // ── Waiting for driver ────────────────────────────────────────────────────────
 

@@ -46,6 +46,8 @@ class _TripsPageState extends State<TripsPage> {
                   const _UpcomingTripCard()
                 else if (_selectedTab == 2)
                   const _CompletedTripsList()
+                else if (_selectedTab == 3)
+                  const _CancelledTripsList()
                 else
                   _EmptyTripsMessage(tab: _tabs[_selectedTab]),
               ],
@@ -258,6 +260,211 @@ class _OngoingTripCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               _TrackTripButton(onPressed: () {}),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CancelledTripsList extends StatelessWidget {
+  const _CancelledTripsList();
+
+  static Map<String, dynamic> _detailsArgs({required bool isLongTrip}) {
+    if (isLongTrip) {
+      return {
+        'isLongTrip': true,
+        'tripId': '# ID2562',
+        'metaLine': '25 April to 28 April • 58 hrs • 30 km',
+        'amountPaid': '₹ 2,350',
+        'refundAmount': '₹ 2,670',
+        'refundInitiatedAt': '25 April 2025, 08:45 AM',
+      };
+    }
+    return {
+      'isLongTrip': false,
+      'tripId': '# ID2562',
+      'metaLine': '25 April • 3 hrs • 10 km',
+      'amountPaid': '₹ 235',
+      'refundAmount': '₹ 355',
+      'refundInitiatedAt': '25 April 2025, 08:45 AM',
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _CancelledTripCard(
+          isLongTrip: false,
+          metaPrimary: '25 April',
+          metaRest: ' • 3 hrs • 10 km',
+          onViewDetails: () {
+            NavigationService().pushNamed(
+              'cancelled_trip_details',
+              arguments: _detailsArgs(isLongTrip: false),
+            );
+          },
+          onBookAgain: () {
+            NavigationService().pushNamed('create_trip');
+          },
+        ),
+        const SizedBox(height: 16),
+        _CancelledTripCard(
+          isLongTrip: true,
+          metaPrimary: '25 April to 28 April',
+          metaRest: ' • 58 hrs • 30 km',
+          onViewDetails: () {
+            NavigationService().pushNamed(
+              'cancelled_trip_details',
+              arguments: _detailsArgs(isLongTrip: true),
+            );
+          },
+          onBookAgain: () {
+            NavigationService().pushNamed('create_trip');
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CancelledTripCard extends StatelessWidget {
+  final bool isLongTrip;
+  final String metaPrimary;
+  final String metaRest;
+  final VoidCallback onViewDetails;
+  final VoidCallback onBookAgain;
+
+  const _CancelledTripCard({
+    required this.isLongTrip,
+    required this.metaPrimary,
+    required this.metaRest,
+    required this.onViewDetails,
+    required this.onBookAgain,
+  });
+
+  static const _cancelledBg = Color(0xFFFFEBEE);
+  static const _cancelledRed = Color(0xFFE53935);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: kBlack.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _StatusChip(
+                background: _cancelledBg,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        color: _cancelledRed,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close, size: 11, color: kWhite),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Cancelled',
+                      style: kStyle(kSemiBold, kSize13, color: _cancelledRed),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _StatusChip(
+                background: kChipGreyBg,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 18,
+                      color: kBlack.withValues(alpha: 0.65),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isLongTrip ? 'LONG TRIP' : 'SHORT TRIP',
+                      style: kTripChipR.copyWith(
+                        color: kBlack.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.more_horiz_rounded,
+                size: 26,
+                color: kBlack.withValues(alpha: 0.85),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const _RouteStops(),
+          const SizedBox(height: 18),
+          const _DashedDivider(),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month_outlined,
+                size: 18,
+                color: kBlack.withValues(alpha: 0.45),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: kCaption13R.copyWith(height: 1.35),
+                    children: [
+                      TextSpan(text: metaPrimary, style: kCaption13SB),
+                      TextSpan(text: metaRest),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _OutlinedTripAction(
+                  label: 'View Details',
+                  onTap: onViewDetails,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _OutlinedTripAction(
+                  label: 'Book again',
+                  onTap: onBookAgain,
+                  borderColor: kRed,
+                  labelColor: kRed,
+                  leadingIcon: Icons.refresh_rounded,
+                ),
+              ),
             ],
           ),
         ],
@@ -481,8 +688,17 @@ class _CompletedTripCard extends StatelessWidget {
 class _OutlinedTripAction extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
+  final Color borderColor;
+  final Color labelColor;
+  final IconData? leadingIcon;
 
-  const _OutlinedTripAction({required this.label, required this.onTap});
+  const _OutlinedTripAction({
+    required this.label,
+    required this.onTap,
+    this.borderColor = kTripBorder,
+    this.labelColor = kTextColor,
+    this.leadingIcon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -495,15 +711,29 @@ class _OutlinedTripAction extends StatelessWidget {
         child: Container(
           height: 44,
           alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: kTripBorder),
+            border: Border.all(color: borderColor),
           ),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: kLabel15M.copyWith(color: kTextColor.withValues(alpha: 0.9)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (leadingIcon != null) ...[
+                Icon(leadingIcon, size: 18, color: labelColor),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: kLabel15M.copyWith(
+                    color: labelColor.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

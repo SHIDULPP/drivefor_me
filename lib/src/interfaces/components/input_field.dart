@@ -121,6 +121,7 @@ class InputField extends StatelessWidget {
     final isText = type == CustomFieldType.text;
     final isNumber = type == CustomFieldType.number;
     final isDate = type == CustomFieldType.date;
+    final isMultiline = isText && maxLines > 1;
 
     return TextFormField(
       controller: controller,
@@ -133,6 +134,8 @@ class InputField extends StatelessWidget {
           ? TextInputType.numberWithOptions(decimal: allowDecimal)
           : isDate
           ? TextInputType.number
+          : isMultiline
+          ? TextInputType.multiline
           : TextInputType.text,
       inputFormatters: isNumber
           ? [

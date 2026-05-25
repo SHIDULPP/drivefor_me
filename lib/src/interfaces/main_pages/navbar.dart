@@ -137,8 +137,8 @@ class _FloatingNavBar extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        SizedBox(height: isSelected ? circleLift + 6 : 8),
                         if (!isSelected) ...[
+                          const SizedBox(height: 8),
                           SvgPicture.asset(
                             item.inactiveIcon,
                             width: 24,
@@ -146,11 +146,9 @@ class _FloatingNavBar extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(item.label, style: kNavLabelR),
-                        ] else ...[
-                          const SizedBox(height: circleDiameter - 8),
+                        ] else
                           Text(item.label, style: kNavLabelM),
-                        ],
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),

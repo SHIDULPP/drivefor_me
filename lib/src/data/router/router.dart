@@ -1,6 +1,8 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/cancelled_trip_screens/cancelled_trip_details.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/completed_trip_screens/completed_trip_details.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/completed_trip_screens/raise_ticket_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/scheduled_trip_screens/scheduled_trip_details.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_scheduled.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
@@ -19,6 +21,9 @@ import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart
 import 'package:driveforme_user/src/interfaces/onboarding/splash_screen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/create_trip.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/my_vehicles_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/notifications_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/personal_details_page.dart';
 import 'package:flutter/material.dart';
 //router file
 
@@ -187,6 +192,43 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;
+    case 'cancelled_trip_details':
+      final cancelledDetailsArgs = settings?.arguments as Map?;
+      page = CancelledTripDetailsPage(
+        tripTitle:
+            cancelledDetailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: cancelledDetailsArgs?['tripId'] as String? ?? '# ID2562',
+        isLongTrip: cancelledDetailsArgs?['isLongTrip'] == true,
+        pickup: cancelledDetailsArgs?['pickup'] as String? ??
+            'Edappally, Lulu Mall',
+        dropoff: cancelledDetailsArgs?['dropoff'] as String? ??
+            'Infopark, Kakkanad',
+        metaLine: cancelledDetailsArgs?['metaLine'] as String? ??
+            'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
+        amountPaid: cancelledDetailsArgs?['amountPaid'] as String? ?? '₹ 235',
+        refundAmount:
+            cancelledDetailsArgs?['refundAmount'] as String? ?? '₹ 355',
+        refundInitiatedAt: cancelledDetailsArgs?['refundInitiatedAt'] as String? ??
+            '25 April 2025, 08:45 AM',
+        driverName:
+            cancelledDetailsArgs?['driverName'] as String? ?? 'Ajith Kumar',
+        driverRating:
+            (cancelledDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: cancelledDetailsArgs?['driverTrips'] as int? ?? 120,
+        vehicleTypes: cancelledDetailsArgs?['vehicleTypes'] as String? ??
+            'Manual + Auto',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'raise_ticket':
+      final raiseTicketArgs = settings?.arguments as Map?;
+      page = RaiseTicketPage(
+        tripId: raiseTicketArgs?['tripId'] as String? ?? '# ID2562',
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
     case 'completed_trip_details':
       final completedDetailsArgs = settings?.arguments as Map?;
       page = CompletedTripDetailsPage(
@@ -216,6 +258,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverTrips: completedDetailsArgs?['driverTrips'] as int? ?? 120,
         vehicleTypes: completedDetailsArgs?['vehicleTypes'] as String? ??
             'Manual + Auto',
+        ticketSubject: completedDetailsArgs?['ticketSubject'] as String? ??
+            CompletedTripDetailsPage.kDummyTicketSubject,
+        ticketDescription:
+            completedDetailsArgs?['ticketDescription'] as String? ??
+                CompletedTripDetailsPage.kDummyTicketDescription,
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -226,6 +273,21 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         participantName:
             chatArgs?['participantName'] as String? ?? 'Jacob John',
       );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'personal_details':
+      page = const PersonalDetailsPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'my_vehicles':
+      page = const MyVehiclesPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'notifications':
+      page = const NotificationsPage();
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;

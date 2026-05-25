@@ -1,37 +1,24 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:flutter/material.dart';
 
-class CompletedTripDetailsPage extends StatelessWidget {
+class CancelledTripDetailsPage extends StatelessWidget {
   final String tripTitle;
   final String tripId;
   final bool isLongTrip;
   final String pickup;
   final String dropoff;
   final String metaLine;
-  final String distance;
-  final String duration;
-  final String tripFare;
-  final String tripFareDurationLabel;
-  final String extraTimeFare;
-  final String extraTimeDurationLabel;
-  final String totalPaid;
+  final String amountPaid;
+  final String refundAmount;
+  final String refundInitiatedAt;
   final String driverName;
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
-  final String ticketSubject;
-  final String ticketDescription;
 
-  static const kDummyTicketSubject = 'Passenger not reachable at pickup';
-  static const kDummyTicketDescription =
-      'I reached the pickup location but the passenger was not responding to '
-      'calls or messages. I waited for more than 10 minutes. Please advise if '
-      'this should be marked as a no-show.';
-
-  const CompletedTripDetailsPage({
+  const CancelledTripDetailsPage({
     super.key,
     this.tripTitle = 'One Way Trip',
     this.tripId = '# ID2562',
@@ -39,19 +26,13 @@ class CompletedTripDetailsPage extends StatelessWidget {
     this.pickup = 'Edappally, Lulu Mall',
     this.dropoff = 'Infopark, Kakkanad',
     this.metaLine = 'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
-    this.distance = '12 km',
-    this.duration = '2 hrs',
-    this.tripFare = '₹ 235',
-    this.tripFareDurationLabel = '2 hrs',
-    this.extraTimeFare = '₹ 120',
-    this.extraTimeDurationLabel = '30 min',
-    this.totalPaid = '₹ 355',
+    this.amountPaid = '₹ 235',
+    this.refundAmount = '₹ 355',
+    this.refundInitiatedAt = '25 April 2025, 08:45 AM',
     this.driverName = 'Ajith Kumar',
     this.driverRating = 4.8,
     this.driverTrips = 120,
     this.vehicleTypes = 'Manual + Auto',
-    this.ticketSubject = kDummyTicketSubject,
-    this.ticketDescription = kDummyTicketDescription,
   });
 
   @override
@@ -62,7 +43,7 @@ class CompletedTripDetailsPage extends StatelessWidget {
       backgroundColor: kScreenBg,
       body: Column(
         children: [
-          _CompletedTripHeader(
+          _CancelledTripHeader(
             tripTitle: tripTitle,
             tripId: tripId,
             onBack: () => Navigator.of(context).maybePop(),
@@ -70,29 +51,26 @@ class CompletedTripDetailsPage extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: kWhite,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kBlack.withValues(alpha: 0.05),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: kWhite,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlack.withValues(alpha: 0.05),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                     Row(
                       children: [
-                        const _CompletedBadge(),
+                        const _CancelledBadge(),
                         const SizedBox(width: 8),
                         _TripTypeBadge(isLongTrip: isLongTrip),
                       ],
@@ -113,28 +91,16 @@ class CompletedTripDetailsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    _CompletedRouteSection(
+                    _CancelledRouteSection(
                       pickup: pickup,
                       dropoff: dropoff,
                     ),
                     const SizedBox(height: 16),
-                    _CompletedDriverCard(
+                    _CancelledDriverCard(
                       driverName: driverName,
                       driverRating: driverRating,
                       driverTrips: driverTrips,
                       vehicleTypes: vehicleTypes,
-                      onRateRide: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => DriverRatingPage(
-                              driverName: driverName,
-                              driverRating: driverRating,
-                              driverTrips: driverTrips,
-                              vehicleTypes: vehicleTypes,
-                            ),
-                          ),
-                        );
-                      },
                       onChat: () {
                         NavigationService().pushNamed(
                           'chat_screen',
@@ -143,22 +109,13 @@ class CompletedTripDetailsPage extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
-                        _FareBreakdownCard(
-                          tripFare: tripFare,
-                          tripFareDurationLabel: tripFareDurationLabel,
-                          extraTimeFare: extraTimeFare,
-                          extraTimeDurationLabel: extraTimeDurationLabel,
-                          totalPaid: totalPaid,
-                        ),
-                      ],
+                    _CancelledFareBreakdownCard(
+                      amountPaid: amountPaid,
+                      refundAmount: refundAmount,
+                      refundInitiatedAt: refundInitiatedAt,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _TicketDisplayCard(
-                    subject: ticketSubject,
-                    description: ticketDescription,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -201,67 +158,12 @@ class CompletedTripDetailsPage extends StatelessWidget {
   }
 }
 
-class _TicketDisplayCard extends StatelessWidget {
-  final String subject;
-  final String description;
-
-  const _TicketDisplayCard({
-    required this.subject,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'TICKET',
-            style: kStyle(
-              kSemiBold,
-              kSize11,
-              color: kTripMutedLabel,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(subject, style: kScheduledTripSectionSB),
-          const SizedBox(height: 10),
-          Text(
-            description,
-            style: kStyle(
-              kRegular,
-              kSize14,
-              color: kTextColor,
-              height: 1.45,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompletedTripHeader extends StatelessWidget {
+class _CancelledTripHeader extends StatelessWidget {
   final String tripTitle;
   final String tripId;
   final VoidCallback onBack;
 
-  const _CompletedTripHeader({
+  const _CancelledTripHeader({
     required this.tripTitle,
     required this.tripId,
     required this.onBack,
@@ -329,18 +231,18 @@ class _CompletedTripHeader extends StatelessWidget {
   }
 }
 
-class _CompletedBadge extends StatelessWidget {
-  static const _completedBg = Color(0xFFE8F1FA);
-  static const _completedBlue = Color(0xFF165A91);
+class _CancelledBadge extends StatelessWidget {
+  static const _cancelledBg = Color(0xFFFFEBEE);
+  static const _cancelledRed = Color(0xFFE53935);
 
-  const _CompletedBadge();
+  const _CancelledBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _completedBg,
+        color: _cancelledBg,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -350,15 +252,15 @@ class _CompletedBadge extends StatelessWidget {
             width: 16,
             height: 16,
             decoration: const BoxDecoration(
-              color: _completedBlue,
+              color: _cancelledRed,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check, size: 11, color: kWhite),
+            child: const Icon(Icons.close, size: 11, color: kWhite),
           ),
           const SizedBox(width: 6),
           Text(
-            'Completed',
-            style: kStyle(kSemiBold, kSize11, color: _completedBlue),
+            'Cancelled',
+            style: kStyle(kSemiBold, kSize11, color: _cancelledRed),
           ),
         ],
       ),
@@ -403,11 +305,11 @@ class _TripTypeBadge extends StatelessWidget {
   }
 }
 
-class _CompletedRouteSection extends StatelessWidget {
+class _CancelledRouteSection extends StatelessWidget {
   final String pickup;
   final String dropoff;
 
-  const _CompletedRouteSection({
+  const _CancelledRouteSection({
     required this.pickup,
     required this.dropoff,
   });
@@ -475,20 +377,18 @@ class _RouteStop extends StatelessWidget {
   }
 }
 
-class _CompletedDriverCard extends StatelessWidget {
+class _CancelledDriverCard extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
-  final VoidCallback onRateRide;
   final VoidCallback onChat;
 
-  const _CompletedDriverCard({
+  const _CancelledDriverCard({
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
-    required this.onRateRide,
     required this.onChat,
   });
 
@@ -501,87 +401,64 @@ class _CompletedDriverCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: kCardBorder),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  'https://i.pravatar.cc/128?u=ajith_kumar_driver',
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 56,
-                    height: 56,
-                    color: kChipGreyBg,
-                    child: const Icon(Icons.person, color: kMutedText, size: 32),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(driverName, style: kDriverFoundNameSB),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          driverRating.toStringAsFixed(1),
-                          style: kDriverFoundRatingM,
-                        ),
-                        const SizedBox(width: 4),
-                        ..._buildStars(driverRating),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            '• $driverTrips trips',
-                            style: kDriverFoundMetaR,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(vehicleTypes, style: kDriverFoundMetaR),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              _DriverActionButton(
-                color: kActiveGreen,
-                icon: Icons.chat_bubble_outline_rounded,
-                onTap: onChat,
-              ),
-              const SizedBox(width: 8),
-              _DriverActionButton(
-                color: kBlue,
-                icon: Icons.phone_in_talk_rounded,
-                onTap: () {},
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Material(
-            color: const Color(0xFFE8ECF4),
-            borderRadius: BorderRadius.circular(24),
-            child: InkWell(
-              onTap: onRateRide,
-              borderRadius: BorderRadius.circular(24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: Center(
-                  child: Text(
-                    'Rate your ride',
-                    style: kStyle(kSemiBold, kSize15, color: kTripCtaBlue),
-                  ),
-                ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.network(
+              'https://i.pravatar.cc/128?u=ajith_kumar_driver',
+              width: 56,
+              height: 56,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 56,
+                height: 56,
+                color: kChipGreyBg,
+                child: const Icon(Icons.person, color: kMutedText, size: 32),
               ),
             ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(driverName, style: kDriverFoundNameSB),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      driverRating.toStringAsFixed(1),
+                      style: kDriverFoundRatingM,
+                    ),
+                    const SizedBox(width: 4),
+                    ..._buildStars(driverRating),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        '• $driverTrips trips',
+                        style: kDriverFoundMetaR,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(vehicleTypes, style: kDriverFoundMetaR),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _DriverActionButton(
+            color: kActiveGreen,
+            icon: Icons.chat_bubble_outline_rounded,
+            onTap: onChat,
+          ),
+          const SizedBox(width: 8),
+          _DriverActionButton(
+            color: kBlue,
+            icon: Icons.phone_in_talk_rounded,
+            onTap: () {},
           ),
         ],
       ),
@@ -635,19 +512,15 @@ class _DriverActionButton extends StatelessWidget {
   }
 }
 
-class _FareBreakdownCard extends StatelessWidget {
-  final String tripFare;
-  final String tripFareDurationLabel;
-  final String extraTimeFare;
-  final String extraTimeDurationLabel;
-  final String totalPaid;
+class _CancelledFareBreakdownCard extends StatelessWidget {
+  final String amountPaid;
+  final String refundAmount;
+  final String refundInitiatedAt;
 
-  const _FareBreakdownCard({
-    required this.tripFare,
-    required this.tripFareDurationLabel,
-    required this.extraTimeFare,
-    required this.extraTimeDurationLabel,
-    required this.totalPaid,
+  const _CancelledFareBreakdownCard({
+    required this.amountPaid,
+    required this.refundAmount,
+    required this.refundInitiatedAt,
   });
 
   @override
@@ -666,24 +539,39 @@ class _FareBreakdownCard extends StatelessWidget {
           const SizedBox(height: 12),
           const _DashedDivider(),
           const SizedBox(height: 12),
-          _FareRow(
-            label: 'Trip Fare ($tripFareDurationLabel)',
-            value: tripFare,
-          ),
-          const SizedBox(height: 10),
-          _FareRow(
-            label: 'Extra Time ($extraTimeDurationLabel)',
-            value: extraTimeFare,
-          ),
+          _FareRow(label: 'Amount Paid', value: amountPaid),
           const SizedBox(height: 12),
           const _DashedDivider(),
           const SizedBox(height: 12),
           Row(
             children: [
-              Text('Total Paid', style: kCompletedTripTotalLabelSB),
+              Text('Refund Initiated', style: kScheduledTripSectionSB),
               const Spacer(),
-              Text(totalPaid, style: kCompletedTripTotalValueSB),
+              Text(refundAmount, style: kCancelledRefundAmountSB),
             ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Refund will be credited to your wallet within 5-7 business days.',
+            style: kStyle(
+              kRegular,
+              kSize13,
+              color: kTripBodyMuted,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              style: kStyle(kRegular, kSize13, color: kTripBodyMuted),
+              children: [
+                const TextSpan(text: 'Initiated on '),
+                TextSpan(
+                  text: refundInitiatedAt,
+                  style: kCancelledRefundDateSB,
+                ),
+              ],
+            ),
           ),
         ],
       ),

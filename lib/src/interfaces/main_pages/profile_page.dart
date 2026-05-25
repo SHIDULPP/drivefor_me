@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
 
 /// Matches floating nav bar height: bar (68) + circle lift (36) + safe inset.
@@ -111,7 +112,7 @@ class _EditProfileButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () => NavigationService().pushNamed('personal_details'),
         borderRadius: BorderRadius.circular(50),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -252,6 +253,15 @@ class _MenuCard extends StatelessWidget {
               child: _MenuTile(
                 title: items[i],
                 isDanger: dangerFromIndex != null && i >= dangerFromIndex!,
+                onTap: switch (items[i]) {
+                  'Personal Details' => () =>
+                      NavigationService().pushNamed('personal_details'),
+                  'My Vehicles' => () =>
+                      NavigationService().pushNamed('my_vehicles'),
+                  'Notifications' => () =>
+                      NavigationService().pushNamed('notifications'),
+                  _ => null,
+                },
               ),
             ),
           ],
@@ -304,15 +314,16 @@ class _PartnerMenuCard extends StatelessWidget {
 class _MenuTile extends StatelessWidget {
   final String title;
   final bool isDanger;
+  final VoidCallback? onTap;
 
-  const _MenuTile({required this.title, this.isDanger = false});
+  const _MenuTile({required this.title, this.isDanger = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
