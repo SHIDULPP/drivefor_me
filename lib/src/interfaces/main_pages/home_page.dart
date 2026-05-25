@@ -217,8 +217,10 @@ class _SupportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final responsiveHeight = MediaQuery.sizeOf(context).height * 0.25;
+
     return Container(
-      height: 180,
+      constraints: BoxConstraints(minHeight: responsiveHeight),
       decoration: BoxDecoration(
         color: kBrandBlue,
         borderRadius: BorderRadius.circular(_cardRadius),
