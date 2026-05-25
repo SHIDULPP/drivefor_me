@@ -291,6 +291,13 @@ final kScheduledTripPaymentValueSB =
 final kScheduledTripPaidSB =
     kStyle(kSemiBold, kSize14, color: kActiveGreen, height: 1.2);
 
+// ── Completed trip details ────────────────────────────────────────────────────
+
+final kCompletedTripTotalLabelSB =
+    kStyle(kSemiBold, kSize15, color: kTripCtaBlue, height: 1.2);
+final kCompletedTripTotalValueSB =
+    kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.2);
+
 // ── Waiting for driver ────────────────────────────────────────────────────────
 
 final kWaitingDriverTripTitleSB =

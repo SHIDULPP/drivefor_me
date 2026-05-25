@@ -44,6 +44,8 @@ class _TripsPageState extends State<TripsPage> {
                   const _OngoingTripCard()
                 else if (_selectedTab == 1)
                   const _UpcomingTripCard()
+                else if (_selectedTab == 2)
+                  const _CompletedTripsList()
                 else
                   _EmptyTripsMessage(tab: _tabs[_selectedTab]),
               ],
@@ -259,6 +261,251 @@ class _OngoingTripCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CompletedTripsList extends StatelessWidget {
+  const _CompletedTripsList();
+
+  static Map<String, dynamic> _detailsArgs({required bool isLongTrip}) {
+    if (isLongTrip) {
+      return {
+        'isLongTrip': true,
+        'tripId': '# ID2562',
+        'metaLine': '25 April to 28 April • 48 hrs 15 min • 122 km',
+        'tripFare': '₹ 2,350',
+        'tripFareDurationLabel': '48 hrs',
+        'extraTimeFare': '₹ 320',
+        'extraTimeDurationLabel': '2 hrs',
+        'totalPaid': '₹ 2,670',
+      };
+    }
+    return {
+      'isLongTrip': false,
+      'tripId': '# ID2562',
+      'metaLine': '25 April • 1 hrs 15 min • 12 km',
+      'tripFare': '₹ 235',
+      'tripFareDurationLabel': '2 hrs',
+      'extraTimeFare': '₹ 120',
+      'extraTimeDurationLabel': '30 min',
+      'totalPaid': '₹ 355',
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _CompletedTripCard(
+          isLongTrip: false,
+          price: '₹ 235',
+          metaPrimary: '25 April',
+          metaRest: ' • 1 hrs 15 min • 12 km',
+          onViewDetails: () {
+            NavigationService().pushNamed(
+              'completed_trip_details',
+              arguments: _detailsArgs(isLongTrip: false),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        _CompletedTripCard(
+          isLongTrip: true,
+          price: '₹ 2,350',
+          metaPrimary: '25 April to 28 April',
+          metaRest: ' • 48 hrs 15 min • 122 km',
+          onViewDetails: () {
+            NavigationService().pushNamed(
+              'completed_trip_details',
+              arguments: _detailsArgs(isLongTrip: true),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CompletedTripCard extends StatelessWidget {
+  final bool isLongTrip;
+  final String price;
+  final String metaPrimary;
+  final String metaRest;
+  final VoidCallback onViewDetails;
+
+  const _CompletedTripCard({
+    required this.isLongTrip,
+    required this.price,
+    required this.metaPrimary,
+    required this.metaRest,
+    required this.onViewDetails,
+  });
+
+  static const _completedBg = Color(0xFFE8F1FA);
+  static const _completedBlue = Color(0xFF165A91);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: kBlack.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _StatusChip(
+                background: _completedBg,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        color: _completedBlue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check, size: 11, color: kWhite),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Completed',
+                      style: kStyle(kSemiBold, kSize13, color: _completedBlue),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _StatusChip(
+                background: kChipGreyBg,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 18,
+                      color: kBlack.withValues(alpha: 0.65),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isLongTrip ? 'LONG TRIP' : 'SHORT TRIP',
+                      style: kTripChipR.copyWith(
+                        color: kBlack.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.more_horiz_rounded,
+                size: 26,
+                color: kBlack.withValues(alpha: 0.85),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(child: _RouteStops()),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(price, style: kLabel22B),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const _DashedDivider(),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month_outlined,
+                size: 18,
+                color: kBlack.withValues(alpha: 0.45),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: kCaption13R.copyWith(height: 1.35),
+                    children: [
+                      TextSpan(text: metaPrimary, style: kCaption13SB),
+                      TextSpan(text: metaRest),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _OutlinedTripAction(
+                  label: 'View Details',
+                  onTap: onViewDetails,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _OutlinedTripAction(
+                  label: 'Download Invoice',
+                  onTap: () {},
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OutlinedTripAction extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _OutlinedTripAction({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: kWhite,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: kTripBorder),
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: kLabel15M.copyWith(color: kTextColor.withValues(alpha: 0.9)),
+          ),
+        ),
       ),
     );
   }

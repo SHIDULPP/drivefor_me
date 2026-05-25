@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/completed_trip_screens/completed_trip_details.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/scheduled_trip_screens/scheduled_trip_details.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_scheduled.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
@@ -182,6 +183,39 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
               detailsArgs?['isOnline'],
         ),
         forcePickupTime: detailsArgs?['forcePickupTime'] == true,
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'completed_trip_details':
+      final completedDetailsArgs = settings?.arguments as Map?;
+      page = CompletedTripDetailsPage(
+        tripTitle:
+            completedDetailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: completedDetailsArgs?['tripId'] as String? ?? '# ID2562',
+        isLongTrip: completedDetailsArgs?['isLongTrip'] == true,
+        pickup:
+            completedDetailsArgs?['pickup'] as String? ?? 'Edappally, Lulu Mall',
+        dropoff:
+            completedDetailsArgs?['dropoff'] as String? ?? 'Infopark, Kakkanad',
+        metaLine: completedDetailsArgs?['metaLine'] as String? ??
+            'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
+        tripFare: completedDetailsArgs?['tripFare'] as String? ?? '₹ 235',
+        tripFareDurationLabel:
+            completedDetailsArgs?['tripFareDurationLabel'] as String? ?? '2 hrs',
+        extraTimeFare:
+            completedDetailsArgs?['extraTimeFare'] as String? ?? '₹ 120',
+        extraTimeDurationLabel:
+            completedDetailsArgs?['extraTimeDurationLabel'] as String? ??
+                '30 min',
+        totalPaid: completedDetailsArgs?['totalPaid'] as String? ?? '₹ 355',
+        driverName:
+            completedDetailsArgs?['driverName'] as String? ?? 'Ajith Kumar',
+        driverRating:
+            (completedDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: completedDetailsArgs?['driverTrips'] as int? ?? 120,
+        vehicleTypes: completedDetailsArgs?['vehicleTypes'] as String? ??
+            'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
