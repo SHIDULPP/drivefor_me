@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:driveforme_user/src/data/apis/auth_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/api_response.dart';
 import 'package:driveforme_user/src/data/providers/loading_provider.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
+import 'package:driveforme_user/src/data/utils/auth_navigation.dart';
 import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/onboarding/registration_page.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +35,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
   late TextEditingController _mobileController;
   late FocusNode _phoneFocusNode;
   bool _showPhoneError = false;
+  String _fullPhoneNumber = '';
 
   @override
   void initState() {
@@ -49,6 +54,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
       backgroundColor: kBackgroundColor,
@@ -149,6 +155,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                             },
                             initialCountryCode: 'IN',
                             onChanged: (phone) {
+                              _fullPhoneNumber = phone.completeNumber;
                               log(
                                 'Phone number changed: ${phone.completeNumber}',
                                 name: 'PhoneNumberScreen',
@@ -191,17 +198,8 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                           width: double.infinity,
                           child: primaryButton(
                             label: 'Get OTP',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const OTPScreen(
-                                    fullPhone: '1234567890',
-                                    countryCode: '+91',
-                                  ),
-                                ),
-                              );
-                            },
+                            onPressed: isLoading ? null : _requestOtp,
+                            isLoading: isLoading,
                           ),
                         ),
                       ],
@@ -215,19 +213,70 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
       ),
     );
   }
+
+  Future<void> _requestOtp() async {
+    setState(() => _showPhoneError = true);
+
+    final digits = _mobileController.text.trim();
+    if (digits.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(digits)) {
+      _showMessage('Please enter a valid mobile number');
+      return;
+    }
+
+    final phoneNumber = _fullPhoneNumber.isNotEmpty
+        ? _fullPhoneNumber
+        : '+${ref.read(countryCodeProvider)}$digits';
+
+    ref.read(loadingProvider.notifier).startLoading();
+
+    try {
+      final response = await ref.read(authApiProvider).requestOtp(phoneNumber);
+      if (!mounted) return;
+
+      if (!response.success) {
+        _showMessage(response.message ?? 'Failed to send OTP');
+        return;
+      }
+
+      final data = nestedData(response.data);
+      final otpCode = data?['otpCode'] as String?;
+      if (otpCode != null) {
+        log('Dev OTP: $otpCode', name: 'PhoneNumberScreen');
+      }
+
+      final countryCode = ref.read(countryCodeProvider) ?? '91';
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OTPScreen(
+            fullPhone: digits,
+            countryCode: '+$countryCode',
+            phoneNumber: phoneNumber,
+          ),
+        ),
+      );
+    } finally {
+      ref.read(loadingProvider.notifier).stopLoading();
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 }
 
 class OTPScreen extends ConsumerStatefulWidget {
   final String fullPhone;
   final String countryCode;
-  // final String verificationId; // Not needed for backend OTP
-  // final String resendToken; // Not needed for backend OTP
+  final String phoneNumber;
 
   const OTPScreen({
     required this.fullPhone,
     required this.countryCode,
-    // this.verificationId, // Not needed for backend OTP
-    // this.resendToken, // Not needed for backend OTP
+    required this.phoneNumber,
     super.key,
   });
 
@@ -371,7 +420,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                           ),
                           children: [
                             const TextSpan(
-                              text: 'We have send a 4 digit OTP to ',
+                              text: 'We have sent a 6 digit OTP to ',
                             ),
                             TextSpan(
                               text: _maskedPhone(),
@@ -389,40 +438,54 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    // 4-digit OTP — underline style, large digits
+                    // 6-digit OTP — field width scales to screen so 6 cells fit
                     anim.AnimatedWidgetWrapper(
                       animationType: anim.AnimationType.fadeSlideInFromBottom,
                       duration: anim.AnimationDuration.normal,
                       delayMilliseconds: 200,
-                      child: PinCodeTextField(
-                        appContext: context,
-                        length: 4,
-                        obscureText: false,
-                        keyboardType: TextInputType.number,
-                        animationType: AnimationType.scale,
-                        textStyle: const TextStyle(
-                          fontFamily: 'ClashGrotesk',
-                          color: kTextColor,
-                          fontSize: 34,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        pinTheme: PinTheme(
-                          shape: PinCodeFieldShape.underline,
-                          fieldHeight: 64,
-                          fieldWidth: 64,
-                          selectedColor: kPrimaryColor,
-                          activeColor: kPrimaryColor,
-                          inactiveColor: kBorder,
-                          activeFillColor: Colors.transparent,
-                          selectedFillColor: Colors.transparent,
-                          inactiveFillColor: Colors.transparent,
-                          borderWidth: 1.5,
-                        ),
-                        animationDuration: const Duration(milliseconds: 300),
-                        backgroundColor: Colors.transparent,
-                        enableActiveFill: true,
-                        controller: _otpController,
-                        onChanged: (value) {},
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          const otpLength = 6;
+                          const fieldGap = 12.0;
+                          final fieldWidth =
+                              ((constraints.maxWidth -
+                                          fieldGap * (otpLength - 1)) /
+                                      otpLength)
+                                  .clamp(44.0, 56.0);
+                          final fontSize = fieldWidth >= 52 ? 34.0 : 28.0;
+
+                          return PinCodeTextField(
+                            appContext: context,
+                            length: otpLength,
+                            obscureText: false,
+                            keyboardType: TextInputType.number,
+                            animationType: AnimationType.scale,
+                            textStyle: TextStyle(
+                              fontFamily: 'ClashGrotesk',
+                              color: kTextColor,
+                              fontSize: fontSize,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            pinTheme: PinTheme(
+                              shape: PinCodeFieldShape.underline,
+                              fieldHeight: 56,
+                              fieldWidth: fieldWidth,
+                              selectedColor: kPrimaryColor,
+                              activeColor: kPrimaryColor,
+                              inactiveColor: kBorder,
+                              activeFillColor: Colors.transparent,
+                              selectedFillColor: Colors.transparent,
+                              inactiveFillColor: Colors.transparent,
+                              borderWidth: 1.5,
+                            ),
+                            animationDuration:
+                                const Duration(milliseconds: 300),
+                            backgroundColor: Colors.transparent,
+                            enableActiveFill: true,
+                            controller: _otpController,
+                            onChanged: (value) {},
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -473,7 +536,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                             )
                           else
                             GestureDetector(
-                              onTap: startTimer,
+                              onTap: _resendOtp,
                               child: const Text(
                                 'Resend OTP',
                                 style: TextStyle(
@@ -503,16 +566,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                   label: 'Verify OTP',
                   buttonHeight: 56,
                   fontSize: 16,
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegistrationPage(),
-                            ),
-                          );
-                        },
+                  onPressed: isLoading ? null : _verifyOtp,
                   isLoading: isLoading,
                 ),
               ),
@@ -523,153 +577,77 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
     );
   }
 
-  // Future<void> _handleOtpVerification(
-  //   BuildContext context,
-  //   WidgetRef ref,
-  // ) async {
-  //   final connectivityStatus = ref.read(connectivityProvider);
-  //   if (connectivityStatus == NetworkStatus.offline) {
-  //     SnackbarService().showSnackBar(context, 'noInternet');
-  //     return;
-  //   }
+  Future<void> _resendOtp() async {
+    startTimer();
+    ref.read(loadingProvider.notifier).startLoading();
 
-  //   final otp = _otpController.text;
+    try {
+      final response = await ref
+          .read(authApiProvider)
+          .requestOtp(widget.phoneNumber);
+      if (!mounted) return;
 
-  //   if (otp.isEmpty || otp.length != 6) {
-  //     SnackbarService().showSnackBar(context, 'pleaseEnterValidOtp');
-  //     return;
-  //   }
+      if (!response.success) {
+        _showMessage(response.message ?? 'Failed to resend OTP');
+        return;
+      }
 
-  //   try {
-  //     ref.read(loadingProvider.notifier).startLoading();
+      final otpCode = nestedData(response.data)?['otpCode'] as String?;
+      if (otpCode != null) {
+        log('Dev OTP: $otpCode', name: 'OTPScreen');
+      }
 
-  //     // Step 1: Verify OTP with backend API
-  //     final authLoginApi = ref.read(authLoginApiProvider);
+      _showMessage('OTP sent again');
+    } finally {
+      ref.read(loadingProvider.notifier).stopLoading();
+    }
+  }
 
-  //     // Debug: Log the request data
-  //     log('Sending verifyOtp request with data:', name: 'OTPScreen');
-  //     log('Phone: ${widget.fullPhone}', name: 'OTPScreen');
-  //     log('OTP: $otp', name: 'OTPScreen');
+  Future<void> _verifyOtp() async {
+    final otp = _otpController.text.trim();
+    if (otp.length != 6) {
+      _showMessage('Please enter the 6-digit OTP');
+      return;
+    }
 
-  //     final response = await authLoginApi.verifyOtp(widget.fullPhone, otp);
+    ref.read(loadingProvider.notifier).startLoading();
 
-  //     ref.read(loadingProvider.notifier).stopLoading();
+    try {
+      final response = await ref
+          .read(authApiProvider)
+          .verifyOtp(phoneNumber: widget.phoneNumber, otp: otp);
+      if (!mounted) return;
 
-  //     if (response.success && response.data != null) {
-  //       final data = response.data!;
-  //       log('Response data received: $data', name: 'OTPScreen');
+      if (!response.success) {
+        _showMessage(response.message ?? 'Invalid OTP');
+        return;
+      }
 
-  //       // Extract the nested data object (backend wraps response in data key)
-  //       final nestedData = data['data'] as Map<String, dynamic>?;
-  //       if (nestedData == null) {
-  //         log('No nested data found', name: 'OTPScreen');
-  //         SnackbarService().showSnackBar(context, 'invalidResponseData');
-  //         return;
-  //       }
+      final data = nestedData(response.data);
+      final userId = data?['userId']?.toString();
+      final onboardingStatus = data?['onboardingStatus'] as String?;
 
-  //       final token = nestedData['token'] as String?;
-  //       final userData = nestedData['user'] as Map<String, dynamic>?;
+      if (userId == null || userId.isEmpty) {
+        _showMessage('Invalid response from server');
+        return;
+      }
 
-  //       log(
-  //         'Token extracted: ${token != null ? "YES" : "NO"}',
-  //         name: 'OTPScreen',
-  //       );
-  //       log(
-  //         'User data extracted: ${userData != null ? "YES" : "NO"}',
-  //         name: 'OTPScreen',
-  //       );
+      final storage = ref.read(secureStorageServiceProvider);
+      await storage.saveUserId(userId);
+      await storage.savePhoneNumber(widget.phoneNumber);
 
-  //       if (token != null && userData != null) {
-  //         final user = UserModel.fromJson(userData);
-  //         final secureStorage = SecureStorageService();
+      final route = routeForOnboardingStatus(
+        onboardingStatus ?? 'profile_pending',
+      );
+      NavigationService().pushNamedAndRemoveUntil(route);
+    } finally {
+      ref.read(loadingProvider.notifier).stopLoading();
+    }
+  }
 
-  //         // Save bearer token to secure storage
-  //         await secureStorage.saveBearerToken(token);
-  //         if (user.id != null) {
-  //           await secureStorage.saveUserId(user.id!);
-  //         }
-
-  //         // Store user in provider
-  //         ref.read(userProvider.notifier).setUser(user);
-
-  //         // Set user data in global variables for quick synchronous access
-  //         GlobalVariables.setUserId(user.id);
-  //         GlobalVariables.setUserName(user.name);
-  //         GlobalVariables.setUserStatus(user.status);
-  //         GlobalVariables.setGuestMode(false);
-
-  //         log('OTP verified and login successful', name: 'OTPScreen');
-  //         log(
-  //           'User data set in global variables - ID: ${user.id}',
-  //           name: 'OTPScreen',
-  //         );
-
-  //         // Check for Demo Account and show EULA
-  //         if (context.mounted) {
-  //           final isDemo = await secureStorage.isDemoAccount();
-  //           if (isDemo) {
-  //             final agreed = await showDialog<bool>(
-  //               context: context,
-  //               barrierDismissible: false,
-  //               builder: (context) => const EulaDialog(),
-  //             );
-
-  //             if (agreed != true) {
-  //               return; // Stop execution if not agreed (should exit app from dialog)
-  //             }
-  //           }
-  //         }
-
-  //         if (context.mounted) {
-  //           // Navigate based on user status from API response, removing all previous routes
-  //           final userStatus = userData['status'] as String?;
-
-  //           if (user.referralDecisionTaken == true) {
-  //             if (userStatus == 'active') {
-  //               Navigator.of(
-  //                 context,
-  //               ).pushNamedAndRemoveUntil('navbar', (route) => false);
-  //             } else {
-  //               String routeName;
-  //               switch (userStatus) {
-  //                 case 'inactive':
-  //                   routeName = 'registration';
-  //                   break;
-  //                 case 'pending':
-  //                   routeName = 'requestSent';
-  //                   break;
-  //                 case 'rejected':
-  //                   routeName = 'requestRejected';
-  //                   break;
-  //                 case 'suspended':
-  //                   routeName = 'accountSuspended';
-  //                   break;
-  //                 default:
-  //                   routeName = 'navbar';
-  //               }
-  //               Navigator.of(
-  //                 context,
-  //               ).pushNamedAndRemoveUntil(routeName, (route) => false);
-  //             }
-  //           } else {
-  //             Navigator.of(
-  //               context,
-  //             ).pushNamedAndRemoveUntil('addReferral', (route) => false);
-  //           }
-  //         }
-  //       } else {
-  //         SnackbarService().showSnackBar(context, 'invalidResponseData');
-  //       }
-  //     } else {
-  //       SnackbarService().showSnackBar(
-  //         context,
-  //         response.message ?? 'failedToSendOTP',
-  //       );
-  //     }
-  //   } catch (e) {
-  //     ref.read(loadingProvider.notifier).stopLoading();
-  //     SnackbarService().showSnackBar(context, 'Error: $e');
-  //     log('Error verifying OTP: $e', name: 'OTPScreen');
-  //   }
-  // }
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 }
