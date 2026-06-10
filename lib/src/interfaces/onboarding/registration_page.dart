@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/providers/loading_provider.dart';
+import 'package:driveforme_user/src/data/providers/user_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/date_utils.dart';
 import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
@@ -73,6 +74,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         return;
       }
 
+      ref.invalidate(userProvider);
       NavigationService().pushNamedAndRemoveUntil('navbar');
     } on FormatException {
       _showMessage('Please enter date of birth as DD-MM-YYYY');

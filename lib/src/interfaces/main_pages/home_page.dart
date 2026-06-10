@@ -1,7 +1,9 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/user_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Nav bar body clearance: bar (68) + floating lift (26) + safe padding.
 double _navBarClearance(BuildContext context) =>
@@ -37,7 +39,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _HeaderWithBookingCard extends StatelessWidget {
+class _HeaderWithBookingCard extends ConsumerWidget {
   const _HeaderWithBookingCard();
 
   static const _headerHeight = 220.0;
@@ -45,7 +47,14 @@ class _HeaderWithBookingCard extends StatelessWidget {
   static const _stackHeight = 262.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userProvider);
+    final greeting = userAsync.when(
+      data: (user) => 'Hii ${greetingFirstName(user)}!',
+      loading: () => 'Hii there!',
+      error: (_, _) => 'Hii there!',
+    );
+
     return SizedBox(
       height: _stackHeight,
       child: Stack(
@@ -69,7 +78,7 @@ class _HeaderWithBookingCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Hii Catherine!', style: kLabel22White),
+                      Text(greeting, style: kLabel22White),
                       const SizedBox(height: 6),
                       Row(
                         children: [
