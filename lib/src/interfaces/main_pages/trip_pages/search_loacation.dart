@@ -2,7 +2,7 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:flutter/material.dart';
 
-class SearchLocationPage extends StatelessWidget {
+class SearchLocationPage extends StatefulWidget {
   final String title;
   final bool showCurrentLocation;
   const SearchLocationPage({
@@ -12,14 +12,41 @@ class SearchLocationPage extends StatelessWidget {
   });
 
   @override
+  State<SearchLocationPage> createState() => _SearchLocationPageState();
+}
+
+class _SearchLocationPageState extends State<SearchLocationPage> {
+  final TextEditingController _searchController = TextEditingController();
+
+  static const List<Map<String, String>> _allLocations = [
+    {'title': 'Infopark Phase I', 'subtitle': 'Kakkanad'},
+    {'title': 'Infopark Phase II', 'subtitle': 'Kakkanad'},
+    {'title': 'Lulu Mall', 'subtitle': 'Edappally'},
+    {'title': 'MG Road Metro', 'subtitle': 'Ernakulam'},
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final query = _searchController.text.trim().toLowerCase();
+    final filteredLocations = _allLocations.where((location) {
+      final title = (location['title'] ?? '').toLowerCase();
+      final subtitle = (location['subtitle'] ?? '').toLowerCase();
+      if (query.isEmpty) return true;
+      return title.contains(query) || subtitle.contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: kScreenBg,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
-            /// ================= HEADER =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Row(
@@ -40,22 +67,17 @@ class SearchLocationPage extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 22),
-
                   Expanded(
                     child: Text(
-                      title,
+                      widget.title,
                       style: kStyle(kSemiBold, 14, color: kTextColor),
                     ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 10),
-
-            /// ================= WHITE BODY =================
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -63,8 +85,6 @@ class SearchLocationPage extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 26),
-
-                    /// ================= SEARCH FIELD =================
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Container(
@@ -82,11 +102,11 @@ class SearchLocationPage extends StatelessWidget {
                               size: 34,
                               color: kTextColor,
                             ),
-
                             const SizedBox(width: 20),
-
                             Expanded(
                               child: TextField(
+                                controller: _searchController,
+                                onChanged: (_) => setState(() {}),
                                 style: kStyle(kRegular, 16, color: kTextColor),
                                 decoration: InputDecoration(
                                   hintText: 'Search',
@@ -103,38 +123,38 @@ class SearchLocationPage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 42),
-
-                    /// ================= CURRENT LOCATION =================
-                    if (showCurrentLocation) ...[
+                    if (widget.showCurrentLocation) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 36),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.my_location,
-                              size: 34,
-                              color: kTextColor,
-                            ),
-
-                            const SizedBox(width: 24),
-
-                            Text(
-                              'Use current location',
-                              style: kStyle(
-                                kSemiBold,
-                                16,
-                                color: const Color(0xFF39463D),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context, {
+                              'address': 'Current location',
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.my_location,
+                                size: 34,
+                                color: kTextColor,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 24),
+                              Text(
+                                'Use current location',
+                                style: kStyle(
+                                  kSemiBold,
+                                  16,
+                                  color: const Color(0xFF39463D),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 44),
                     ],
-
-                    /// ================= RECENT =================
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 38),
                       child: Align(
@@ -150,26 +170,23 @@ class SearchLocationPage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    /// ================= LOCATION LIST =================
                     Expanded(
                       child: ListView(
                         padding: EdgeInsets.zero,
-                        children: const [
-                          _LocationTile(
-                            title: 'Infopark Phase I',
-                            subtitle: 'Kakkanand',
-                          ),
-                          _LocationTile(
-                            title: 'Infopark Phase II',
-                            subtitle: 'Kakkanand',
-                          ),
-                          _LocationTile(
-                            title: 'Infopark Phase',
-                            subtitle: 'Kakkanand',
-                          ),
+                        children: [
+                          for (final location in filteredLocations)
+                            _LocationTile(
+                              title: location['title'] ?? '',
+                              subtitle: location['subtitle'] ?? '',
+                              onTap: () {
+                                final address = [
+                                  location['title'],
+                                  location['subtitle'],
+                                ].where((e) => (e ?? '').isNotEmpty).join(', ');
+                                Navigator.pop(context, {'address': address});
+                              },
+                            ),
                         ],
                       ),
                     ),
@@ -184,74 +201,72 @@ class SearchLocationPage extends StatelessWidget {
   }
 }
 
-/// ============================================================
-/// LOCATION TILE
-/// ============================================================
-
 class _LocationTile extends StatelessWidget {
   final String title;
   final String subtitle;
+  final VoidCallback onTap;
 
-  const _LocationTile({required this.title, required this.subtitle});
+  const _LocationTile({
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
-          child: Row(
-            children: [
-              Container(
-                height: 42,
-                width: 42,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF5F5F7),
-                  shape: BoxShape.circle,
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
+            child: Row(
+              children: [
+                Container(
+                  height: 42,
+                  width: 42,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF5F5F7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_on,
+                    size: 28,
+                    color: Color(0xFF121223),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.location_on,
-                  size: 28,
-                  color: Color(0xFF121223),
-                ),
-              ),
-
-              const SizedBox(width: 22),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: kStyle(
-                        kSemiBold,
-                        16,
-                        color: const Color(0xFF39463D),
+                const SizedBox(width: 22),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: kStyle(
+                          kSemiBold,
+                          16,
+                          color: const Color(0xFF39463D),
+                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    Text(
-                      subtitle,
-                      style: kStyle(
-                        kRegular,
-                        14,
-                        color: const Color(0xFF39463D),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: kStyle(
+                          kRegular,
+                          14,
+                          color: const Color(0xFF39463D),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-
-              const Icon(Icons.chevron_right, size: 38, color: kChevronGrey),
-            ],
+                const Icon(Icons.chevron_right, size: 38, color: kChevronGrey),
+              ],
+            ),
           ),
-        ),
-
-        const Divider(height: 1, thickness: 1, color: kLineGrey),
-      ],
+          const Divider(height: 1, thickness: 1, color: kLineGrey),
+        ],
+      ),
     );
   }
 }

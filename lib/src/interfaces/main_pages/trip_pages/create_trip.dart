@@ -1,5 +1,8 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
+import 'package:driveforme_user/src/data/apis/trip_api.dart';
+import 'package:driveforme_user/src/data/models/api_response.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
@@ -8,15 +11,16 @@ import 'package:driveforme_user/src/interfaces/components/select_rider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CreateTripPage extends StatefulWidget {
+class CreateTripPage extends ConsumerStatefulWidget {
   const CreateTripPage({super.key});
 
   @override
-  State<CreateTripPage> createState() => _CreateTripPageState();
+  ConsumerState<CreateTripPage> createState() => _CreateTripPageState();
 }
 
-class _CreateTripPageState extends State<CreateTripPage> {
+class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   int selectedHour = 1;
   int selectedNight = 1;
   int customDays = 1;
@@ -32,8 +36,13 @@ class _CreateTripPageState extends State<CreateTripPage> {
   bool isRideNow = true;
   DateTime? scheduledRideAt;
   int? selectedPaymentIndex;
+  bool _isSubmitting = false;
+  String _pickupAddress = 'Edappally, Lulu mall';
+  String? _dropoffAddress;
 
   static final _scheduleDisplayFormat = DateFormat('EEE, dd MMM • hh:mm a');
+  static final _apiDateFormat = DateFormat('yyyy-MM-dd');
+  static final _apiTimeFormat = DateFormat('HH:mm');
 
   @override
   Widget build(BuildContext context) {
@@ -155,30 +164,14 @@ class _CreateTripPageState extends State<CreateTripPage> {
                     const SizedBox(width: 20),
                     Expanded(
                       child: primaryButton(
-                        label: selectedPaymentIndex == 1
+                        label: _isSubmitting
+                            ? 'Creating trip...'
+                            : selectedPaymentIndex == 1
                             ? 'Pay Online & find driver'
                             : 'Confirm Cash on Pay',
-                        onPressed: () {
-                          final paymentType =
-                              selectedPaymentIndex == 1 ? 'online' : 'offline';
-                          if (!isRideNow && scheduledRideAt != null) {
-                            NavigationService().pushNamed(
-                              'trip_scheduled',
-                              arguments: {
-                                'paymentType': paymentType,
-                                'scheduledAt': scheduledRideAt,
-                                'tripId': '#ID2562',
-                                'pickup': 'Edappally, Lulu mall',
-                                'dropoff': 'Infopark',
-                              },
-                            );
-                            return;
-                          }
-                          NavigationService().pushNamed(
-                            'booking_confirmed',
-                            arguments: {'paymentType': paymentType},
-                          );
-                        },
+                        onPressed: _isSubmitting
+                            ? null
+                            : () => _submitTripCreation(),
                         buttonHeight: 64,
                         fontSize: 18,
                         buttonColor: kTripCtaBlue,
@@ -325,15 +318,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                   children: [
                     /// from
                     GestureDetector(
-                      onTap: () {
-                        NavigationService().pushNamed(
-                          'search_location',
-                          arguments: {
-                            'title': 'Where are you leaving from?',
-                            'showCurrentLocation': true,
-                          },
-                        );
-                      },
+                      onTap: _pickPickupLocation,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -344,7 +329,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                                 Text('From', style: kTripLocationLabelR),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Edappally, Lulu mall',
+                                  _pickupAddress,
                                   style: kTripLocationValueM,
                                 ),
                               ],
@@ -379,15 +364,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                     Divider(color: Colors.grey.shade300),
 
                     GestureDetector(
-                      onTap: () {
-                        NavigationService().pushNamed(
-                          'search_location',
-                          arguments: {
-                            'title': 'Where are you heading?',
-                            'showCurrentLocation': false,
-                          },
-                        );
-                      },
+                      onTap: _pickDropoffLocation,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -397,9 +374,11 @@ class _CreateTripPageState extends State<CreateTripPage> {
                           ),
                           const SizedBox(height: 14),
                           Text(
-                            'Enter destination',
+                            _dropoffAddress ?? 'Enter destination',
                             style: kTripLocationValueM.copyWith(
-                              color: kTripMutedLabel,
+                              color: _dropoffAddress == null
+                                  ? kTripMutedLabel
+                                  : kTextColor,
                             ),
                           ),
                         ],
@@ -1360,6 +1339,244 @@ class _CreateTripPageState extends State<CreateTripPage> {
         customNights = result;
       });
     }
+  }
+
+  Future<void> _submitTripCreation() async {
+    final userResponse = await ref.read(onboardingApiProvider).getMe();
+    if (!userResponse.success || userResponse.data == null) {
+      _showError(userResponse.message ?? 'Unable to load your profile.');
+      return;
+    }
+
+    final payloadResult = _buildTripPayload(userResponse.data!.userId);
+    if (!payloadResult.success || payloadResult.data == null) {
+      _showError(payloadResult.message ?? 'Please review trip details.');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final createResponse = await ref
+        .read(tripApiProvider)
+        .createManualTrip(payloadResult.data!);
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (!createResponse.success) {
+      _showError(createResponse.message ?? 'Trip creation failed.');
+      return;
+    }
+
+    final tripData = nestedData(createResponse.data) ?? createResponse.data;
+    final tripId = _extractTripIdentifier(tripData);
+    final paymentType = selectedPaymentIndex == 1 ? 'online' : 'offline';
+
+    if (!isRideNow && scheduledRideAt != null) {
+      NavigationService().pushNamed(
+        'trip_scheduled',
+        arguments: {
+          'paymentType': paymentType,
+          'scheduledAt': scheduledRideAt,
+          'tripId': tripId,
+          'pickup': _pickupAddress,
+          'dropoff': _dropoffAddress ?? 'Destination',
+        },
+      );
+      return;
+    }
+
+    NavigationService().pushNamed(
+      'booking_confirmed',
+      arguments: {
+        'paymentType': paymentType,
+        'tripId': tripId,
+      },
+    );
+  }
+
+  ApiResponse<Map<String, dynamic>> _buildTripPayload(String userId) {
+    if (_pickupAddress.trim().isEmpty) {
+      return ApiResponse.error('Please select pickup location.');
+    }
+
+    if (isOneWay && (_dropoffAddress == null || _dropoffAddress!.trim().isEmpty)) {
+      return ApiResponse.error('Please select destination for one-way trip.');
+    }
+
+    if (!isRideNow && scheduledRideAt == null) {
+      return ApiResponse.error('Select a schedule time for this trip.');
+    }
+
+    final duration = _resolveDuration();
+    if (!duration.success || duration.data == null) {
+      return ApiResponse.error(duration.message ?? 'Invalid trip duration.');
+    }
+
+    final overnight = _resolveOvernightStay(duration.data!);
+    if (!overnight.success || overnight.data == null) {
+      return ApiResponse.error(overnight.message ?? 'Invalid overnight stay details.');
+    }
+
+    final payload = <String, dynamic>{
+      'userId': userId,
+      'tripDirection': isOneWay ? 'one_way' : 'round_trip',
+      'pickupLocation': {
+        'address': _pickupAddress,
+      },
+      if (isOneWay)
+        'dropoffLocation': {
+          'address': _dropoffAddress,
+        },
+      'tripType': isShortTrip ? 'short_trip' : 'long_trip',
+      'rideTime': isRideNow ? 'now' : 'scheduled',
+      'durationValue': duration.data!['durationValue'],
+      'durationUnit': duration.data!['durationUnit'],
+      'vehicleName': 'Hyundai i20',
+      'vehicleNumber': 'KL07AB1234',
+      'vehicleType': 'hatchback',
+      'transmission': 'manual',
+      'assignmentType': 'auto_assign',
+      'tripProtection': {
+        'enabled': isTripProtectionEnabled,
+        'fee': isTripProtectionEnabled ? 19 : 0,
+      },
+      'paymentMethod': selectedPaymentIndex == 1 ? 'pay_online' : 'cash',
+      'priceEstimate': {
+        'currency': 'INR',
+        'includesWaitingTime': isShortTrip,
+      },
+      'overnightStay': overnight.data,
+    };
+
+    if (!isRideNow && scheduledRideAt != null) {
+      payload['pickupDate'] = _apiDateFormat.format(scheduledRideAt!);
+      payload['pickupTime'] = _apiTimeFormat.format(scheduledRideAt!);
+    }
+
+    return ApiResponse.success(payload);
+  }
+
+  ApiResponse<Map<String, dynamic>> _resolveDuration() {
+    if (isShortTrip) {
+      if (selectedHour < 1 || selectedHour > 7) {
+        return ApiResponse.error('Short trips must be between 1 and 7 hours.');
+      }
+      return ApiResponse.success({
+        'durationValue': selectedHour,
+        'durationUnit': 'hours',
+      });
+    }
+
+    if (selectedHour == -1) {
+      if (customDays > 0) {
+        return ApiResponse.success({
+          'durationValue': customDays,
+          'durationUnit': 'days',
+        });
+      }
+      if (customHours >= 8) {
+        return ApiResponse.success({
+          'durationValue': customHours,
+          'durationUnit': 'hours',
+        });
+      }
+      return ApiResponse.error(
+        'Long custom trip must be at least 8 hours or 1 day.',
+      );
+    }
+
+    if (selectedHour < 8) {
+      return ApiResponse.error('Long trips must be 8+ hours.');
+    }
+
+    return ApiResponse.success({
+      'durationValue': selectedHour,
+      'durationUnit': 'hours',
+    });
+  }
+
+  ApiResponse<Map<String, dynamic>> _resolveOvernightStay(
+    Map<String, dynamic> resolvedDuration,
+  ) {
+    final isDayBasedLongTrip =
+        !isShortTrip && resolvedDuration['durationUnit'] == 'days';
+    final overnightRequired = isDayBasedLongTrip && isOvernightStay == true;
+
+    if (!overnightRequired) {
+      return ApiResponse.success({
+        'required': false,
+        'nights': null,
+      });
+    }
+
+    final nights = selectedNight == -1 ? customNights : selectedNight;
+    if (nights < 1) {
+      return ApiResponse.error('Overnight stay requires at least 1 night.');
+    }
+
+    return ApiResponse.success({
+      'required': true,
+      'nights': nights,
+    });
+  }
+
+  String _extractTripIdentifier(Map<String, dynamic>? tripData) {
+    final id =
+        tripData?['tripNumber'] ??
+        tripData?['tripId'] ??
+        tripData?['_id'] ??
+        '#ID2562';
+    return id.toString();
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _pickPickupLocation() async {
+    final result = await NavigationService().pushNamed(
+      'search_location',
+      arguments: {
+        'title': 'Where are you leaving from?',
+        'showCurrentLocation': true,
+      },
+    );
+
+    final selectedAddress = _extractAddressFromSelection(result);
+    if (selectedAddress == null || selectedAddress.isEmpty || !mounted) return;
+
+    setState(() {
+      _pickupAddress = selectedAddress;
+    });
+  }
+
+  Future<void> _pickDropoffLocation() async {
+    final result = await NavigationService().pushNamed(
+      'search_location',
+      arguments: {
+        'title': 'Where are you heading?',
+        'showCurrentLocation': false,
+      },
+    );
+
+    final selectedAddress = _extractAddressFromSelection(result);
+    if (selectedAddress == null || selectedAddress.isEmpty || !mounted) return;
+
+    setState(() {
+      _dropoffAddress = selectedAddress;
+    });
+  }
+
+  String? _extractAddressFromSelection(dynamic result) {
+    if (result is String) return result.trim();
+    if (result is Map && result['address'] is String) {
+      return (result['address'] as String).trim();
+    }
+    return null;
   }
 }
 

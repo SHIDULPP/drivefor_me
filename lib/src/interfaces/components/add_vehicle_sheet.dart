@@ -1,7 +1,9 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/apis/vehicle_api.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> showAddVehicleBottomSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -14,27 +16,27 @@ Future<void> showAddVehicleBottomSheet(BuildContext context) {
   );
 }
 
-class AddVehicleBottomSheet extends StatefulWidget {
+class AddVehicleBottomSheet extends ConsumerStatefulWidget {
   const AddVehicleBottomSheet({super.key});
 
   @override
-  State<AddVehicleBottomSheet> createState() => _AddVehicleBottomSheetState();
+  ConsumerState<AddVehicleBottomSheet> createState() =>
+      _AddVehicleBottomSheetState();
 }
 
-class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
+class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
   String transmission = 'Manual';
   int selectedVehicle = 0;
+  bool _isSubmitting = false;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController numberController = TextEditingController();
 
-  final List<String> vehicleTypes = [
-    'Hatchback',
-    'Sedan',
-    'SUV',
-    'Luxury',
-    'Mini',
-    'Premium',
+  final List<Map<String, String>> vehicleTypes = [
+    {'label': 'Hatchback', 'value': 'hatchback'},
+    {'label': 'Sedan', 'value': 'sedan'},
+    {'label': 'SUV', 'value': 'suv'},
+    {'label': 'Premium', 'value': 'premium'},
   ];
 
   @override
@@ -183,7 +185,7 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                vehicleTypes[index],
+                                vehicleTypes[index]['label'] ?? '',
                                 style: kStyle(kSemiBold, 12, color: kTextColor),
                               ),
                             ],
@@ -197,20 +199,30 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
 
                   /// ================= ACTION BUTTON =================
                   GestureDetector(
-                    onTap: () {
-                      // Handle add vehicle
-                    },
-                    child: Container(
-                      height: 64,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: kTripDestIconBg,
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Add vehicle Details',
-                          style: kStyle(kSemiBold, 16, color: kWhite),
+                    onTap: _isSubmitting ? null : _submitVehicle,
+                    child: Opacity(
+                      opacity: _isSubmitting ? 0.7 : 1,
+                      child: Container(
+                        height: 64,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: kTripDestIconBg,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Center(
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: kWhite,
+                                  ),
+                                )
+                              : Text(
+                                  'Add vehicle Details',
+                                  style: kStyle(kSemiBold, 16, color: kWhite),
+                                ),
                         ),
                       ),
                     ),
@@ -251,6 +263,50 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
           Text(title, style: kStyle(kSemiBold, 14, color: kTextColor)),
         ],
       ),
+    );
+  }
+
+  Future<void> _submitVehicle() async {
+    final vehicleName = nameController.text.trim();
+    final vehicleNumber = numberController.text.trim().toUpperCase();
+    final vehicleType = vehicleTypes[selectedVehicle]['value'] ?? 'hatchback';
+    final transmissionValue =
+        transmission.toLowerCase() == 'automatic' ? 'automatic' : 'manual';
+
+    if (vehicleName.isEmpty) {
+      _showMessage('Vehicle name is required.');
+      return;
+    }
+
+    if (vehicleNumber.isEmpty) {
+      _showMessage('Vehicle number is required.');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final createResponse = await ref.read(vehicleApiProvider).createVehicle(
+      vehicleName: vehicleName,
+      vehicleNumber: vehicleNumber,
+      vehicleType: vehicleType,
+      transmission: transmissionValue,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (!createResponse.success) {
+      _showMessage(createResponse.message ?? 'Failed to add vehicle.');
+      return;
+    }
+
+    _showMessage('Vehicle added successfully.');
+    Navigator.pop(context, true);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }
