@@ -43,7 +43,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   bool _isSubmitting = false;
   String _pickupAddress = 'Edappally, Lulu mall';
   String? _dropoffAddress;
+  List<VehicleModel> _vehicles = [];
   VehicleModel? _selectedVehicle;
+  bool _isLoadingVehicles = true;
 
   static final _scheduleDisplayFormat = DateFormat('EEE, dd MMM • hh:mm a');
   static final _apiDateFormat = DateFormat('yyyy-MM-dd');
@@ -55,14 +57,34 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadVehicles());
   }
 
-  Future<void> _loadVehicles() async {
+  Future<void> _loadVehicles({VehicleModel? selectVehicle}) async {
     final response = await ref.read(vehicleApiProvider).getMyVehicles();
-    if (!mounted || !response.success || response.data == null) return;
+    if (!mounted) return;
 
-    if (response.data!.isEmpty) return;
+    if (!response.success || response.data == null) {
+      setState(() => _isLoadingVehicles = false);
+      return;
+    }
 
+    final vehicles = response.data!;
     setState(() {
-      _selectedVehicle ??= response.data!.first;
+      _vehicles = vehicles;
+      _isLoadingVehicles = false;
+
+      if (selectVehicle != null) {
+        _selectedVehicle = vehicles.firstWhere(
+          (vehicle) => vehicle.id == selectVehicle.id,
+          orElse: () => selectVehicle,
+        );
+        return;
+      }
+
+      if (_selectedVehicle != null &&
+          vehicles.any((vehicle) => vehicle.id == _selectedVehicle!.id)) {
+        return;
+      }
+
+      _selectedVehicle = vehicles.isNotEmpty ? vehicles.first : null;
     });
   }
 
@@ -435,59 +457,146 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Choose your Vehicle', style: kTripSectionTitleSB),
-
-          const SizedBox(height: 24),
-
-          GestureDetector(
-            onTap: _openAddVehicleSheet,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: kTripGold),
+          Row(
+            children: [
+              Expanded(
+                child: Text('Choose your Vehicle', style: kTripSectionTitleSB),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    height: 54,
-                    width: 54,
-                    decoration: const BoxDecoration(
-                      color: kTripCreamBg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _selectedVehicle == null ? Icons.add : Icons.directions_car,
-                      size: _selectedVehicle == null ? 34 : 28,
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _selectedVehicle?.vehicleName ?? 'Add Your Vehicle',
-                          style: kTripVehicleAddM,
-                        ),
-                        if (_selectedVehicle != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_selectedVehicle!.vehicleNumber} • ${_selectedVehicle!.transmission}',
-                            style: kTripDurationMetaR,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.speed, size: 40, color: kBrandBlue),
-                ],
+              GestureDetector(
+                onTap: _openAddVehicleSheet,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Change', style: kTripChipCustomM),
+                    Icon(Icons.chevron_right, size: 20, color: kBrandBlue),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (_isLoadingVehicles)
+            const SizedBox(
+              height: 168,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_vehicles.isEmpty)
+            GestureDetector(
+              onTap: _openAddVehicleSheet,
+              child: Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: kTripBorder),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add, size: 28, color: kTripIconMuted),
+                    const SizedBox(height: 8),
+                    Text('Add your vehicle', style: kTripVehicleAddM),
+                  ],
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 168,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _vehicles.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 14),
+                itemBuilder: (context, index) {
+                  final vehicle = _vehicles[index];
+                  final isSelected = _selectedVehicle?.id == vehicle.id;
+                  return _buildVehicleOptionCard(
+                    vehicle: vehicle,
+                    isSelected: isSelected,
+                    onTap: () {
+                      setState(() => _selectedVehicle = vehicle);
+                    },
+                  );
+                },
               ),
             ),
-          ),
         ],
       ),
     );
+  }
+
+  Widget _buildVehicleOptionCard({
+    required VehicleModel vehicle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 132,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: kWhite,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? kTripGold : kTripBorder,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/pngs/car_image.png',
+              height: 52,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _vehicleTypeLabel(vehicle.vehicleType),
+              style: kStyle(kSemiBold, kSize14, color: kTextColor),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              vehicle.vehicleNumber,
+              style: kTripDurationPriceB.copyWith(fontSize: kSize13),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              _vehicleSeaterLabel(vehicle.vehicleType),
+              style: kTripDurationMetaR,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _vehicleTypeLabel(String vehicleType) {
+    if (vehicleType.trim().isEmpty) return 'Vehicle';
+    return vehicleType
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) => part[0].toUpperCase() + part.substring(1))
+        .join(' ');
+  }
+
+  String _vehicleSeaterLabel(String vehicleType) {
+    switch (vehicleType.toLowerCase()) {
+      case 'suv':
+        return '6 Seater';
+      case 'premium':
+        return '4 Seater';
+      default:
+        return '4 Seater';
+    }
   }
 
   /// ============================================================
@@ -1610,11 +1719,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
   Future<void> _openAddVehicleSheet() async {
     final addedVehicle = await showAddVehicleBottomSheet(context);
-    if (!mounted || addedVehicle == null) return;
+    if (!mounted) return;
 
-    setState(() {
-      _selectedVehicle = addedVehicle;
-    });
+    await _loadVehicles(selectVehicle: addedVehicle);
   }
 }
 
