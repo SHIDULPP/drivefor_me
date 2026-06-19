@@ -69,6 +69,8 @@ class ApiProvider {
 
       final response = await _client.get(requestUri, headers: headers);
       return _parseResponse(response);
+    } on StateError catch (e) {
+      return ApiResponse.error(e.message);
     } catch (e) {
       log('GET $endpoint failed: $e', name: 'ApiProvider');
       return ApiResponse.error('Failed to connect to the server.');
@@ -101,11 +103,25 @@ class ApiProvider {
   }
 
   ApiResponse<Map<String, dynamic>> _parseResponse(http.Response response) {
-    final decoded = json.decode(response.body) as Map<String, dynamic>;
-    final message = decoded['message'] as String? ?? 'Request failed';
+    if (response.body.isEmpty) {
+      return ApiResponse.error(
+        'Empty response from server.',
+        response.statusCode,
+      );
+    }
+
+    final dynamic decodedBody = json.decode(response.body);
+    if (decodedBody is! Map<String, dynamic>) {
+      return ApiResponse.error(
+        'Unexpected response format.',
+        response.statusCode,
+      );
+    }
+
+    final message = decodedBody['message'] as String? ?? 'Request failed';
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return ApiResponse.success(decoded, response.statusCode);
+      return ApiResponse.success(decodedBody, response.statusCode);
     }
 
     return ApiResponse.error(message, response.statusCode);

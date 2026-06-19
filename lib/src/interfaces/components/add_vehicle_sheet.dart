@@ -1,17 +1,23 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/apis/vehicle_api.dart';
+import 'package:driveforme_user/src/data/models/vehicle_model.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-Future<void> showAddVehicleBottomSheet(BuildContext context) {
-  return showModalBottomSheet(
+Future<VehicleModel?> showAddVehicleBottomSheet(BuildContext context) {
+  return showModalBottomSheet<VehicleModel>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) {
-      return const AddVehicleBottomSheet();
+    builder: (sheetContext) {
+      return UncontrolledProviderScope(
+        container: ProviderScope.containerOf(sheetContext, listen: false),
+        child: const AddVehicleBottomSheet(),
+      );
     },
   );
 }
@@ -26,24 +32,85 @@ class AddVehicleBottomSheet extends ConsumerStatefulWidget {
 
 class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
   String transmission = 'Manual';
-  int selectedVehicle = 0;
+  int selectedVehicle = -1;
   bool _isSubmitting = false;
+  bool _isLoadingTypes = true;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController numberController = TextEditingController();
 
-  final List<Map<String, String>> vehicleTypes = [
+  static const _fallbackVehicleTypes = [
     {'label': 'Hatchback', 'value': 'hatchback'},
     {'label': 'Sedan', 'value': 'sedan'},
     {'label': 'SUV', 'value': 'suv'},
     {'label': 'Premium', 'value': 'premium'},
   ];
 
+  List<Map<String, String>> vehicleTypes = List.of(_fallbackVehicleTypes);
+
+  bool get _isFormValid {
+    return nameController.text.trim().isNotEmpty &&
+        numberController.text.trim().isNotEmpty &&
+        transmission.isNotEmpty &&
+        selectedVehicle >= 0 &&
+        selectedVehicle < vehicleTypes.length;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadVehicleTypes());
+    nameController.addListener(_onInputChanged);
+    numberController.addListener(_onInputChanged);
+  }
+
+  void _onInputChanged() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    nameController.removeListener(_onInputChanged);
+    numberController.removeListener(_onInputChanged);
     nameController.dispose();
     numberController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadVehicleTypes() async {
+    final token = await ref.read(secureStorageServiceProvider).getAuthToken();
+    if (token == null || token.isEmpty) {
+      if (mounted) {
+        setState(() => _isLoadingTypes = false);
+        _showMessage('Please log in again to add a vehicle.');
+      }
+      return;
+    }
+
+    final response = await ref.read(vehicleApiProvider).getVehicleTypes();
+    if (!mounted) return;
+
+    if (response.success && response.data != null) {
+      final backendTypes = response.data!['vehicleTypes'] ?? const <String>[];
+      if (backendTypes.isNotEmpty) {
+        vehicleTypes = backendTypes
+            .map((type) => {'label': _labelForVehicleType(type), 'value': type})
+            .toList();
+      }
+    }
+
+    setState(() {
+      _isLoadingTypes = false;
+      selectedVehicle = -1;
+    });
+  }
+
+  String _labelForVehicleType(String value) {
+    return value
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) => part[0].toUpperCase() + part.substring(1))
+        .join(' ');
   }
 
   @override
@@ -57,8 +124,6 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
       child: Column(
         children: [
           const SizedBox(height: 24),
-
-          /// ================= HEADER =================
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -84,154 +149,156 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
               ],
             ),
           ),
-
           const SizedBox(height: 28),
-
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// ================= VEHICLE NAME =================
-                  Text(
-                    'Vehicle Name *',
-                    style: kStyle(kSemiBold, 16, color: kTextColor),
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    type: CustomFieldType.text,
-                    hint: 'Enter Your Vehicle Name',
-                    controller: nameController,
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  /// ================= VEHICLE NUMBER =================
-                  Text(
-                    'Vehicle Number *',
-                    style: kStyle(kSemiBold, 16, color: kTextColor),
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    type: CustomFieldType.text,
-                    hint: 'Enter Your Vehicle Number',
-                    controller: numberController,
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  /// ================= TRANSMISSION =================
-                  Text(
-                    'Transmission *',
-                    style: kStyle(kSemiBold, 14, color: kTextColor),
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      _radioButton(
-                        title: 'Manual',
-                        selected: transmission == 'Manual',
-                        onTap: () => setState(() => transmission = 'Manual'),
-                      ),
-                      const SizedBox(width: 32),
-                      _radioButton(
-                        title: 'Automatic',
-                        selected: transmission == 'Automatic',
-                        onTap: () => setState(() => transmission = 'Automatic'),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  /// ================= VEHICLE TYPE =================
-                  Text(
-                    'Vehicle Type *',
-                    style: kStyle(kSemiBold, 14, color: kTextColor),
-                  ),
-                  const SizedBox(height: 20),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: vehicleTypes.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 0.9,
+            child: _isLoadingTypes
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Vehicle Name *',
+                          style: kStyle(kSemiBold, 16, color: kTextColor),
                         ),
-                    itemBuilder: (context, index) {
-                      final selected = selectedVehicle == index;
-                      return GestureDetector(
-                        onTap: () => setState(() => selectedVehicle = index),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: kWhite,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: selected ? kTripGold : kTripBorder,
-                              width: selected ? 1.5 : 1,
+                        const SizedBox(height: 14),
+                        InputField(
+                          type: CustomFieldType.text,
+                          hint: 'Enter Your Vehicle Name',
+                          controller: nameController,
+                        ),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Vehicle Number *',
+                          style: kStyle(kSemiBold, 16, color: kTextColor),
+                        ),
+                        const SizedBox(height: 14),
+                        InputField(
+                          type: CustomFieldType.text,
+                          hint: 'Enter Your Vehicle Number',
+                          controller: numberController,
+                        ),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Transmission *',
+                          style: kStyle(kSemiBold, 14, color: kTextColor),
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            _radioButton(
+                              title: 'Manual',
+                              selected: transmission == 'Manual',
+                              onTap: () =>
+                                  setState(() => transmission = 'Manual'),
+                            ),
+                            const SizedBox(width: 32),
+                            _radioButton(
+                              title: 'Automatic',
+                              selected: transmission == 'Automatic',
+                              onTap: () =>
+                                  setState(() => transmission = 'Automatic'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Vehicle Type *',
+                          style: kStyle(kSemiBold, 14, color: kTextColor),
+                        ),
+                        const SizedBox(height: 20),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: vehicleTypes.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 14,
+                                mainAxisSpacing: 14,
+                                childAspectRatio: 1.2,
+                              ),
+                          itemBuilder: (context, index) {
+                            final selected = selectedVehicle == index;
+                            return GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedVehicle = index),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: kWhite,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: selected ? kTripGold : kTripBorder,
+                                    width: selected ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/pngs/car_image.png',
+                                      height: 50,
+                                      fit: BoxFit.contain,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      vehicleTypes[index]['label'] ?? '',
+                                      style: kStyle(
+                                        kSemiBold,
+                                        12,
+                                        color: kTextColor,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 40),
+                        GestureDetector(
+                          onTap: _isSubmitting ? null : _submitVehicle,
+                          child: Opacity(
+                            opacity: _isSubmitting ? 0.7 : 1,
+                            child: Container(
+                              height: 64,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: _isFormValid
+                                    ? kBrandBlue
+                                    : kTripDestIconBg,
+                                borderRadius: BorderRadius.circular(32),
+                              ),
+                              child: Center(
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: kWhite,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Add vehicle Details',
+                                        style: kStyle(
+                                          kSemiBold,
+                                          16,
+                                          color: _isFormValid
+                                              ? kWhite
+                                              : kMutedText,
+                                        ),
+                                      ),
+                              ),
                             ),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/pngs/car_image.png',
-                                height: 50,
-                                fit: BoxFit.contain,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                vehicleTypes[index]['label'] ?? '',
-                                style: kStyle(kSemiBold, 12, color: kTextColor),
-                              ),
-                            ],
-                          ),
                         ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  /// ================= ACTION BUTTON =================
-                  GestureDetector(
-                    onTap: _isSubmitting ? null : _submitVehicle,
-                    child: Opacity(
-                      opacity: _isSubmitting ? 0.7 : 1,
-                      child: Container(
-                        height: 64,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: kTripDestIconBg,
-                          borderRadius: BorderRadius.circular(32),
-                        ),
-                        child: Center(
-                          child: _isSubmitting
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: kWhite,
-                                  ),
-                                )
-                              : Text(
-                                  'Add vehicle Details',
-                                  style: kStyle(kSemiBold, 16, color: kWhite),
-                                ),
-                        ),
-                      ),
+                        const SizedBox(height: 32),
+                      ],
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -269,9 +336,6 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
   Future<void> _submitVehicle() async {
     final vehicleName = nameController.text.trim();
     final vehicleNumber = numberController.text.trim().toUpperCase();
-    final vehicleType = vehicleTypes[selectedVehicle]['value'] ?? 'hatchback';
-    final transmissionValue =
-        transmission.toLowerCase() == 'automatic' ? 'automatic' : 'manual';
 
     if (vehicleName.isEmpty) {
       _showMessage('Vehicle name is required.');
@@ -283,30 +347,51 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
       return;
     }
 
+    if (selectedVehicle == -1) {
+      _showMessage('Please select a vehicle type.');
+      return;
+    }
+
+    final vehicleType = vehicleTypes[selectedVehicle]['value'] ?? 'hatchback';
+    final transmissionValue = transmission.toLowerCase() == 'automatic'
+        ? 'automatic'
+        : 'manual';
+
+    final token = await ref.read(secureStorageServiceProvider).getAuthToken();
+    if (token == null || token.isEmpty) {
+      _showMessage('Session expired. Please log in again.');
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
-    final createResponse = await ref.read(vehicleApiProvider).createVehicle(
-      vehicleName: vehicleName,
-      vehicleNumber: vehicleNumber,
-      vehicleType: vehicleType,
-      transmission: transmissionValue,
-    );
+    final createResponse = await ref
+        .read(vehicleApiProvider)
+        .createVehicle(
+          vehicleName: vehicleName,
+          vehicleNumber: vehicleNumber,
+          vehicleType: vehicleType,
+          transmission: transmissionValue,
+        );
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    if (!createResponse.success) {
+    if (!createResponse.success || createResponse.data == null) {
       _showMessage(createResponse.message ?? 'Failed to add vehicle.');
       return;
     }
 
     _showMessage('Vehicle added successfully.');
-    Navigator.pop(context, true);
+    Navigator.pop(context, createResponse.data);
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    final rootContext = NavigationService.navigatorKey.currentContext;
+    if (rootContext == null) return;
+
+    ScaffoldMessenger.of(
+      rootContext,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

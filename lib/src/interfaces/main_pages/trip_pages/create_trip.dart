@@ -4,7 +4,9 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
 import 'package:driveforme_user/src/data/apis/trip_api.dart';
+import 'package:driveforme_user/src/data/apis/vehicle_api.dart';
 import 'package:driveforme_user/src/data/models/api_response.dart';
+import 'package:driveforme_user/src/data/models/vehicle_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
@@ -41,10 +43,28 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   bool _isSubmitting = false;
   String _pickupAddress = 'Edappally, Lulu mall';
   String? _dropoffAddress;
+  VehicleModel? _selectedVehicle;
 
   static final _scheduleDisplayFormat = DateFormat('EEE, dd MMM • hh:mm a');
   static final _apiDateFormat = DateFormat('yyyy-MM-dd');
   static final _apiTimeFormat = DateFormat('HH:mm');
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadVehicles());
+  }
+
+  Future<void> _loadVehicles() async {
+    final response = await ref.read(vehicleApiProvider).getMyVehicles();
+    if (!mounted || !response.success || response.data == null) return;
+
+    if (response.data!.isEmpty) return;
+
+    setState(() {
+      _selectedVehicle ??= response.data!.first;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -420,9 +440,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
           const SizedBox(height: 24),
 
           GestureDetector(
-            onTap: () {
-              showAddVehicleBottomSheet(context);
-            },
+            onTap: _openAddVehicleSheet,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               decoration: BoxDecoration(
@@ -438,15 +456,30 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       color: kTripCreamBg,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.add, size: 34),
+                    child: Icon(
+                      _selectedVehicle == null ? Icons.add : Icons.directions_car,
+                      size: _selectedVehicle == null ? 34 : 28,
+                    ),
                   ),
-
                   const SizedBox(width: 20),
-
                   Expanded(
-                    child: Text('Add Your Vehicle', style: kTripVehicleAddM),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedVehicle?.vehicleName ?? 'Add Your Vehicle',
+                          style: kTripVehicleAddM,
+                        ),
+                        if (_selectedVehicle != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_selectedVehicle!.vehicleNumber} • ${_selectedVehicle!.transmission}',
+                            style: kTripDurationMetaR,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-
                   const Icon(Icons.speed, size: 40, color: kBrandBlue),
                 ],
               ),
@@ -1411,6 +1444,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return ApiResponse.error('Please select destination for one-way trip.');
     }
 
+    if (_selectedVehicle == null || _selectedVehicle!.id.isEmpty) {
+      return ApiResponse.error('Please add a vehicle before booking.');
+    }
+
     if (!isRideNow && scheduledRideAt == null) {
       return ApiResponse.error('Select a schedule time for this trip.');
     }
@@ -1436,10 +1473,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'rideTime': isRideNow ? 'now' : 'scheduled',
       'durationValue': duration.data!['durationValue'],
       'durationUnit': duration.data!['durationUnit'],
-      'vehicleName': 'Hyundai i20',
-      'vehicleNumber': 'KL07AB1234',
-      'vehicleType': 'hatchback',
-      'transmission': 'manual',
+      'vehicleId': _selectedVehicle!.id,
       'assignmentType': 'auto_assign',
       'tripProtection': {
         'enabled': isTripProtectionEnabled,
@@ -1572,6 +1606,15 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return (result['address'] as String).trim();
     }
     return null;
+  }
+
+  Future<void> _openAddVehicleSheet() async {
+    final addedVehicle = await showAddVehicleBottomSheet(context);
+    if (!mounted || addedVehicle == null) return;
+
+    setState(() {
+      _selectedVehicle = addedVehicle;
+    });
   }
 }
 
