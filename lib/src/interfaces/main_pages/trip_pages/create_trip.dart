@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
@@ -59,14 +61,17 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
               /// ================= HEADER =================
               Row(
                 children: [
-                  Container(
-                    height: 56,
-                    width: 56,
-                    decoration: const BoxDecoration(
-                      color: kWhite,
-                      shape: BoxShape.circle,
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      height: 56,
+                      width: 56,
+                      decoration: const BoxDecoration(
+                        color: kWhite,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 24),
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 24),
                   ),
 
                   const SizedBox(width: 20),
@@ -1356,9 +1361,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     setState(() => _isSubmitting = true);
 
+    log('Create Trip Request Body: ${payloadResult.data}');
+
     final createResponse = await ref
         .read(tripApiProvider)
         .createManualTrip(payloadResult.data!);
+
+    log('Create Trip Response Message: ${createResponse.message}');
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -1388,10 +1397,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     NavigationService().pushNamed(
       'booking_confirmed',
-      arguments: {
-        'paymentType': paymentType,
-        'tripId': tripId,
-      },
+      arguments: {'paymentType': paymentType, 'tripId': tripId},
     );
   }
 
@@ -1400,7 +1406,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return ApiResponse.error('Please select pickup location.');
     }
 
-    if (isOneWay && (_dropoffAddress == null || _dropoffAddress!.trim().isEmpty)) {
+    if (isOneWay &&
+        (_dropoffAddress == null || _dropoffAddress!.trim().isEmpty)) {
       return ApiResponse.error('Please select destination for one-way trip.');
     }
 
@@ -1415,19 +1422,16 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     final overnight = _resolveOvernightStay(duration.data!);
     if (!overnight.success || overnight.data == null) {
-      return ApiResponse.error(overnight.message ?? 'Invalid overnight stay details.');
+      return ApiResponse.error(
+        overnight.message ?? 'Invalid overnight stay details.',
+      );
     }
 
     final payload = <String, dynamic>{
       'userId': userId,
       'tripDirection': isOneWay ? 'one_way' : 'round_trip',
-      'pickupLocation': {
-        'address': _pickupAddress,
-      },
-      if (isOneWay)
-        'dropoffLocation': {
-          'address': _dropoffAddress,
-        },
+      'pickupLocation': {'address': _pickupAddress},
+      if (isOneWay) 'dropoffLocation': {'address': _dropoffAddress},
       'tripType': isShortTrip ? 'short_trip' : 'long_trip',
       'rideTime': isRideNow ? 'now' : 'scheduled',
       'durationValue': duration.data!['durationValue'],
@@ -1442,10 +1446,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
         'fee': isTripProtectionEnabled ? 19 : 0,
       },
       'paymentMethod': selectedPaymentIndex == 1 ? 'pay_online' : 'cash',
-      'priceEstimate': {
-        'currency': 'INR',
-        'includesWaitingTime': isShortTrip,
-      },
+      'priceEstimate': {'currency': 'INR', 'includesWaitingTime': isShortTrip},
       'overnightStay': overnight.data,
     };
 
@@ -1504,10 +1505,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     final overnightRequired = isDayBasedLongTrip && isOvernightStay == true;
 
     if (!overnightRequired) {
-      return ApiResponse.success({
-        'required': false,
-        'nights': null,
-      });
+      return ApiResponse.success({'required': false, 'nights': null});
     }
 
     final nights = selectedNight == -1 ? customNights : selectedNight;
@@ -1515,10 +1513,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return ApiResponse.error('Overnight stay requires at least 1 night.');
     }
 
-    return ApiResponse.success({
-      'required': true,
-      'nights': nights,
-    });
+    return ApiResponse.success({'required': true, 'nights': nights});
   }
 
   String _extractTripIdentifier(Map<String, dynamic>? tripData) {
@@ -1532,9 +1527,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _pickPickupLocation() async {
