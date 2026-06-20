@@ -1,4 +1,5 @@
 import 'package:driveforme_user/src/data/models/api_response.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/api_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,7 +11,70 @@ class TripApi {
   Future<ApiResponse<Map<String, dynamic>>> createManualTrip(
     Map<String, dynamic> payload,
   ) {
-    return _api.post('/trips/manual', payload);
+    return _api.post('/trips/manual', payload, requireAuth: true);
+  }
+
+  Future<ApiResponse<List<TripModel>>> listOngoingTrips() {
+    return _listTrips(status: 'in_progress');
+  }
+
+  Future<ApiResponse<List<TripModel>>> listCompletedTrips() {
+    return _listTrips(status: 'completed');
+  }
+
+  Future<ApiResponse<List<TripModel>>> listCancelledTrips() {
+    return _listTrips(status: 'cancelled');
+  }
+
+  Future<ApiResponse<List<TripModel>>> listUpcomingTrips() async {
+    const statuses = ['pending_assignment', 'driver_assigned', 'scheduled'];
+    final responses = await Future.wait(
+      statuses.map((status) => _listTrips(status: status)),
+    );
+
+    for (final response in responses) {
+      if (!response.success) {
+        return ApiResponse.error(
+          response.message ?? 'Failed to load upcoming trips.',
+          response.statusCode,
+        );
+      }
+    }
+
+    final trips =
+        responses
+            .expand((response) => response.data ?? const <TripModel>[])
+            .toList()
+          ..sort((a, b) {
+            final aDate = a.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bDate = b.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return aDate.compareTo(bDate);
+          });
+
+    return ApiResponse.success(trips, responses.first.statusCode);
+  }
+
+  Future<ApiResponse<List<TripModel>>> _listTrips({
+    required String status,
+  }) async {
+    final response = await _api.get(
+      '/trips',
+      requireAuth: true,
+      queryParams: {'status': status},
+    );
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to load trips.',
+        response.statusCode,
+      );
+    }
+
+    final trips = nestedListData(
+      response.data,
+    ).map(TripModel.fromJson).toList();
+
+    return ApiResponse.success(trips, response.statusCode);
   }
 }
 

@@ -1,18 +1,64 @@
+import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TripsPage extends StatefulWidget {
+class TripsPage extends ConsumerStatefulWidget {
   const TripsPage({super.key});
 
   @override
-  State<TripsPage> createState() => _TripsPageState();
+  ConsumerState<TripsPage> createState() => _TripsPageState();
 }
 
-class _TripsPageState extends State<TripsPage> {
+class _TripsPageState extends ConsumerState<TripsPage> {
   static const _tabs = ['Ongoing', 'Upcoming', 'Completed', 'Cancelled'];
   int _selectedTab = 0;
+  List<TripModel> _trips = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrips();
+  }
+
+  Future<void> _loadTrips() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final api = ref.read(tripApiProvider);
+    final response = switch (_selectedTab) {
+      0 => await api.listOngoingTrips(),
+      1 => await api.listUpcomingTrips(),
+      2 => await api.listCompletedTrips(),
+      3 => await api.listCancelledTrips(),
+      _ => await api.listOngoingTrips(),
+    };
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      if (!response.success || response.data == null) {
+        _trips = [];
+        _errorMessage = response.message ?? 'Failed to load trips.';
+        return;
+      }
+      _trips = response.data!;
+    });
+  }
+
+  void _onTabSelected(int index) {
+    if (_selectedTab == index) return;
+    setState(() => _selectedTab = index);
+    _loadTrips();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,32 +75,94 @@ class _TripsPageState extends State<TripsPage> {
           _TripsTabBar(
             tabs: _tabs,
             selectedIndex: _selectedTab,
-            onSelected: (i) => setState(() => _selectedTab = i),
+            onSelected: _onTabSelected,
           ),
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                16,
-                20,
-                _navBarClearance(context),
-              ),
-              children: [
-                if (_selectedTab == 0)
-                  const _OngoingTripCard()
-                else if (_selectedTab == 1)
-                  const _UpcomingTripCard()
-                else if (_selectedTab == 2)
-                  const _CompletedTripsList()
-                else if (_selectedTab == 3)
-                  const _CancelledTripsList()
-                else
-                  _EmptyTripsMessage(tab: _tabs[_selectedTab]),
-              ],
+            child: RefreshIndicator(
+              onRefresh: _loadTrips,
+              color: kBrandBlue,
+              child: _buildTabBody(context),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTabBody(BuildContext context) {
+    if (_isLoading) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 120),
+          Center(child: CircularProgressIndicator(color: kBrandBlue)),
+        ],
+      );
+    }
+
+    if (_errorMessage != null) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          const SizedBox(height: 80),
+          Text(
+            _errorMessage!,
+            textAlign: TextAlign.center,
+            style: kEmptyStateM,
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: TextButton(
+              onPressed: _loadTrips,
+              child: const Text('Retry'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_trips.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [_EmptyTripsMessage(tab: _tabs[_selectedTab])],
+      );
+    }
+
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, _navBarClearance(context)),
+      itemCount: _trips.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final trip = _trips[index];
+        return switch (_selectedTab) {
+          0 => _OngoingTripCard(trip: trip),
+          1 => _UpcomingTripCard(trip: trip),
+          2 => _CompletedTripCard(
+            trip: trip,
+            onViewDetails: () {
+              NavigationService().pushNamed(
+                'completed_trip_details',
+                arguments: trip.toCompletedDetailsArguments(),
+              );
+            },
+          ),
+          3 => _CancelledTripCard(
+            trip: trip,
+            onViewDetails: () {
+              NavigationService().pushNamed(
+                'cancelled_trip_details',
+                arguments: trip.toCancelledDetailsArguments(),
+              );
+            },
+            onBookAgain: () {
+              NavigationService().pushNamed('create_trip');
+            },
+          ),
+          _ => const SizedBox.shrink(),
+        };
+      },
     );
   }
 
@@ -132,7 +240,9 @@ class _TabItem extends StatelessWidget {
 }
 
 class _OngoingTripCard extends StatelessWidget {
-  const _OngoingTripCard();
+  final TripModel trip;
+
+  const _OngoingTripCard({required this.trip});
 
   @override
   Widget build(BuildContext context) {
@@ -180,13 +290,15 @@ class _OngoingTripCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.arrow_right_alt_rounded,
+                      trip.isOneWay
+                          ? Icons.arrow_right_alt_rounded
+                          : Icons.autorenew_rounded,
                       size: 18,
                       color: kBlack.withValues(alpha: 0.65),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'One Way',
+                      trip.directionChipLabel,
                       style: kTripChipR.copyWith(
                         color: kBlack.withValues(alpha: 0.75),
                       ),
@@ -206,37 +318,42 @@ class _OngoingTripCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(child: _RouteStops()),
+              Expanded(
+                child: _RouteStops(
+                  pickup: trip.pickupAddress,
+                  dropoff: trip.dropoffAddress ?? trip.pickupAddress,
+                ),
+              ),
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('₹ 235', style: kLabel22B),
+                child: Text(trip.displayPrice, style: kLabel22B),
               ),
             ],
           ),
           const SizedBox(height: 18),
           const _DashedDivider(),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Icon(
-                Icons.access_time_rounded,
-                size: 18,
-                color: kBlack.withValues(alpha: 0.45),
-              ),
-              const SizedBox(width: 8),
-              RichText(
-                text: TextSpan(
-                  style: kCaption13R.copyWith(height: 1.3),
-                  children: [
-                    const TextSpan(text: 'Estimated arrival in '),
-                    TextSpan(text: '10 min', style: kCaption13SB),
-                  ],
+          if (trip.estimatedDurationLabel != null &&
+              trip.estimatedDurationLabel!.isNotEmpty) ...[
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time_rounded,
+                  size: 18,
+                  color: kBlack.withValues(alpha: 0.45),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    trip.estimatedDurationLabel!,
+                    style: kCaption13R.copyWith(height: 1.3),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -247,19 +364,20 @@ class _OngoingTripCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: kCaption12R.copyWith(height: 1.35),
-                    children: [
-                      const TextSpan(text: 'Today, '),
-                      TextSpan(text: '01:15 PM', style: kCaption13SB),
-                      const TextSpan(text: ' • 1 hrs 15 min • 12 km'),
-                    ],
-                  ),
+                child: Text(
+                  trip.formatScheduleLine(trip.startedAt ?? trip.pickupAt),
+                  style: kCaption12R.copyWith(height: 1.35),
                 ),
               ),
               const SizedBox(width: 10),
-              _TrackTripButton(onPressed: () {}),
+              _TrackTripButton(
+                onPressed: () {
+                  NavigationService().pushNamed(
+                    'trip_progress',
+                    arguments: trip.toProgressArguments(),
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -268,79 +386,13 @@ class _OngoingTripCard extends StatelessWidget {
   }
 }
 
-class _CancelledTripsList extends StatelessWidget {
-  const _CancelledTripsList();
-
-  static Map<String, dynamic> _detailsArgs({required bool isLongTrip}) {
-    if (isLongTrip) {
-      return {
-        'isLongTrip': true,
-        'tripId': '# ID2562',
-        'metaLine': '25 April to 28 April • 58 hrs • 30 km',
-        'amountPaid': '₹ 2,350',
-        'refundAmount': '₹ 2,670',
-        'refundInitiatedAt': '25 April 2025, 08:45 AM',
-      };
-    }
-    return {
-      'isLongTrip': false,
-      'tripId': '# ID2562',
-      'metaLine': '25 April • 3 hrs • 10 km',
-      'amountPaid': '₹ 235',
-      'refundAmount': '₹ 355',
-      'refundInitiatedAt': '25 April 2025, 08:45 AM',
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _CancelledTripCard(
-          isLongTrip: false,
-          metaPrimary: '25 April',
-          metaRest: ' • 3 hrs • 10 km',
-          onViewDetails: () {
-            NavigationService().pushNamed(
-              'cancelled_trip_details',
-              arguments: _detailsArgs(isLongTrip: false),
-            );
-          },
-          onBookAgain: () {
-            NavigationService().pushNamed('create_trip');
-          },
-        ),
-        const SizedBox(height: 16),
-        _CancelledTripCard(
-          isLongTrip: true,
-          metaPrimary: '25 April to 28 April',
-          metaRest: ' • 58 hrs • 30 km',
-          onViewDetails: () {
-            NavigationService().pushNamed(
-              'cancelled_trip_details',
-              arguments: _detailsArgs(isLongTrip: true),
-            );
-          },
-          onBookAgain: () {
-            NavigationService().pushNamed('create_trip');
-          },
-        ),
-      ],
-    );
-  }
-}
-
 class _CancelledTripCard extends StatelessWidget {
-  final bool isLongTrip;
-  final String metaPrimary;
-  final String metaRest;
+  final TripModel trip;
   final VoidCallback onViewDetails;
   final VoidCallback onBookAgain;
 
   const _CancelledTripCard({
-    required this.isLongTrip,
-    required this.metaPrimary,
-    required this.metaRest,
+    required this.trip,
     required this.onViewDetails,
     required this.onBookAgain,
   });
@@ -404,7 +456,7 @@ class _CancelledTripCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isLongTrip ? 'LONG TRIP' : 'SHORT TRIP',
+                      trip.tripTypeChipLabel,
                       style: kTripChipR.copyWith(
                         color: kBlack.withValues(alpha: 0.75),
                       ),
@@ -421,7 +473,10 @@ class _CancelledTripCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          const _RouteStops(),
+          _RouteStops(
+            pickup: trip.pickupAddress,
+            dropoff: trip.dropoffAddress ?? trip.pickupAddress,
+          ),
           const SizedBox(height: 18),
           const _DashedDivider(),
           const SizedBox(height: 16),
@@ -438,8 +493,11 @@ class _CancelledTripCard extends StatelessWidget {
                   text: TextSpan(
                     style: kCaption13R.copyWith(height: 1.35),
                     children: [
-                      TextSpan(text: metaPrimary, style: kCaption13SB),
-                      TextSpan(text: metaRest),
+                      TextSpan(
+                        text: trip.formatMetaPrimary(trip.referenceDate),
+                        style: kCaption13SB,
+                      ),
+                      TextSpan(text: trip.metaRest),
                     ],
                   ),
                 ),
@@ -473,82 +531,11 @@ class _CancelledTripCard extends StatelessWidget {
   }
 }
 
-class _CompletedTripsList extends StatelessWidget {
-  const _CompletedTripsList();
-
-  static Map<String, dynamic> _detailsArgs({required bool isLongTrip}) {
-    if (isLongTrip) {
-      return {
-        'isLongTrip': true,
-        'tripId': '# ID2562',
-        'metaLine': '25 April to 28 April • 48 hrs 15 min • 122 km',
-        'tripFare': '₹ 2,350',
-        'tripFareDurationLabel': '48 hrs',
-        'extraTimeFare': '₹ 320',
-        'extraTimeDurationLabel': '2 hrs',
-        'totalPaid': '₹ 2,670',
-      };
-    }
-    return {
-      'isLongTrip': false,
-      'tripId': '# ID2562',
-      'metaLine': '25 April • 1 hrs 15 min • 12 km',
-      'tripFare': '₹ 235',
-      'tripFareDurationLabel': '2 hrs',
-      'extraTimeFare': '₹ 120',
-      'extraTimeDurationLabel': '30 min',
-      'totalPaid': '₹ 355',
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _CompletedTripCard(
-          isLongTrip: false,
-          price: '₹ 235',
-          metaPrimary: '25 April',
-          metaRest: ' • 1 hrs 15 min • 12 km',
-          onViewDetails: () {
-            NavigationService().pushNamed(
-              'completed_trip_details',
-              arguments: _detailsArgs(isLongTrip: false),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        _CompletedTripCard(
-          isLongTrip: true,
-          price: '₹ 2,350',
-          metaPrimary: '25 April to 28 April',
-          metaRest: ' • 48 hrs 15 min • 122 km',
-          onViewDetails: () {
-            NavigationService().pushNamed(
-              'completed_trip_details',
-              arguments: _detailsArgs(isLongTrip: true),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
 class _CompletedTripCard extends StatelessWidget {
-  final bool isLongTrip;
-  final String price;
-  final String metaPrimary;
-  final String metaRest;
+  final TripModel trip;
   final VoidCallback onViewDetails;
 
-  const _CompletedTripCard({
-    required this.isLongTrip,
-    required this.price,
-    required this.metaPrimary,
-    required this.metaRest,
-    required this.onViewDetails,
-  });
+  const _CompletedTripCard({required this.trip, required this.onViewDetails});
 
   static const _completedBg = Color(0xFFE8F1FA);
   static const _completedBlue = Color(0xFF165A91);
@@ -609,7 +596,7 @@ class _CompletedTripCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isLongTrip ? 'LONG TRIP' : 'SHORT TRIP',
+                      trip.tripTypeChipLabel,
                       style: kTripChipR.copyWith(
                         color: kBlack.withValues(alpha: 0.75),
                       ),
@@ -629,11 +616,16 @@ class _CompletedTripCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(child: _RouteStops()),
+              Expanded(
+                child: _RouteStops(
+                  pickup: trip.pickupAddress,
+                  dropoff: trip.dropoffAddress ?? trip.pickupAddress,
+                ),
+              ),
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text(price, style: kLabel22B),
+                child: Text(trip.displayPrice, style: kLabel22B),
               ),
             ],
           ),
@@ -653,8 +645,11 @@ class _CompletedTripCard extends StatelessWidget {
                   text: TextSpan(
                     style: kCaption13R.copyWith(height: 1.35),
                     children: [
-                      TextSpan(text: metaPrimary, style: kCaption13SB),
-                      TextSpan(text: metaRest),
+                      TextSpan(
+                        text: trip.formatMetaPrimary(trip.referenceDate),
+                        style: kCaption13SB,
+                      ),
+                      TextSpan(text: trip.metaRest),
                     ],
                   ),
                 ),
@@ -742,7 +737,9 @@ class _OutlinedTripAction extends StatelessWidget {
 }
 
 class _UpcomingTripCard extends StatelessWidget {
-  const _UpcomingTripCard();
+  final TripModel trip;
+
+  const _UpcomingTripCard({required this.trip});
 
   static const _scheduledBg = Color(0xFFFFF4E8);
   static const _scheduledOrange = Color(0xFFF59E0B);
@@ -783,7 +780,7 @@ class _UpcomingTripCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Scheduled',
+                      trip.upcomingStatusLabel(),
                       style: kStyle(
                         kSemiBold,
                         kSize13,
@@ -800,13 +797,15 @@ class _UpcomingTripCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.autorenew_rounded,
+                      trip.isOneWay
+                          ? Icons.arrow_right_alt_rounded
+                          : Icons.autorenew_rounded,
                       size: 18,
                       color: kBlack.withValues(alpha: 0.65),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Round Trip',
+                      trip.directionChipLabel,
                       style: kTripChipR.copyWith(
                         color: kBlack.withValues(alpha: 0.75),
                       ),
@@ -826,11 +825,16 @@ class _UpcomingTripCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(child: _RouteStops()),
+              Expanded(
+                child: _RouteStops(
+                  pickup: trip.pickupAddress,
+                  dropoff: trip.dropoffAddress ?? trip.pickupAddress,
+                ),
+              ),
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('₹ 235', style: kLabel22B),
+                child: Text(trip.displayPrice, style: kLabel22B),
               ),
             ],
           ),
@@ -846,14 +850,9 @@ class _UpcomingTripCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: kCaption13R.copyWith(height: 1.35),
-                    children: [
-                      TextSpan(text: 'Tomorrow, ', style: kCaption13SB),
-                      const TextSpan(text: '09:00 AM • 1 hrs 15 min • 12 km'),
-                    ],
-                  ),
+                child: Text(
+                  trip.formatScheduleLine(trip.pickupAt),
+                  style: kCaption13R.copyWith(height: 1.35),
                 ),
               ),
             ],
@@ -862,21 +861,28 @@ class _UpcomingTripCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Expanded(child: _DriverProfilePill()),
+              if (trip.hasDriver)
+                Expanded(
+                  child: _DriverProfilePill(
+                    driverName: trip.driverName!,
+                    driverRating: trip.driverRating ?? 5.0,
+                  ),
+                )
+              else
+                Expanded(
+                  child: Text(
+                    'Driver will be assigned soon',
+                    style: kCaption13R.copyWith(
+                      color: kBlack.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ),
               const SizedBox(width: 10),
               _ViewBookingsButton(
                 onPressed: () {
                   NavigationService().pushNamed(
                     'scheduled_trip_details',
-                    arguments: {
-                      'scheduledAt': DateTime.now().add(
-                        const Duration(hours: 12, minutes: 20),
-                      ),
-                      'tripId': '# ID2562',
-                      'pickup': 'Edappally, Lulu Mall',
-                      'dropoff': 'Infopark, Kakkanad',
-                      'paymentType': 'online',
-                    },
+                    arguments: trip.toScheduledDetailsArguments(),
                   );
                 },
               ),
@@ -889,7 +895,13 @@ class _UpcomingTripCard extends StatelessWidget {
 }
 
 class _DriverProfilePill extends StatelessWidget {
-  const _DriverProfilePill();
+  final String driverName;
+  final double driverRating;
+
+  const _DriverProfilePill({
+    required this.driverName,
+    required this.driverRating,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -922,7 +934,7 @@ class _DriverProfilePill extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Ajith Kumar',
+              driverName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: kLabel15M.copyWith(
@@ -932,7 +944,7 @@ class _DriverProfilePill extends StatelessWidget {
           ),
           const Icon(Icons.star_rounded, size: 16, color: kGoldAccent),
           const SizedBox(width: 2),
-          Text('4.8', style: kCaption13SB),
+          Text(driverRating.toStringAsFixed(1), style: kCaption13SB),
           Icon(
             Icons.chevron_right_rounded,
             size: 20,
@@ -987,17 +999,20 @@ class _StatusChip extends StatelessWidget {
 }
 
 class _RouteStops extends StatelessWidget {
-  const _RouteStops();
+  final String pickup;
+  final String dropoff;
+
+  const _RouteStops({required this.pickup, required this.dropoff});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _RouteRow(
+        _RouteRow(
           icon: Icons.location_on_rounded,
           iconColor: kActiveGreen,
-          label: 'Edappally, Lulu Mall',
+          label: pickup,
         ),
         Padding(
           padding: const EdgeInsets.only(left: 10),
@@ -1008,10 +1023,10 @@ class _RouteStops extends StatelessWidget {
             color: kLineGrey,
           ),
         ),
-        const _RouteRow(
+        _RouteRow(
           icon: Icons.location_on_rounded,
           iconColor: kDropBlue,
-          label: 'Infopark, Kakkanad',
+          label: dropoff,
         ),
       ],
     );
