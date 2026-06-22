@@ -1520,7 +1520,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
 
     final tripData = nestedData(createResponse.data) ?? createResponse.data;
-    final tripId = _extractTripIdentifier(tripData);
+    final tripMongoId = tripData?['_id']?.toString() ?? '';
+    final tripNumber = tripData?['tripNumber']?.toString();
+    final displayTripId = tripNumber != null && tripNumber.isNotEmpty
+        ? '# $tripNumber'
+        : (tripMongoId.isNotEmpty ? '# ${tripMongoId.substring(0, 8)}' : '# —');
     final paymentType = selectedPaymentIndex == 1 ? 'online' : 'offline';
 
     if (!isRideNow && scheduledRideAt != null) {
@@ -1529,7 +1533,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
         arguments: {
           'paymentType': paymentType,
           'scheduledAt': scheduledRideAt,
-          'tripId': tripId,
+          'tripId': displayTripId,
+          'tripMongoId': tripMongoId,
           'pickup': _pickupAddress,
           'dropoff': _dropoffAddress ?? 'Destination',
         },
@@ -1539,7 +1544,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     NavigationService().pushNamed(
       'booking_confirmed',
-      arguments: {'paymentType': paymentType, 'tripId': tripId},
+      arguments: {
+        'paymentType': paymentType,
+        'tripId': displayTripId,
+        'tripMongoId': tripMongoId,
+      },
     );
   }
 
@@ -1657,15 +1666,6 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
 
     return ApiResponse.success({'required': true, 'nights': nights});
-  }
-
-  String _extractTripIdentifier(Map<String, dynamic>? tripData) {
-    final id =
-        tripData?['tripNumber'] ??
-        tripData?['tripId'] ??
-        tripData?['_id'] ??
-        '#ID2562';
-    return id.toString();
   }
 
   void _showError(String message) {

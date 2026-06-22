@@ -6,10 +6,14 @@ import 'package:flutter/material.dart';
 
 class BookingConfirmedPage extends StatefulWidget {
   final TripCompletedPaymentType paymentType;
+  final String tripMongoId;
+  final String tripId;
 
   const BookingConfirmedPage({
     super.key,
     this.paymentType = TripCompletedPaymentType.offline,
+    this.tripMongoId = '',
+    this.tripId = '# —',
   });
 
   @override
@@ -29,7 +33,8 @@ class _BookingConfirmedPageState extends State<BookingConfirmedPage> {
       'waiting_driver',
       arguments: {
         'tripTitle': 'One Way Trip',
-        'tripId': '#ID2562',
+        'tripId': widget.tripId,
+        'tripMongoId': widget.tripMongoId,
         ...tripPaymentArguments(widget.paymentType),
       },
     );

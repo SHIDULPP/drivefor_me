@@ -155,6 +155,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
               bookingArgs?['isOnlinePayment'] ??
               bookingArgs?['isOnline'],
         ),
+        tripMongoId: bookingArgs?['tripMongoId'] as String? ?? '',
+        tripId: bookingArgs?['tripId'] as String? ?? '# —',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -315,7 +317,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       final waitingArgs = settings?.arguments as Map?;
       page = WaitingDriverPage(
         tripTitle: waitingArgs?['tripTitle'] as String? ?? 'One Way Trip',
-        tripId: waitingArgs?['tripId'] as String? ?? '#ID2562',
+        tripId: waitingArgs?['tripId'] as String? ?? '# —',
+        tripMongoId: waitingArgs?['tripMongoId'] as String? ?? '',
         paymentType: parseTripCompletedPaymentType(
           waitingArgs?['paymentType'] ??
               waitingArgs?['isOnlinePayment'] ??
@@ -328,8 +331,9 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'driver_found':
       final driverArgs = settings?.arguments as Map?;
       page = DriverFoundPage(
+        tripMongoId: driverArgs?['tripMongoId'] as String? ?? '',
         tripTitle: driverArgs?['tripTitle'] as String? ?? 'One Way Trip',
-        tripId: driverArgs?['tripId'] as String? ?? '# ID2562',
+        tripId: driverArgs?['tripId'] as String? ?? '# —',
         pickup: driverArgs?['pickup'] as String? ?? 'Edappally',
         dropoff: driverArgs?['dropoff'] as String? ?? 'Infopark',
         price: driverArgs?['price'] as String? ?? '₹ 235',

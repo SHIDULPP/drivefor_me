@@ -133,6 +133,12 @@ class TripModel {
   bool get isOneWay => tripDirection == 'one_way';
   bool get hasDriver => driverName != null && driverName!.isNotEmpty;
 
+  bool get isDriverAssigned => status == 'driver_assigned' && hasDriver;
+
+  bool get isInProgress => status == 'in_progress';
+
+  bool get isCancelled => status == 'cancelled';
+
   String get displayTripId =>
       tripNumber.isNotEmpty ? '# $tripNumber' : '# ${id.substring(0, 8)}';
 
@@ -229,6 +235,24 @@ class TripModel {
 
   String get paymentTypeLabel =>
       paymentTypeKey == 'online' ? 'Online(Prepaid)' : 'Cash';
+
+  Map<String, dynamic> toDriverFoundArguments() {
+    return {
+      'tripMongoId': id,
+      'tripTitle': tripTitle,
+      'tripId': displayTripId,
+      'pickup': pickupAddress,
+      'dropoff': dropoffAddress ?? pickupAddress,
+      'price': displayPrice,
+      'distance': distanceLabel.isEmpty ? '—' : distanceLabel,
+      'duration': durationLabel,
+      'driverName': driverName ?? 'Driver',
+      'driverRating': driverRating ?? 5.0,
+      'driverTrips': driverTrips ?? 0,
+      'vehicleTypes': vehicleTypesLabel,
+      'paymentType': paymentTypeKey,
+    };
+  }
 
   Map<String, dynamic> toProgressArguments() {
     return {

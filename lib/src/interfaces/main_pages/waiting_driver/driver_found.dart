@@ -1,22 +1,18 @@
 import 'dart:async';
-import 'dart:math';
 
+import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_progress.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Temporary OTP until backend generation is wired.
-String generateTripOtp() {
-  final random = Random();
-  return List.generate(4, (_) => random.nextInt(10).toString()).join();
-}
-
-class DriverFoundPage extends StatefulWidget {
+class DriverFoundPage extends ConsumerStatefulWidget {
+  final String tripMongoId;
   final String tripTitle;
   final String tripId;
   final String pickup;
@@ -32,8 +28,9 @@ class DriverFoundPage extends StatefulWidget {
 
   const DriverFoundPage({
     super.key,
+    this.tripMongoId = '',
     this.tripTitle = 'One Way Trip',
-    this.tripId = '# ID2562',
+    this.tripId = '# —',
     this.pickup = 'Edappally',
     this.dropoff = 'Infopark',
     this.price = '₹ 235',
@@ -47,59 +44,147 @@ class DriverFoundPage extends StatefulWidget {
   });
 
   @override
-  State<DriverFoundPage> createState() => _DriverFoundPageState();
+  ConsumerState<DriverFoundPage> createState() => _DriverFoundPageState();
 }
 
-class _DriverFoundPageState extends State<DriverFoundPage> {
+class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   static const _otpBorderColor = Color(0xFFC5A358);
   static const _policyTimerBlue = Color(0xFF165A91);
+  static const _pollInterval = Duration(seconds: 3);
 
-  late final String _otp;
+  String? _otp;
+  bool _isLoadingOtp = true;
+  String? _otpError;
   Timer? _cancelTimer;
-  Duration _cancelRemaining = const Duration(minutes: 58, seconds: 32);
+  Timer? _pollTimer;
+  Duration _cancelRemaining = const Duration(minutes: 10);
+  bool _navigatedToProgress = false;
 
   @override
   void initState() {
     super.initState();
-    _otp = generateTripOtp();
-    _cancelTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      if (_cancelRemaining.inSeconds <= 0) {
-        _cancelTimer?.cancel();
-        return;
-      }
+    _loadStartOtp();
+    _startTripStatusPolling();
+  }
+
+  Future<void> _loadStartOtp() async {
+    if (widget.tripMongoId.isEmpty) {
       setState(() {
-        _cancelRemaining -= const Duration(seconds: 1);
+        _isLoadingOtp = false;
+        _otpError = 'Trip reference is missing.';
       });
+      return;
+    }
+
+    final response = await ref
+        .read(tripApiProvider)
+        .generateStartOtp(widget.tripMongoId);
+
+    if (!mounted) return;
+
+    if (!response.success || response.data == null) {
+      setState(() {
+        _isLoadingOtp = false;
+        _otpError = response.message ?? 'Failed to load trip OTP.';
+      });
+      return;
+    }
+
+    final otp = response.data!['otp']?.toString();
+    final expiresAtRaw = response.data!['expiresAt'];
+    final expiresAt = expiresAtRaw == null
+        ? null
+        : DateTime.tryParse(expiresAtRaw.toString());
+
+    setState(() {
+      _isLoadingOtp = false;
+      _otp = otp;
+      if (otp == null || otp.length != 4) {
+        _otpError = 'Invalid OTP received from server.';
+      }
     });
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => TripProgressPage(
-              tripTitle: widget.tripTitle,
-              tripId: widget.tripId,
-              pickup: widget.pickup,
-              dropoff: widget.dropoff,
-              price: widget.price,
-              distance: widget.distance,
-              duration: widget.duration,
-              driverName: widget.driverName,
-              driverRating: widget.driverRating,
-              driverTrips: widget.driverTrips,
-              vehicleTypes: widget.vehicleTypes,
-              paymentType: widget.paymentType,
-            ),
-          ),
-        );
+    if (expiresAt != null) {
+      _startCancelCountdown(expiresAt);
+    } else {
+      _startCancelCountdown(
+        DateTime.now().add(const Duration(minutes: 10)),
+      );
+    }
+  }
+
+  void _startCancelCountdown(DateTime expiresAt) {
+    _cancelTimer?.cancel();
+    _cancelRemaining = expiresAt.difference(DateTime.now());
+    if (_cancelRemaining.isNegative) {
+      _cancelRemaining = Duration.zero;
+    }
+
+    _cancelTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final remaining = expiresAt.difference(DateTime.now());
+      setState(() {
+        _cancelRemaining = remaining.isNegative ? Duration.zero : remaining;
+      });
+      if (remaining.isNegative) {
+        _cancelTimer?.cancel();
       }
     });
+  }
+
+  void _startTripStatusPolling() {
+    if (widget.tripMongoId.isEmpty) return;
+
+    _pollTripStatus();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _pollTripStatus());
+  }
+
+  Future<void> _pollTripStatus() async {
+    if (_navigatedToProgress || !mounted || widget.tripMongoId.isEmpty) {
+      return;
+    }
+
+    final response = await ref
+        .read(tripApiProvider)
+        .getTripById(widget.tripMongoId);
+
+    if (!mounted || _navigatedToProgress) return;
+    if (!response.success || response.data == null) return;
+
+    if (response.data!.isInProgress) {
+      _goToTripProgress();
+    }
+  }
+
+  void _goToTripProgress() {
+    if (_navigatedToProgress || !mounted) return;
+    _navigatedToProgress = true;
+    _pollTimer?.cancel();
+
+    NavigationService().pushNamed(
+      'trip_progress',
+      arguments: {
+        'tripMongoId': widget.tripMongoId,
+        'tripTitle': widget.tripTitle,
+        'tripId': widget.tripId,
+        'pickup': widget.pickup,
+        'dropoff': widget.dropoff,
+        'price': widget.price,
+        'distance': widget.distance,
+        'duration': widget.duration,
+        'driverName': widget.driverName,
+        'driverRating': widget.driverRating,
+        'driverTrips': widget.driverTrips,
+        'vehicleTypes': widget.vehicleTypes,
+        ...tripPaymentArguments(widget.paymentType),
+      },
+    );
   }
 
   @override
   void dispose() {
     _cancelTimer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -147,6 +232,8 @@ class _DriverFoundPageState extends State<DriverFoundPage> {
           Expanded(
             child: _DriverFoundSheet(
               otp: _otp,
+              isLoadingOtp: _isLoadingOtp,
+              otpError: _otpError,
               otpBorderColor: _otpBorderColor,
               policyTimerBlue: _policyTimerBlue,
               cancelTimerLabel: _cancelTimerLabel,
@@ -267,7 +354,9 @@ class _HelpButton extends StatelessWidget {
 }
 
 class _DriverFoundSheet extends StatelessWidget {
-  final String otp;
+  final String? otp;
+  final bool isLoadingOtp;
+  final String? otpError;
   final Color otpBorderColor;
   final Color policyTimerBlue;
   final String cancelTimerLabel;
@@ -284,6 +373,8 @@ class _DriverFoundSheet extends StatelessWidget {
 
   const _DriverFoundSheet({
     required this.otp,
+    required this.isLoadingOtp,
+    this.otpError,
     required this.otpBorderColor,
     required this.policyTimerBlue,
     required this.cancelTimerLabel,
@@ -340,7 +431,12 @@ class _DriverFoundSheet extends StatelessWidget {
               vehicleTypes: vehicleTypes,
             ),
             const SizedBox(height: 14),
-            _OtpCard(otp: otp, borderColor: otpBorderColor),
+            _OtpCard(
+              otp: otp,
+              isLoading: isLoadingOtp,
+              errorMessage: otpError,
+              borderColor: otpBorderColor,
+            ),
             const SizedBox(height: 14),
             _TripSummaryCard(
               pickup: pickup,
@@ -536,14 +632,72 @@ class _DriverActionButton extends StatelessWidget {
 }
 
 class _OtpCard extends StatelessWidget {
-  final String otp;
+  final String? otp;
+  final bool isLoading;
+  final String? errorMessage;
   final Color borderColor;
 
-  const _OtpCard({required this.otp, required this.borderColor});
+  const _OtpCard({
+    required this.otp,
+    this.isLoading = false,
+    this.errorMessage,
+    required this.borderColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final digits = otp.padRight(4, '0').substring(0, 4).split('');
+    if (errorMessage != null && errorMessage!.isNotEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        decoration: BoxDecoration(
+          color: kWhite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: kCardBorder),
+        ),
+        child: Column(
+          children: [
+            Text('Start your trip', style: kDriverFoundOtpTitleSB),
+            const SizedBox(height: 16),
+            Text(
+              errorMessage!,
+              textAlign: TextAlign.center,
+              style: kDriverFoundOtpHintR.copyWith(color: kRed),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (isLoading || otp == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+        decoration: BoxDecoration(
+          color: kWhite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: kCardBorder),
+        ),
+        child: Column(
+          children: [
+            Text('Start your trip', style: kDriverFoundOtpTitleSB),
+            const SizedBox(height: 16),
+            const SizedBox(
+              height: 56,
+              child: Center(
+                child: CircularProgressIndicator(color: kBrandBlue),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Generating your trip OTP...',
+              textAlign: TextAlign.center,
+              style: kDriverFoundOtpHintR,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final digits = otp!.padRight(4, '0').substring(0, 4).split('');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),

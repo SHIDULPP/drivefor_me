@@ -76,6 +76,48 @@ class TripApi {
 
     return ApiResponse.success(trips, response.statusCode);
   }
+
+  Future<ApiResponse<TripModel>> getTripById(String tripId) async {
+    final response = await _api.get('/trips/$tripId', requireAuth: true);
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to load trip.',
+        response.statusCode,
+      );
+    }
+
+    final data = nestedData(response.data);
+    if (data == null) {
+      return ApiResponse.error('Invalid trip response');
+    }
+
+    return ApiResponse.success(TripModel.fromJson(data), response.statusCode);
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> generateStartOtp(
+    String tripId,
+  ) async {
+    final response = await _api.post(
+      '/trips/$tripId/start-otp',
+      {},
+      requireAuth: true,
+    );
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to generate trip OTP.',
+        response.statusCode,
+      );
+    }
+
+    final data = nestedData(response.data) ?? response.data;
+    if (data == null) {
+      return ApiResponse.error('Invalid OTP response');
+    }
+
+    return ApiResponse.success(data, response.statusCode);
+  }
 }
 
 final tripApiProvider = Provider<TripApi>((ref) {

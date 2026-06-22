@@ -1,21 +1,18 @@
 import 'dart:async';
 
+import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 enum WaitingDriverStage {
-  /// 1 — "Matching nearby drivers"
   matchingNearby,
-
-  /// 2 — "Expanding search area..."
   expandingSearch,
-
-  /// 3 — "We're matching the best driver for you"
   bestDriverMatch,
 }
 
@@ -31,43 +28,47 @@ extension WaitingDriverStageX on WaitingDriverStage {
     }
   }
 
-  WaitingDriverStage? get next {
+  WaitingDriverStage get next {
     switch (this) {
       case WaitingDriverStage.matchingNearby:
         return WaitingDriverStage.expandingSearch;
       case WaitingDriverStage.expandingSearch:
         return WaitingDriverStage.bestDriverMatch;
       case WaitingDriverStage.bestDriverMatch:
-        return null;
+        return WaitingDriverStage.matchingNearby;
     }
   }
 }
 
-class WaitingDriverPage extends StatefulWidget {
+class WaitingDriverPage extends ConsumerStatefulWidget {
   final String tripTitle;
   final String tripId;
+  final String tripMongoId;
   final WaitingDriverStage initialStage;
   final TripCompletedPaymentType paymentType;
 
   const WaitingDriverPage({
     super.key,
     this.tripTitle = 'One Way Trip',
-    this.tripId = '#ID2562',
+    this.tripId = '# —',
+    this.tripMongoId = '',
     this.initialStage = WaitingDriverStage.matchingNearby,
     this.paymentType = TripCompletedPaymentType.offline,
   });
 
   @override
-  State<WaitingDriverPage> createState() => _WaitingDriverPageState();
+  ConsumerState<WaitingDriverPage> createState() => _WaitingDriverPageState();
 }
 
-class _WaitingDriverPageState extends State<WaitingDriverPage>
+class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     with SingleTickerProviderStateMixin {
   static const _stageDuration = Duration(seconds: 5);
+  static const _pollInterval = Duration(seconds: 3);
 
   late WaitingDriverStage _stage;
   late AnimationController _progressController;
   Timer? _stageTimer;
+  Timer? _pollTimer;
   bool _navigatedToDriverFound = false;
 
   @override
@@ -78,14 +79,46 @@ class _WaitingDriverPageState extends State<WaitingDriverPage>
       vsync: this,
       duration: _stageDuration,
       value: 0,
-    )..addStatusListener(_onProgressAnimationStatus);
+    );
     _runStage(_stage);
+    _startPolling();
   }
 
-  void _onProgressAnimationStatus(AnimationStatus status) {
-    if (status != AnimationStatus.completed) return;
-    if (_stage != WaitingDriverStage.bestDriverMatch) return;
-    _goToDriverFound();
+  void _startPolling() {
+    if (widget.tripMongoId.isEmpty) return;
+
+    _pollTripStatus();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _pollTripStatus());
+  }
+
+  Future<void> _pollTripStatus() async {
+    if (_navigatedToDriverFound || !mounted || widget.tripMongoId.isEmpty) {
+      return;
+    }
+
+    final response = await ref
+        .read(tripApiProvider)
+        .getTripById(widget.tripMongoId);
+
+    if (!mounted || _navigatedToDriverFound) return;
+
+    if (!response.success || response.data == null) return;
+
+    final trip = response.data!;
+
+    if (trip.isCancelled) {
+      _pollTimer?.cancel();
+      _stageTimer?.cancel();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This trip was cancelled.')),
+      );
+      Navigator.of(context).maybePop();
+      return;
+    }
+
+    if (trip.isDriverAssigned) {
+      _goToDriverFound(trip.toDriverFoundArguments());
+    }
   }
 
   void _runStage(WaitingDriverStage stage) {
@@ -95,33 +128,28 @@ class _WaitingDriverPageState extends State<WaitingDriverPage>
     _progressController.duration = _stageDuration;
     _progressController.animateTo(stage.progress, curve: Curves.easeOutCubic);
 
-    final next = stage.next;
-    if (next == null) return;
-
     _stageTimer = Timer(_stageDuration, () {
-      if (!mounted) return;
-      _runStage(next);
+      if (!mounted || _navigatedToDriverFound) return;
+      _runStage(stage.next);
     });
   }
 
-  void _goToDriverFound() {
+  void _goToDriverFound(Map<String, dynamic> arguments) {
     if (_navigatedToDriverFound || !mounted) return;
     _navigatedToDriverFound = true;
     _stageTimer?.cancel();
+    _pollTimer?.cancel();
     _progressController.stop();
     NavigationService().pushNamedReplacement(
       'driver_found',
-      arguments: {
-        'tripTitle': widget.tripTitle,
-        'tripId': widget.tripId,
-        ...tripPaymentArguments(widget.paymentType),
-      },
+      arguments: arguments,
     );
   }
 
   @override
   void dispose() {
     _stageTimer?.cancel();
+    _pollTimer?.cancel();
     _progressController.dispose();
     super.dispose();
   }
