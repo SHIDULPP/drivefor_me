@@ -9,7 +9,7 @@ class OnboardingApi {
   OnboardingApi(this._api);
 
   Future<ApiResponse<UserModel>> getMe() async {
-    final response = await _api.get('/onboarding/me', requireUserId: true);
+    final response = await _api.get('/onboarding/me', requireAuth: true);
     if (!response.success) {
       return ApiResponse.error(
         response.message ?? 'Failed to load profile',
@@ -39,7 +39,7 @@ class OnboardingApi {
         'dateOfBirth': dateOfBirth,
         'gender': gender,
       },
-      requireUserId: true,
+      requireAuth: true,
     );
   }
 }
