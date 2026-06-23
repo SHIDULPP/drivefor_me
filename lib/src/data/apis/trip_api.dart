@@ -95,6 +95,64 @@ class TripApi {
     return ApiResponse.success(TripModel.fromJson(data), response.statusCode);
   }
 
+  Future<ApiResponse<TripModel>> cancelTrip(
+    String tripId, {
+    String? reason,
+  }) async {
+    final response = await _api.post(
+      '/trips/$tripId/cancel',
+      {if (reason != null && reason.isNotEmpty) 'reason': reason},
+      requireAuth: true,
+    );
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to cancel trip.',
+        response.statusCode,
+      );
+    }
+
+    final data = nestedData(response.data);
+    if (data == null) {
+      return ApiResponse.error('Invalid cancel trip response');
+    }
+
+    return ApiResponse.success(TripModel.fromJson(data), response.statusCode);
+  }
+
+  Future<ApiResponse<TripModel>> rateTrip(
+    String tripId, {
+    required int stars,
+    List<String>? feedbackTags,
+    String? comment,
+  }) async {
+    final response = await _api.post(
+      '/trips/$tripId/rate',
+      {
+        'stars': stars,
+        if (feedbackTags != null && feedbackTags.isNotEmpty)
+          'feedbackTags': feedbackTags,
+        if (comment != null && comment.trim().isNotEmpty)
+          'comment': comment.trim(),
+      },
+      requireAuth: true,
+    );
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to submit rating.',
+        response.statusCode,
+      );
+    }
+
+    final data = nestedData(response.data);
+    if (data == null) {
+      return ApiResponse.error('Invalid rating response');
+    }
+
+    return ApiResponse.success(TripModel.fromJson(data), response.statusCode);
+  }
+
   Future<ApiResponse<Map<String, dynamic>>> generateStartOtp(
     String tripId,
   ) async {

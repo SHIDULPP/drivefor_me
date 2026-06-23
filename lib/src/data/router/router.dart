@@ -24,6 +24,7 @@ import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart
 import 'package:driveforme_user/src/interfaces/main_pages/profile/my_vehicles_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile/notifications_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile/personal_details_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/wallet_page.dart';
 import 'package:flutter/material.dart';
 //router file
 
@@ -269,9 +270,22 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;
+    case 'wallet':
+      final walletArgs = settings?.arguments as Map?;
+      page = WalletPage(
+        showReferralSection: walletArgs?['showReferral'] != false,
+      );
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
     case 'chat_screen':
       final chatArgs = settings?.arguments as Map?;
       page = ChatScreen(
+        receiverId: chatArgs?['receiverId'] as String? ?? '',
+        receiverName: chatArgs?['receiverName'] as String? ??
+            chatArgs?['participantName'] as String? ??
+            'Driver',
+        tripId: chatArgs?['tripId'] as String?,
         participantName:
             chatArgs?['participantName'] as String? ?? 'Jacob John',
       );
@@ -339,6 +353,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         price: driverArgs?['price'] as String? ?? '₹ 235',
         distance: driverArgs?['distance'] as String? ?? '12 km',
         duration: driverArgs?['duration'] as String? ?? '2 hrs',
+        driverId: driverArgs?['driverId'] as String? ?? '',
         driverName: driverArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating:
             (driverArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
@@ -358,6 +373,14 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       final paymentDoneArgs = settings?.arguments as Map?;
       page = PaymentCompletedPage(
         paidAmount: paymentDoneArgs?['paidAmount'] as String? ?? '₹590',
+        tripMongoId: paymentDoneArgs?['tripMongoId'] as String? ?? '',
+        driverId: paymentDoneArgs?['driverId'] as String? ?? '',
+        driverName: paymentDoneArgs?['driverName'] as String? ?? 'Driver',
+        driverRating:
+            (paymentDoneArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: paymentDoneArgs?['driverTrips'] as int? ?? 0,
+        vehicleTypes:
+            paymentDoneArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -365,6 +388,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'driver_rating':
       final ratingArgs = settings?.arguments as Map?;
       page = DriverRatingPage(
+        tripMongoId: ratingArgs?['tripMongoId'] as String? ?? '',
+        driverId: ratingArgs?['driverId'] as String? ?? '',
         driverName: ratingArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating: (ratingArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: ratingArgs?['driverTrips'] as int? ?? 120,
@@ -383,7 +408,10 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       final sosArgs = settings?.arguments as Map?;
       page = SosSelectPage(
         locationLabel: sosArgs?['locationLabel'] as String? ??
+            sosArgs?['pickupAddress'] as String? ??
             'Live location shared . MG road, Erankulam',
+        tripId: sosArgs?['tripId'] as String?,
+        pickupAddress: sosArgs?['pickupAddress'] as String? ?? '',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -393,6 +421,9 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       page = SosCountdownPage(
         locationLabel: countdownArgs?['locationLabel'] as String? ??
             'MG Road, Eranakulam, Kochi, GPS Active',
+        sosType: countdownArgs?['sosType'] as String? ?? 'Other Emergency',
+        tripId: countdownArgs?['tripId'] as String?,
+        pickupAddress: countdownArgs?['pickupAddress'] as String? ?? '',
         initialSeconds: countdownArgs?['initialSeconds'] as int? ?? 6,
       );
       transitionToUse = TransitionType.slideFromRight;
@@ -421,7 +452,10 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
             completedArgs?['isOnline'],
       );
       page = TripCompletedPage(
+        tripMongoId: completedArgs?['tripMongoId'] as String? ?? '',
         paymentType: paymentType,
+        paymentMethod: completedArgs?['paymentMethod'] as String? ?? 'cash',
+        isRated: completedArgs?['isRated'] == true,
         tripTypeLabel: completedArgs?['tripTypeLabel'] as String? ??
             (paymentType == TripCompletedPaymentType.online
                 ? 'Short Trip'
@@ -444,6 +478,12 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         remainingDuration:
             completedArgs?['remainingDuration'] as String? ?? '30 min',
         totalAmount: completedArgs?['totalAmount'] as String? ?? '₹ 590',
+        driverId: completedArgs?['driverId'] as String? ?? '',
+        driverName: completedArgs?['driverName'] as String? ?? 'Driver',
+        driverRating:
+            (completedArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
+        driverTrips: completedArgs?['driverTrips'] as int? ?? 0,
+        vehicleTypes: completedArgs?['vehicleTypes'] as String? ?? '',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -451,9 +491,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'trip_progress':
       final tripArgs = settings?.arguments as Map?;
       page = TripProgressPage(
+        tripMongoId: tripArgs?['tripMongoId'] as String? ?? '',
         tripTitle: tripArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: tripArgs?['tripId'] as String? ?? '# ID2562',
         headingTo: tripArgs?['headingTo'] as String? ?? 'Infopark',
+        driverId: tripArgs?['driverId'] as String? ?? '',
         driverName: tripArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating: (tripArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: tripArgs?['driverTrips'] as int? ?? 120,
@@ -470,6 +512,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
               tripArgs?['isOnlinePayment'] ??
               tripArgs?['isOnline'],
         ),
+        paymentMethod: tripArgs?['paymentMethod'] as String? ?? 'cash',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);

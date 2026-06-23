@@ -38,7 +38,10 @@ Map<String, dynamic> tripPaymentArguments(TripCompletedPaymentType paymentType) 
 }
 
 class TripCompletedPage extends StatefulWidget {
+  final String tripMongoId;
   final TripCompletedPaymentType paymentType;
+  final String paymentMethod;
+  final bool isRated;
   final String tripTypeLabel;
   final String destinationName;
   final String destinationAddress;
@@ -52,10 +55,18 @@ class TripCompletedPage extends StatefulWidget {
   final String remainingDue;
   final String remainingDuration;
   final String totalAmount;
+  final String driverId;
+  final String driverName;
+  final double driverRating;
+  final int driverTrips;
+  final String vehicleTypes;
 
   const TripCompletedPage({
     super.key,
+    this.tripMongoId = '',
     this.paymentType = TripCompletedPaymentType.offline,
+    this.paymentMethod = 'cash',
+    this.isRated = false,
     this.tripTypeLabel = 'Long Trip',
     this.destinationName = 'Infopark',
     this.destinationAddress =
@@ -70,6 +81,11 @@ class TripCompletedPage extends StatefulWidget {
     this.remainingDue = '₹ 120',
     this.remainingDuration = '30 min',
     this.totalAmount = '₹ 590',
+    this.driverId = '',
+    this.driverName = 'Driver',
+    this.driverRating = 4.8,
+    this.driverTrips = 0,
+    this.vehicleTypes = '',
   });
 
   @override
@@ -80,6 +96,8 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
   bool get _isOnline =>
       widget.paymentType == TripCompletedPaymentType.online;
 
+  bool get _isWallet => widget.paymentMethod == 'wallet';
+
   String get _paidAmount {
     if (_isOnline) {
       return widget.remainingDue.replaceAll(' ', '');
@@ -87,17 +105,35 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
     return widget.totalAmount.replaceAll(' ', '');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 3), _goToPaymentCompleted);
-  }
+  void _onContinue() {
+    if (widget.isRated) {
+      NavigationService().pushNamedAndRemoveUntil('thank_you');
+      return;
+    }
 
-  void _goToPaymentCompleted() {
-    if (!mounted) return;
+    final ratingArgs = {
+      'tripMongoId': widget.tripMongoId,
+      'driverId': widget.driverId,
+      'driverName': widget.driverName,
+      'driverRating': widget.driverRating,
+      'driverTrips': widget.driverTrips,
+      'vehicleTypes': widget.vehicleTypes,
+    };
+
+    if (_isWallet) {
+      NavigationService().pushNamedReplacement(
+        'driver_rating',
+        arguments: ratingArgs,
+      );
+      return;
+    }
+
     NavigationService().pushNamedReplacement(
       'payment_completed',
-      arguments: {'paidAmount': _paidAmount},
+      arguments: {
+        'paidAmount': _paidAmount,
+        ...ratingArgs,
+      },
     );
   }
 
@@ -156,23 +192,39 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
                 remainingDuration: widget.remainingDuration,
                 totalAmount: widget.totalAmount,
               ),
+              if (_isWallet) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: kActiveGreenBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Paid from wallet: ${widget.totalAmount}',
+                    textAlign: TextAlign.center,
+                    style: kStyle(kSemiBold, kSize15, color: kActiveGreen),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _isOnline
-          ? SafeArea(
-              minimum: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-              child: primaryButton(
-                label: 'Pay ${widget.remainingDue}',
-                onPressed: () {},
-                buttonColor: kTripCtaBlue,
-                buttonHeight: 58,
-                fontSize: 18,
-              ),
-            )
-          : null,
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        child: primaryButton(
+          label: _isWallet
+              ? 'Continue'
+              : (_isOnline ? 'Pay ${widget.remainingDue}' : 'Continue'),
+          onPressed: _onContinue,
+          buttonColor: kTripCtaBlue,
+          buttonHeight: 58,
+          fontSize: 18,
+        ),
+      ),
     );
   }
 }

@@ -1,37 +1,47 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
 
-class PaymentCompletedPage extends StatefulWidget {
+class PaymentCompletedPage extends StatelessWidget {
   final String paidAmount;
+  final String tripMongoId;
+  final String driverId;
+  final String driverName;
+  final double driverRating;
+  final int driverTrips;
+  final String vehicleTypes;
 
   const PaymentCompletedPage({
     super.key,
     this.paidAmount = '₹590',
+    this.tripMongoId = '',
+    this.driverId = '',
+    this.driverName = 'Driver',
+    this.driverRating = 4.8,
+    this.driverTrips = 0,
+    this.vehicleTypes = '',
   });
 
-  @override
-  State<PaymentCompletedPage> createState() => _PaymentCompletedPageState();
-}
-
-class _PaymentCompletedPageState extends State<PaymentCompletedPage> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const DriverRatingPage(),
-          ),
-        );
-      }
-    });
+  void _onContinue() {
+    NavigationService().pushNamedReplacement(
+      'driver_rating',
+      arguments: {
+        'tripMongoId': tripMongoId,
+        'driverId': driverId,
+        'driverName': driverName,
+        'driverRating': driverRating,
+        'driverTrips': driverTrips,
+        'vehicleTypes': vehicleTypes,
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: kWhite,
       body: SafeArea(
@@ -67,7 +77,7 @@ class _PaymentCompletedPageState extends State<PaymentCompletedPage> {
                   children: [
                     const TextSpan(text: 'Your payment '),
                     TextSpan(
-                      text: widget.paidAmount,
+                      text: paidAmount,
                       style: kStyle(kSemiBold, kSize16, color: kTextColor),
                     ),
                     const TextSpan(
@@ -79,6 +89,16 @@ class _PaymentCompletedPageState extends State<PaymentCompletedPage> {
               const Spacer(flex: 3),
             ],
           ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.fromLTRB(24, 0, 24, bottomInset + 16),
+        child: primaryButton(
+          label: 'Continue',
+          onPressed: _onContinue,
+          buttonColor: kTripCtaBlue,
+          buttonHeight: 58,
+          fontSize: 18,
         ),
       ),
     );

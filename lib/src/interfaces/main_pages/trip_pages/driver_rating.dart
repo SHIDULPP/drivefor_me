@@ -1,11 +1,15 @@
+import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/thank_you_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DriverRatingPage extends StatefulWidget {
+class DriverRatingPage extends ConsumerStatefulWidget {
+  final String tripMongoId;
+  final String driverId;
   final String driverName;
   final double driverRating;
   final int driverTrips;
@@ -13,6 +17,8 @@ class DriverRatingPage extends StatefulWidget {
 
   const DriverRatingPage({
     super.key,
+    this.tripMongoId = '',
+    this.driverId = '',
     this.driverName = 'Ajith Kumar',
     this.driverRating = 4.8,
     this.driverTrips = 120,
@@ -20,10 +26,10 @@ class DriverRatingPage extends StatefulWidget {
   });
 
   @override
-  State<DriverRatingPage> createState() => _DriverRatingPageState();
+  ConsumerState<DriverRatingPage> createState() => _DriverRatingPageState();
 }
 
-class _DriverRatingPageState extends State<DriverRatingPage> {
+class _DriverRatingPageState extends ConsumerState<DriverRatingPage> {
   static const _chipSelectedBorder = Color(0xFFC5A358);
   static const _commentFieldBg = Color(0xFFF4F5F8);
   static const _smileyBlue = Color(0xFF2B74E1);
@@ -35,28 +41,49 @@ class _DriverRatingPageState extends State<DriverRatingPage> {
     'Clean & Comfortable',
   ];
 
-  int _selectedRating = 1;
-  final Set<String> _selectedTags = {'Excellent Service'};
+  int _selectedRating = 5;
+  final Set<String> _selectedTags = {};
   final TextEditingController _commentController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const ThankYouPage(),
-          ),
-        );
-      }
-    });
-  }
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     _commentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitRating() async {
+    if (widget.tripMongoId.isEmpty) {
+      NavigationService().pushNamedReplacement('thank_you');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final response = await ref.read(tripApiProvider).rateTrip(
+          widget.tripMongoId,
+          stars: _selectedRating,
+          feedbackTags: _selectedTags.toList(),
+          comment: _commentController.text,
+        );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (!response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to submit rating.')),
+      );
+      return;
+    }
+
+    await ref.read(activeTripProvider.notifier).clear();
+    if (!mounted) return;
+    NavigationService().pushNamedReplacement('thank_you');
+  }
+
+  void _skipRating() {
+    NavigationService().pushNamedReplacement('thank_you');
   }
 
   @override
@@ -132,14 +159,21 @@ class _DriverRatingPageState extends State<DriverRatingPage> {
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(20, 0, 20, bottomInset + 16),
-              child: primaryButton(
-                label: 'Submit Rating',
-                onPressed: () {
-                  NavigationService().pushNamedReplacement('thank_you');
-                },
-                buttonColor: kTripCtaBlue,
-                buttonHeight: 58,
-                fontSize: 18,
+              child: Column(
+                children: [
+                  primaryButton(
+                    label: _isSubmitting ? 'Submitting...' : 'Submit Rating',
+                    onPressed: _isSubmitting ? () {} : _submitRating,
+                    buttonColor: kTripCtaBlue,
+                    buttonHeight: 58,
+                    fontSize: 18,
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: _isSubmitting ? null : _skipRating,
+                    child: Text('Skip', style: kDriverRatingChipR),
+                  ),
+                ],
               ),
             ),
           ],

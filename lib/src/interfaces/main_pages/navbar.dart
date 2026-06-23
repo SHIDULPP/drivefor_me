@@ -1,7 +1,9 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/nav_provider.dart';
+import 'package:driveforme_user/src/data/services/active_trip_service.dart';
 import 'package:driveforme_user/src/data/services/haptic_helper.dart';
+import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/home_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_page.dart';
@@ -48,6 +50,27 @@ class NavBar extends ConsumerStatefulWidget {
 
 class _NavBarState extends ConsumerState<NavBar> {
   final List<Widget> _pages = const [HomePage(), TripsPage(), ProfilePage()];
+  bool _checkedActiveTrip = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resumeActiveTrip());
+  }
+
+  Future<void> _resumeActiveTrip() async {
+    if (_checkedActiveTrip) return;
+    _checkedActiveTrip = true;
+
+    final target =
+        await ref.read(activeTripServiceProvider).resolveResumableTrip();
+    if (!mounted || target == null) return;
+
+    NavigationService().pushNamed(
+      target.route,
+      arguments: target.arguments,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

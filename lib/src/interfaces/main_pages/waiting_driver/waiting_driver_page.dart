@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
@@ -81,7 +83,15 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       value: 0,
     );
     _runStage(_stage);
+    _persistActiveTrip();
     _startPolling();
+  }
+
+  Future<void> _persistActiveTrip() async {
+    if (widget.tripMongoId.isEmpty) return;
+    await ref
+        .read(activeTripProvider.notifier)
+        .setActiveTrip(widget.tripMongoId);
   }
 
   void _startPolling() {
@@ -109,10 +119,15 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     if (trip.isCancelled) {
       _pollTimer?.cancel();
       _stageTimer?.cancel();
+      await ref.read(activeTripProvider.notifier).clear();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('This trip was cancelled.')),
       );
-      Navigator.of(context).maybePop();
+      NavigationService().pushNamedAndRemoveUntil(
+        'cancelled_trip_details',
+        arguments: trip.toCancelledDetailsArguments(),
+      );
       return;
     }
 
@@ -143,6 +158,19 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     NavigationService().pushNamedReplacement(
       'driver_found',
       arguments: arguments,
+    );
+  }
+
+  Future<void> _handleCancel() async {
+    final trip = await cancelTripWithDialog(
+      context: context,
+      ref: ref,
+      tripMongoId: widget.tripMongoId,
+    );
+    if (!mounted || trip == null) return;
+    NavigationService().pushNamedAndRemoveUntil(
+      'cancelled_trip_details',
+      arguments: trip.toCancelledDetailsArguments(),
     );
   }
 
@@ -182,7 +210,7 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
           _WaitingDriverSheet(
             stage: _stage,
             progress: _progressController,
-            onCancel: () => Navigator.of(context).maybePop(),
+            onCancel: _handleCancel,
           ),
         ],
       ),

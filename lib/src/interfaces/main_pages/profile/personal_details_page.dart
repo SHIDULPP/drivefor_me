@@ -1,26 +1,32 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/user_model.dart';
+import 'package:driveforme_user/src/data/providers/user_provider.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-class PersonalDetailsPage extends StatefulWidget {
+class PersonalDetailsPage extends ConsumerStatefulWidget {
   const PersonalDetailsPage({super.key});
 
   @override
-  State<PersonalDetailsPage> createState() => _PersonalDetailsPageState();
+  ConsumerState<PersonalDetailsPage> createState() =>
+      _PersonalDetailsPageState();
 }
 
-class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
+class _PersonalDetailsPageState extends ConsumerState<PersonalDetailsPage> {
   static const _avatarColor = Color(0xFFC18131);
 
   bool _isEditing = false;
+  bool _fieldsInitialized = false;
 
-  final _nameController = TextEditingController(text: 'Arun Kumar');
-  final _mobileController = TextEditingController(text: '+6282359916');
-  final _emailController = TextEditingController(text: 'arun@gmail.com');
-  final _dobController = TextEditingController(text: '02/02/2002');
-  final _genderController = TextEditingController(text: 'Male');
+  final _nameController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _genderController = TextEditingController();
 
   @override
   void dispose() {
@@ -30,6 +36,19 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
     _dobController.dispose();
     _genderController.dispose();
     super.dispose();
+  }
+
+  void _populateFromUser(UserModel? user) {
+    if (user == null || _fieldsInitialized) return;
+    _nameController.text = user.profile.fullName;
+    _mobileController.text = user.phoneNumber;
+    _emailController.text = user.profile.email;
+    _dobController.text = user.profile.dateOfBirth != null
+        ? DateFormat('dd/MM/yyyy').format(user.profile.dateOfBirth!)
+        : '—';
+    _genderController.text =
+        user.profile.gender.isNotEmpty ? user.profile.gender : '—';
+    _fieldsInitialized = true;
   }
 
   String get _initials {
@@ -50,145 +69,188 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
 
   void _save() {
     setState(() => _isEditing = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile update coming soon.')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final userAsync = ref.watch(userProvider);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return Scaffold(
-      backgroundColor: kWhite,
-      appBar: AppBar(
+    return userAsync.when(
+      loading: () => const Scaffold(
         backgroundColor: kWhite,
-        surfaceTintColor: kWhite,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 22,
-            color: kTextColor,
-          ),
-        ),
-        title: Text(
-          'Personal Details',
-          style: kStyle(kSemiBold, kSize18, color: kTextColor),
-        ),
-        titleSpacing: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: _EditIconButton(
-              isEditing: _isEditing,
-              onTap: _isEditing ? _save : _toggleEdit,
-            ),
-          ),
-        ],
+        body: Center(child: CircularProgressIndicator(color: kBrandBlue)),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: _avatarColor,
-                    child: Text(
-                      _initials,
-                      style: kStyle(kSemiBold, kSize22, color: kWhite),
-                    ),
+      error: (_, _) => Scaffold(
+        backgroundColor: kWhite,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Could not load profile.',
+                style: kStyle(kRegular, kSize15, color: kMutedText),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => ref.invalidate(userProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      data: (user) {
+        _populateFromUser(user);
+
+        return Scaffold(
+          backgroundColor: kWhite,
+          appBar: AppBar(
+            backgroundColor: kWhite,
+            surfaceTintColor: kWhite,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: false,
+            leading: IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                size: 22,
+                color: kTextColor,
+              ),
+            ),
+            title: Text(
+              'Personal Details',
+              style: kStyle(kSemiBold, kSize18, color: kTextColor),
+            ),
+            titleSpacing: 0,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _EditIconButton(
+                  isEditing: _isEditing,
+                  onTap: _isEditing ? _save : _toggleEdit,
+                ),
+              ),
+            ],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: _avatarColor,
+                        child: Text(
+                          _initials,
+                          style: kStyle(kSemiBold, kSize22, color: kWhite),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      if (_isEditing) ...[
+                        _EditableField(
+                          label: 'Name',
+                          child: InputField(
+                            type: CustomFieldType.text,
+                            hint: 'Enter your name',
+                            controller: _nameController,
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        _EditableField(
+                          label: 'Mobile Number',
+                          child: InputField(
+                            type: CustomFieldType.number,
+                            hint: 'Enter mobile number',
+                            controller: _mobileController,
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        _EditableField(
+                          label: 'Email',
+                          child: InputField(
+                            type: CustomFieldType.text,
+                            hint: 'Enter your email',
+                            controller: _emailController,
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        _EditableField(
+                          label: 'Date of Birth',
+                          child: InputField(
+                            type: CustomFieldType.date,
+                            hint: 'DD-MM-YYYY',
+                            controller: _dobController,
+                          ),
+                        ),
+                        _EditableField(
+                          label: 'Gender',
+                          child: InputField(
+                            type: CustomFieldType.text,
+                            hint: 'Enter gender',
+                            controller: _genderController,
+                          ),
+                        ),
+                      ] else ...[
+                        _DetailField(
+                          label: 'Name',
+                          value: _nameController.text.isEmpty
+                              ? '—'
+                              : _nameController.text,
+                        ),
+                        _DetailField(
+                          label: 'Mobile Number',
+                          value: _mobileController.text.isEmpty
+                              ? '—'
+                              : _mobileController.text,
+                        ),
+                        _DetailField(
+                          label: 'Email',
+                          value: _emailController.text.isEmpty
+                              ? '—'
+                              : _emailController.text,
+                        ),
+                        _DetailField(
+                          label: 'Date of Birth',
+                          value: _dobController.text.isEmpty
+                              ? '—'
+                              : _dobController.text,
+                        ),
+                        _DetailField(
+                          label: 'Gender',
+                          value: _genderController.text.isEmpty
+                              ? '—'
+                              : _genderController.text,
+                          showDivider: false,
+                        ),
+                      ],
+                    ],
                   ),
-                  const SizedBox(height: 28),
-                  if (_isEditing) ...[
-                    _EditableField(
-                      label: 'Name',
-                      child: InputField(
-                        type: CustomFieldType.text,
-                        hint: 'Enter your name',
-                        controller: _nameController,
-                        textInputAction: TextInputAction.next,
-                      ),
-                    ),
-                    _EditableField(
-                      label: 'Mobile Number',
-                      child: InputField(
-                        type: CustomFieldType.number,
-                        hint: 'Enter mobile number',
-                        controller: _mobileController,
-                        textInputAction: TextInputAction.next,
-                      ),
-                    ),
-                    _EditableField(
-                      label: 'Email',
-                      child: InputField(
-                        type: CustomFieldType.text,
-                        hint: 'Enter your email',
-                        controller: _emailController,
-                        textInputAction: TextInputAction.next,
-                      ),
-                    ),
-                    _EditableField(
-                      label: 'Date of Birth',
-                      child: InputField(
-                        type: CustomFieldType.date,
-                        hint: 'DD-MM-YYYY',
-                        controller: _dobController,
-                      ),
-                    ),
-                    _EditableField(
-                      label: 'Gender',
-                      child: InputField(
-                        type: CustomFieldType.text,
-                        hint: 'Enter gender',
-                        controller: _genderController,
-                      ),
-                    ),
-                  ] else ...[
-                    _DetailField(
-                      label: 'Name',
-                      value: _nameController.text,
-                    ),
-                    _DetailField(
-                      label: 'Mobile Number',
-                      value: _mobileController.text,
-                    ),
-                    _DetailField(
-                      label: 'Email',
-                      value: _emailController.text,
-                    ),
-                    _DetailField(
-                      label: 'Date of Birth',
-                      value: _dobController.text,
-                    ),
-                    _DetailField(
-                      label: 'Gender',
-                      value: _genderController.text,
-                      showDivider: false,
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
+              if (_isEditing)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(20, 8, 20, bottomInset + 16),
+                  child: primaryButton(
+                    label: 'Save',
+                    onPressed: _save,
+                    buttonColor: kTripCtaBlue,
+                    buttonHeight: 54,
+                    fontSize: 16,
+                  ),
+                ),
+            ],
           ),
-          if (_isEditing)
-            Padding(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, bottomInset + 16),
-              child: primaryButton(
-                label: 'Save',
-                onPressed: _save,
-                buttonColor: kTripCtaBlue,
-                buttonHeight: 54,
-                fontSize: 16,
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

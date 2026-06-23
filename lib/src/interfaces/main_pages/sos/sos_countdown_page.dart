@@ -1,28 +1,38 @@
 import 'dart:async';
 
+import 'package:driveforme_user/src/data/apis/sos_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/sos_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/sos/sos_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SosCountdownPage extends StatefulWidget {
+class SosCountdownPage extends ConsumerStatefulWidget {
   final String locationLabel;
+  final String sosType;
+  final String? tripId;
+  final String pickupAddress;
   final int initialSeconds;
 
   const SosCountdownPage({
     super.key,
     this.locationLabel = 'MG Road, Eranakulam, Kochi, GPS Active',
+    this.sosType = 'Other Emergency',
+    this.tripId,
+    this.pickupAddress = '',
     this.initialSeconds = 6,
   });
 
   @override
-  State<SosCountdownPage> createState() => _SosCountdownPageState();
+  ConsumerState<SosCountdownPage> createState() => _SosCountdownPageState();
 }
 
-class _SosCountdownPageState extends State<SosCountdownPage> {
+class _SosCountdownPageState extends ConsumerState<SosCountdownPage> {
   late int _secondsLeft;
   Timer? _timer;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -32,20 +42,51 @@ class _SosCountdownPageState extends State<SosCountdownPage> {
   }
 
   void _tick() {
-    if (!mounted) return;
+    if (!mounted || _isSubmitting) return;
     if (_secondsLeft <= 1) {
       _timer?.cancel();
-      _goToSelect();
+      _submitSos();
       return;
     }
     setState(() => _secondsLeft--);
   }
 
-  void _goToSelect() {
+  Future<void> _submitSos() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final address = widget.pickupAddress.isNotEmpty
+        ? widget.pickupAddress
+        : widget.locationLabel;
+
+    final response = await ref.read(sosApiProvider).createSosAlert(
+          location: SosLocation(address: address),
+          sosType: widget.sosType,
+          tripId: widget.tripId,
+        );
+
     if (!mounted) return;
+
+    if (!response.success || response.data == null) {
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to send SOS alert.')),
+      );
+      return;
+    }
+
+    final alert = response.data!;
+    final location = alert.location;
     NavigationService().pushNamedReplacement(
-      'sos_select',
-      arguments: {'locationLabel': widget.locationLabel},
+      'sos_help_on_way',
+      arguments: {
+        'referenceNumber': alert.referenceNumber.isNotEmpty
+            ? alert.referenceNumber
+            : 'SOS-${alert.id.substring(0, 8)}',
+        'locationLine1': location.address,
+        'locationLine2': widget.locationLabel,
+        'supportPhone': alert.supportPhone ?? '+91 6282359916',
+      },
     );
   }
 
@@ -114,27 +155,13 @@ class _SosCountdownPageState extends State<SosCountdownPage> {
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                   ),
-                                  child: RichText(
+                                  child: Text(
+                                    widget.sosType,
                                     textAlign: TextAlign.center,
-                                    text: TextSpan(
-                                      style: kStyle(
-                                        kRegular,
-                                        14,
-                                        color: kWhite,
-                                        height: 1.3,
-                                      ),
-                                      children: const [
-                                        TextSpan(
-                                          text:
-                                              'Calling emergency services and notifying ',
-                                        ),
-                                        TextSpan(
-                                          text: 'Drive4me',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ],
+                                    style: kStyle(
+                                      kRegular,
+                                      14,
+                                      color: kWhite,
                                     ),
                                   ),
                                 ),
@@ -179,6 +206,12 @@ class _SosCountdownPageState extends State<SosCountdownPage> {
                                     ],
                                   ),
                                 ),
+                                if (_isSubmitting) ...[
+                                  const SizedBox(height: 16),
+                                  const CircularProgressIndicator(
+                                    color: kWhite,
+                                  ),
+                                ],
                               ],
                             );
                           },
@@ -204,58 +237,49 @@ class _SosCountdownPageState extends State<SosCountdownPage> {
                       borderRadius: BorderRadius.circular(14),
                       side: const BorderSide(color: kSosRedDark),
                     ),
-                    child: InkWell(
-                      onTap: () {},
-                      borderRadius: BorderRadius.circular(14),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: kSosRed,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.location_on_rounded,
-                                color: kWhite,
-                                size: 24,
-                              ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: kSosRed,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Share your location',
-                                    style: kStyle(
-                                      kSemiBold,
-                                      kSize15,
-                                      color: kSosRedDark,
-                                    ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: kWhite,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Share your location',
+                                  style: kStyle(
+                                    kSemiBold,
+                                    kSize15,
+                                    color: kSosRedDark,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    widget.locationLabel,
-                                    style: kStyle(
-                                      kRegular,
-                                      kSize13,
-                                      color: kSosRedDark,
-                                    ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.locationLabel,
+                                  style: kStyle(
+                                    kRegular,
+                                    kSize13,
+                                    color: kSosRedDark,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const Icon(
-                              Icons.keyboard_double_arrow_right_rounded,
-                              color: kGreyDarker,
-                              size: 22,
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -284,6 +308,16 @@ class _SosCountdownPageState extends State<SosCountdownPage> {
                   const SosWhatHappensStep(
                     step: 3,
                     text: 'Vehicle owner is notified of the emergency.',
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: TextButton(
+                      onPressed: _isSubmitting ? null : _submitSos,
+                      child: Text(
+                        'Send alert now',
+                        style: kStyle(kSemiBold, kSize15, color: kSosRedDark),
+                      ),
+                    ),
                   ),
                 ],
               ),

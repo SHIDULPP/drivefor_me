@@ -59,6 +59,22 @@ class VehicleApi {
     return ApiResponse.success(items, response.statusCode);
   }
 
+  Future<ApiResponse<void>> deleteVehicle(String vehicleId) async {
+    final response = await _api.delete(
+      '/vehicles/$vehicleId',
+      requireAuth: true,
+    );
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to delete vehicle.',
+        response.statusCode,
+      );
+    }
+
+    return ApiResponse.success(null, response.statusCode);
+  }
+
   Future<ApiResponse<Map<String, List<String>>>> getVehicleTypes() async {
     final response = await _api.get('/vehicles/types', requireAuth: true);
     if (!response.success) {

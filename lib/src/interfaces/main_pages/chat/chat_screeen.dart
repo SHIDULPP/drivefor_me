@@ -1,20 +1,32 @@
+import 'dart:async';
+
+import 'package:driveforme_user/src/data/apis/chat_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/chat_message_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
+  final String receiverId;
+  final String receiverName;
+  final String? tripId;
   final String participantName;
 
   const ChatScreen({
     super.key,
+    this.receiverId = '',
+    this.receiverName = 'Driver',
+    this.tripId,
     this.participantName = 'Jacob John',
   });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   static const _quickReplies = [
     "I've Arrived",
     "I'm on my way !",
@@ -23,24 +35,113 @@ class _ChatScreenState extends State<ChatScreen> {
 
   static const _chipBg = Color(0xFFF2F3F7);
   static const _inputBorder = Color(0xFFE2E2EC);
+  static const _pollInterval = Duration(seconds: 5);
 
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _messageFocus = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+
+  List<ChatMessageModel> _messages = [];
+  bool _isLoading = true;
+  bool _isSending = false;
+  String? _error;
+  Timer? _pollTimer;
+
+  String get _displayName =>
+      widget.receiverName.isNotEmpty ? widget.receiverName : widget.participantName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _loadMessages(silent: true));
+  }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _messageController.dispose();
     _messageFocus.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _applyQuickReply(String text) {
+  Future<void> _loadMessages({bool silent = false}) async {
+    if (widget.receiverId.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Chat recipient is missing.';
+        });
+      }
+      return;
+    }
+
+    if (!silent && mounted) {
+      setState(() {
+        _isLoading = _messages.isEmpty;
+        _error = null;
+      });
+    }
+
+    final response =
+        await ref.read(chatApiProvider).getMessages(widget.receiverId);
+
+    if (!mounted) return;
+
+    if (!response.success) {
+      setState(() {
+        _isLoading = false;
+        _error = response.message ?? 'Failed to load messages.';
+      });
+      return;
+    }
+
     setState(() {
-      _messageController.text = text;
-      _messageController.selection = TextSelection.collapsed(
-        offset: _messageController.text.length,
+      _isLoading = false;
+      _messages = response.data ?? [];
+      _error = null;
+    });
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
       );
     });
+  }
+
+  Future<void> _sendMessage([String? text]) async {
+    final content = (text ?? _messageController.text).trim();
+    if (content.isEmpty || widget.receiverId.isEmpty || _isSending) return;
+
+    setState(() => _isSending = true);
+    final response = await ref.read(chatApiProvider).sendMessage(
+          receiverId: widget.receiverId,
+          content: content,
+        );
+
+    if (!mounted) return;
+    setState(() => _isSending = false);
+
+    if (!response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to send message.')),
+      );
+      return;
+    }
+
+    _messageController.clear();
+    await _loadMessages(silent: true);
+  }
+
+  void _applyQuickReply(String text) {
+    _messageController.text = text;
     _messageFocus.requestFocus();
   }
 
@@ -52,12 +153,12 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: kWhite,
       resizeToAvoidBottomInset: true,
       appBar: _ChatAppBar(
-        participantName: widget.participantName,
+        participantName: _displayName,
         onBack: () => Navigator.of(context).maybePop(),
       ),
       body: Column(
         children: [
-          const Expanded(child: SizedBox.expand()),
+          Expanded(child: _buildMessageArea()),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: Row(
@@ -76,37 +177,153 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset > 0 ? 8 : 16),
-            child: TextField(
-              controller: _messageController,
-              focusNode: _messageFocus,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _messageController.clear(),
-              style: kStyle(kRegular, kSize15, color: kTextColor),
-              decoration: InputDecoration(
-                hintText: 'Type your message',
-                hintStyle: kStyle(kRegular, kSize15, color: kTripMutedLabel),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    focusNode: _messageFocus,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _sendMessage(),
+                    style: kStyle(kRegular, kSize15, color: kTextColor),
+                    decoration: InputDecoration(
+                      hintText: 'Type your message',
+                      hintStyle:
+                          kStyle(kRegular, kSize15, color: kTripMutedLabel),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      filled: true,
+                      fillColor: kWhite,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: _inputBorder, width: 1),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: _inputBorder, width: 1),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: _inputBorder, width: 1),
+                      ),
+                    ),
+                  ),
                 ),
-                filled: true,
-                fillColor: kWhite,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: _inputBorder, width: 1),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _isSending ? null : () => _sendMessage(),
+                  icon: _isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send_rounded, color: kBrandBlue),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: _inputBorder, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: _inputBorder, width: 1),
-                ),
-              ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMessageArea() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: kBrandBlue));
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center, style: kStyle(kRegular, kSize15, color: kMutedText)),
+              const SizedBox(height: 12),
+              TextButton(onPressed: _loadMessages, child: const Text('Retry')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_messages.isEmpty) {
+      return Center(
+        child: Text(
+          'No messages yet.\nSay hello to your driver.',
+          textAlign: TextAlign.center,
+          style: kStyle(kRegular, kSize15, color: kTripMutedLabel, height: 1.4),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final message = _messages[index];
+        return _MessageBubble(message: message);
+      },
+    );
+  }
+}
+
+class _MessageBubble extends StatelessWidget {
+  final ChatMessageModel message;
+
+  const _MessageBubble({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final isMine = message.isMine;
+    final time = message.createdAt != null
+        ? DateFormat('hh:mm a').format(message.createdAt!)
+        : '';
+
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
+        ),
+        decoration: BoxDecoration(
+          color: isMine ? kBrandBlue : const Color(0xFFF2F3F7),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message.content,
+              style: kStyle(
+                kRegular,
+                kSize15,
+                color: isMine ? kWhite : kTextColor,
+              ),
+            ),
+            if (time.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                time,
+                style: kStyle(
+                  kRegular,
+                  kSize11,
+                  color: isMine ? kWhite.withValues(alpha: 0.8) : kMutedText,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -155,28 +372,7 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-      title: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            participantName,
-            style: kStyle(kSemiBold, kSize16, color: kTextColor),
-          ),
-          const SizedBox(height: 2),
-          Text('Chat', style: kStyle(kRegular, kSize13, color: kTripMutedLabel)),
-        ],
-      ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.more_horiz_rounded,
-            size: 26,
-            color: kTextColor,
-          ),
-          padding: const EdgeInsets.only(right: 8),
-        ),
-      ],
+      title: Text(participantName, style: kStyle(kSemiBold, kSize17, color: kTextColor)),
     );
   }
 }
@@ -185,29 +381,24 @@ class _QuickReplyChip extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _QuickReplyChip({
-    required this.label,
-    required this.onTap,
-  });
+  const _QuickReplyChip({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _ChatScreenState._chipBg,
-      borderRadius: BorderRadius.circular(8),
+      color: const Color(0xFFF2F3F7),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 11),
-          child: Center(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: kStyle(kRegular, kSize12, color: kTextColor),
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: kStyle(kMedium, kSize11, color: kTextColor),
           ),
         ),
       ),

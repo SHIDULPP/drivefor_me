@@ -1,54 +1,93 @@
+import 'package:driveforme_user/src/data/apis/vehicle_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/vehicle_model.dart';
+import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class _VehicleItem {
-  final String id;
-  final String name;
-  final String plate;
-  final String transmission;
-
-  const _VehicleItem({
-    required this.id,
-    required this.name,
-    required this.plate,
-    required this.transmission,
-  });
-}
-
-class MyVehiclesPage extends StatefulWidget {
+class MyVehiclesPage extends ConsumerStatefulWidget {
   const MyVehiclesPage({super.key});
 
   @override
-  State<MyVehiclesPage> createState() => _MyVehiclesPageState();
+  ConsumerState<MyVehiclesPage> createState() => _MyVehiclesPageState();
 }
 
-class _MyVehiclesPageState extends State<MyVehiclesPage> {
-  static const _dummyVehicles = [
-    _VehicleItem(
-      id: '1',
-      name: 'Honda City',
-      plate: 'KL 57 G 4575',
-      transmission: 'Manual',
-    ),
-    _VehicleItem(
-      id: '2',
-      name: 'Honda City',
-      plate: 'KL 57 G 4575',
-      transmission: 'Manual',
-    ),
-    _VehicleItem(
-      id: '3',
-      name: 'Honda City',
-      plate: 'KL 57 G 4575',
-      transmission: 'Manual',
-    ),
-  ];
+class _MyVehiclesPageState extends ConsumerState<MyVehiclesPage> {
+  List<VehicleModel> _vehicles = [];
+  bool _isLoading = true;
+  String? _error;
 
-  late List<_VehicleItem> _vehicles = List.of(_dummyVehicles);
+  @override
+  void initState() {
+    super.initState();
+    _loadVehicles();
+  }
 
-  void _removeVehicle(String id) {
-    setState(() => _vehicles.removeWhere((v) => v.id == id));
+  Future<void> _loadVehicles() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    final response = await ref.read(vehicleApiProvider).getMyVehicles();
+    if (!mounted) return;
+
+    if (!response.success) {
+      setState(() {
+        _isLoading = false;
+        _error = response.message ?? 'Failed to load vehicles.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+      _vehicles = response.data ?? [];
+    });
+  }
+
+  Future<void> _addVehicle() async {
+    final added = await showAddVehicleBottomSheet(context);
+    if (!mounted || added == null) return;
+    await _loadVehicles();
+  }
+
+  Future<void> _confirmDelete(VehicleModel vehicle) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove vehicle?'),
+        content: Text(
+          'Remove ${vehicle.vehicleName} (${vehicle.vehicleNumber}) from your account?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final response =
+        await ref.read(vehicleApiProvider).deleteVehicle(vehicle.id);
+    if (!mounted) return;
+
+    if (!response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to delete vehicle.')),
+      );
+      return;
+    }
+
+    await _loadVehicles();
   }
 
   @override
@@ -75,15 +114,69 @@ class _MyVehiclesPageState extends State<MyVehiclesPage> {
         ),
         titleSpacing: 0,
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addVehicle,
+        backgroundColor: kBrandBlue,
+        child: const Icon(Icons.add, color: kWhite),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: kBrandBlue));
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              TextButton(onPressed: _loadVehicles, child: const Text('Retry')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_vehicles.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'No vehicles added yet.',
+                style: kStyle(kRegular, kSize15, color: kMutedText),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _addVehicle,
+                child: const Text('Add a vehicle'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadVehicles,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 88),
         itemCount: _vehicles.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 14),
+        separatorBuilder: (_, _) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
           final vehicle = _vehicles[index];
           return _VehicleCard(
             vehicle: vehicle,
-            onDelete: () => _removeVehicle(vehicle.id),
+            onDelete: () => _confirmDelete(vehicle),
           );
         },
       ),
@@ -92,10 +185,22 @@ class _MyVehiclesPageState extends State<MyVehiclesPage> {
 }
 
 class _VehicleCard extends StatelessWidget {
-  final _VehicleItem vehicle;
+  final VehicleModel vehicle;
   final VoidCallback onDelete;
 
   const _VehicleCard({required this.vehicle, required this.onDelete});
+
+  String get _transmissionLabel {
+    if (vehicle.transmission.isEmpty) return '—';
+    return vehicle.transmission
+        .split('_')
+        .map(
+          (part) => part.isEmpty
+              ? part
+              : '${part[0].toUpperCase()}${part.substring(1)}',
+        )
+        .join(' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +226,7 @@ class _VehicleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  vehicle.name,
+                  vehicle.vehicleName,
                   style: kStyle(
                     kSemiBold,
                     kSize16,
@@ -133,14 +238,14 @@ class _VehicleCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  vehicle.plate,
+                  vehicle.vehicleNumber,
                   style: kTripDurationPriceB,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  vehicle.transmission,
+                  _transmissionLabel,
                   style: kStyle(
                     kRegular,
                     kSize14,

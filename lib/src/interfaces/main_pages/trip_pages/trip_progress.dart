@@ -1,16 +1,21 @@
 import 'dart:async';
 
+import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
+import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TripProgressPage extends StatefulWidget {
+class TripProgressPage extends ConsumerStatefulWidget {
+  final String tripMongoId;
   final String tripTitle;
   final String tripId;
   final String headingTo;
+  final String driverId;
   final String driverName;
   final double driverRating;
   final int driverTrips;
@@ -23,12 +28,15 @@ class TripProgressPage extends StatefulWidget {
   final String distance;
   final String duration;
   final TripCompletedPaymentType paymentType;
+  final String paymentMethod;
 
   const TripProgressPage({
     super.key,
+    this.tripMongoId = '',
     this.tripTitle = 'One Way Trip',
     this.tripId = '# ID2562',
     this.headingTo = 'Infopark',
+    this.driverId = '',
     this.driverName = 'Ajith Kumar',
     this.driverRating = 4.8,
     this.driverTrips = 120,
@@ -41,16 +49,21 @@ class TripProgressPage extends StatefulWidget {
     this.distance = '12 km',
     this.duration = '2 hrs 30 min',
     this.paymentType = TripCompletedPaymentType.offline,
+    this.paymentMethod = 'cash',
   });
 
   @override
-  State<TripProgressPage> createState() => _TripProgressPageState();
+  ConsumerState<TripProgressPage> createState() => _TripProgressPageState();
 }
 
-class _TripProgressPageState extends State<TripProgressPage> {
+class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   static const _policyTimerBlue = Color(0xFF165A91);
+  static const _pollInterval = Duration(seconds: 4);
+
   Duration _cancelRemaining = const Duration(minutes: 58, seconds: 32);
   Timer? _cancelTimer;
+  Timer? _pollTimer;
+  bool _navigatedAway = false;
 
   @override
   void initState() {
@@ -65,31 +78,68 @@ class _TripProgressPageState extends State<TripProgressPage> {
         _cancelRemaining -= const Duration(seconds: 1);
       });
     });
+    _startPolling();
+  }
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => TripCompletedPage(
-              paymentType: widget.paymentType,
-              tripTypeLabel:
-                  widget.paymentType == TripCompletedPaymentType.online
-                  ? 'Short Trip'
-                  : 'Long Trip',
-              destinationName: widget.dropoff,
-              totalFare: widget.price,
-              tripFare: widget.price,
-              tripDuration: widget.duration,
-            ),
-          ),
-        );
-      }
-    });
+  void _startPolling() {
+    if (widget.tripMongoId.isEmpty) return;
+    _pollTripStatus();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _pollTripStatus());
+  }
+
+  Future<void> _pollTripStatus() async {
+    if (_navigatedAway || !mounted || widget.tripMongoId.isEmpty) return;
+
+    final response =
+        await ref.read(tripApiProvider).getTripById(widget.tripMongoId);
+    if (!mounted || _navigatedAway) return;
+    if (!response.success || response.data == null) return;
+
+    final trip = response.data!;
+
+    if (trip.isCancelled) {
+      _navigatedAway = true;
+      _pollTimer?.cancel();
+      await ref.read(activeTripProvider.notifier).clear();
+      if (!mounted) return;
+      NavigationService().pushNamedAndRemoveUntil(
+        'cancelled_trip_details',
+        arguments: trip.toCancelledDetailsArguments(),
+      );
+      return;
+    }
+
+    if (trip.isCompleted) {
+      _goToCompleted(trip.toTripCompletedArguments());
+    }
+  }
+
+  void _goToCompleted(Map<String, dynamic> arguments) {
+    if (_navigatedAway || !mounted) return;
+    _navigatedAway = true;
+    _pollTimer?.cancel();
+    ref.read(activeTripProvider.notifier).clear();
+    NavigationService().pushNamedReplacement(
+      'trip_completed',
+      arguments: arguments,
+    );
+  }
+
+  void _openSos() {
+    NavigationService().pushNamed(
+      'sos_select',
+      arguments: {
+        'locationLabel': widget.pickup,
+        'tripId': widget.tripMongoId,
+        'pickupAddress': widget.pickup,
+      },
+    );
   }
 
   @override
   void dispose() {
     _cancelTimer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -130,10 +180,10 @@ class _TripProgressPageState extends State<TripProgressPage> {
                   width: double.infinity,
                   height: double.infinity,
                 ),
-                const Positioned(
+                Positioned(
                   right: 14,
                   bottom: 18,
-                  child: _EmergencyButton(),
+                  child: _EmergencyButton(onTap: _openSos),
                 ),
               ],
             ),
@@ -141,6 +191,8 @@ class _TripProgressPageState extends State<TripProgressPage> {
           Expanded(
             child: _TripProgressSheet(
               headingTo: widget.headingTo,
+              driverId: widget.driverId,
+              tripMongoId: widget.tripMongoId,
               driverName: widget.driverName,
               driverRating: widget.driverRating,
               driverTrips: widget.driverTrips,
@@ -228,7 +280,9 @@ class _TripProgressHeader extends StatelessWidget {
 }
 
 class _EmergencyButton extends StatelessWidget {
-  const _EmergencyButton();
+  final VoidCallback onTap;
+
+  const _EmergencyButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +304,7 @@ class _EmergencyButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => NavigationService().pushNamed('sos_countdown'),
+          onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -271,6 +325,8 @@ class _EmergencyButton extends StatelessWidget {
 
 class _TripProgressSheet extends StatelessWidget {
   final String headingTo;
+  final String driverId;
+  final String tripMongoId;
   final String driverName;
   final double driverRating;
   final int driverTrips;
@@ -287,6 +343,8 @@ class _TripProgressSheet extends StatelessWidget {
 
   const _TripProgressSheet({
     required this.headingTo,
+    required this.driverId,
+    required this.tripMongoId,
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
@@ -344,6 +402,8 @@ class _TripProgressSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _DriverProgressCard(
               driverName: driverName,
+              driverId: driverId,
+              tripMongoId: tripMongoId,
               driverRating: driverRating,
               driverTrips: driverTrips,
               vehicleTypes: vehicleTypes,
@@ -403,6 +463,8 @@ class _TripProgressSheet extends StatelessWidget {
 
 class _DriverProgressCard extends StatelessWidget {
   final String driverName;
+  final String driverId;
+  final String tripMongoId;
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
@@ -411,6 +473,8 @@ class _DriverProgressCard extends StatelessWidget {
 
   const _DriverProgressCard({
     required this.driverName,
+    required this.driverId,
+    required this.tripMongoId,
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
@@ -486,11 +550,11 @@ class _DriverProgressCard extends StatelessWidget {
               _ActionCircle(
                 color: kActiveGreen,
                 icon: Icons.chat_rounded,
-                onTap: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (context) => ChatScreen()));
-                },
+                onTap: () => openChatScreen(
+                  receiverId: driverId,
+                  receiverName: driverName,
+                  tripId: tripMongoId,
+                ),
               ),
               const SizedBox(width: 8),
               _ActionCircle(

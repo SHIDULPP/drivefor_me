@@ -28,6 +28,11 @@ class TripModel {
   final String vehicleNumber;
   final String vehicleType;
   final String transmission;
+  final String? driverId;
+  final bool isRated;
+  final int? ratingStars;
+  final String? ratingComment;
+  final List<String> feedbackTags;
 
   const TripModel({
     required this.id,
@@ -57,6 +62,11 @@ class TripModel {
     this.vehicleNumber = '',
     this.vehicleType = '',
     this.transmission = '',
+    this.driverId,
+    this.isRated = false,
+    this.ratingStars,
+    this.ratingComment,
+    this.feedbackTags = const [],
   });
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
@@ -68,6 +78,8 @@ class TripModel {
     final priceEstimate = tripDetails is Map ? tripDetails['priceEstimate'] : null;
     final vehicleDetails = json['vehicleDetails'];
     final driver = _resolveDriver(json);
+    final rating = json['rating'];
+    final ratingMap = rating is Map ? Map<String, dynamic>.from(rating) : null;
 
     return TripModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
@@ -126,6 +138,19 @@ class TripModel {
       transmission: vehicleDetails is Map
           ? vehicleDetails['transmission']?.toString() ?? ''
           : '',
+      driverId: _driverId(driver),
+      isRated: json['isRated'] == true ||
+          ratingMap?['stars'] != null ||
+          json['ratedAt'] != null,
+      ratingStars: ratingMap?['stars'] is num
+          ? (ratingMap!['stars'] as num).toInt()
+          : null,
+      ratingComment: ratingMap?['comment']?.toString(),
+      feedbackTags: ratingMap?['feedbackTags'] is List
+          ? (ratingMap!['feedbackTags'] as List)
+              .map((e) => e.toString())
+              .toList()
+          : const [],
     );
   }
 
@@ -137,7 +162,11 @@ class TripModel {
 
   bool get isInProgress => status == 'in_progress';
 
+  bool get isCompleted => status == 'completed';
+
   bool get isCancelled => status == 'cancelled';
+
+  bool get isWalletPayment => paymentMethod == 'wallet';
 
   String get displayTripId =>
       tripNumber.isNotEmpty ? '# $tripNumber' : '# ${id.substring(0, 8)}';
@@ -246,6 +275,7 @@ class TripModel {
       'price': displayPrice,
       'distance': distanceLabel.isEmpty ? '—' : distanceLabel,
       'duration': durationLabel,
+      'driverId': driverId ?? '',
       'driverName': driverName ?? 'Driver',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
@@ -256,18 +286,68 @@ class TripModel {
 
   Map<String, dynamic> toProgressArguments() {
     return {
+      'tripMongoId': id,
       'tripTitle': tripTitle,
       'tripId': displayTripId,
       'headingTo': dropoffAddress ?? pickupAddress,
+      'pickup': pickupAddress,
+      'dropoff': dropoffAddress ?? pickupAddress,
+      'driverId': driverId ?? '',
       'driverName': driverName ?? 'Driver',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
       'vehicleTypes': vehicleTypesLabel,
-      'pickup': pickupAddress,
-      'dropoff': dropoffAddress ?? pickupAddress,
       'price': displayPrice,
       'distance': distanceLabel.isEmpty ? '—' : distanceLabel,
       'duration': durationLabel,
+      'paymentType': paymentTypeKey,
+      'paymentMethod': paymentMethod,
+    };
+  }
+
+  Map<String, dynamic> toTripCompletedArguments() {
+    return {
+      'tripMongoId': id,
+      'paymentType': paymentTypeKey,
+      'paymentMethod': paymentMethod,
+      'tripTypeLabel': isLongTrip ? 'Long Trip' : 'Short Trip',
+      'destinationName': dropoffAddress ?? pickupAddress,
+      'destinationAddress': dropoffAddress ?? pickupAddress,
+      'totalFare': displayPrice,
+      'prepaidAmount': displayPrice,
+      'prepaidDuration': durationLabel,
+      'tripFare': displayPrice,
+      'tripDuration': durationLabel,
+      'extraTimeAmount': '—',
+      'extraTimeDuration': '—',
+      'remainingDue': displayPrice,
+      'remainingDuration': '—',
+      'totalAmount': displayPrice,
+      'driverId': driverId ?? '',
+      'driverName': driverName ?? 'Driver',
+      'driverRating': driverRating ?? 5.0,
+      'driverTrips': driverTrips ?? 0,
+      'vehicleTypes': vehicleTypesLabel,
+      'isRated': isRated,
+    };
+  }
+
+  Map<String, dynamic> toRatingArguments() {
+    return {
+      'tripMongoId': id,
+      'driverId': driverId ?? '',
+      'driverName': driverName ?? 'Driver',
+      'driverRating': driverRating ?? 5.0,
+      'driverTrips': driverTrips ?? 0,
+      'vehicleTypes': vehicleTypesLabel,
+    };
+  }
+
+  Map<String, dynamic> toWaitingDriverArguments() {
+    return {
+      'tripTitle': tripTitle,
+      'tripId': displayTripId,
+      'tripMongoId': id,
       'paymentType': paymentTypeKey,
     };
   }
@@ -371,6 +451,14 @@ class TripModel {
     if (value == null) return null;
     if (value is num) return value.toDouble();
     return double.tryParse(value.toString());
+  }
+
+  static String? _driverId(dynamic user) {
+    if (user is Map) {
+      final id = user['_id'] ?? user['id'];
+      if (id != null) return id.toString();
+    }
+    return null;
   }
 
   static String? _userName(dynamic user) {

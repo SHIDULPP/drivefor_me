@@ -1,7 +1,12 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/notification_provider.dart';
+import 'package:driveforme_user/src/data/providers/user_provider.dart';
+import 'package:driveforme_user/src/data/services/auth_logout_service.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shimmer/shimmer.dart';
 
 /// Matches floating nav bar height: bar (68) + circle lift (36) + safe inset.
 double _navBarClearance(BuildContext context) =>
@@ -9,11 +14,11 @@ double _navBarClearance(BuildContext context) =>
 
 const double _menuTileHeight = 48;
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: kScreenBg,
       body: SafeArea(
@@ -31,21 +36,11 @@ class ProfilePage extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _MenuCard(
-                        items: const [
-                          'Personal Details',
-                          'My Vehicles',
-                          'Notifications',
-                          'FAQ',
-                        ],
-                      ),
+                      const _MainMenuCard(),
                       const SizedBox(height: 6),
                       const _PartnerMenuCard(),
                       const SizedBox(height: 6),
-                      const _MenuCard(
-                        items: ['Logout', 'Delete Account'],
-                        dangerFromIndex: 0,
-                      ),
+                      const _AccountMenuCard(),
                     ],
                   ),
                 ),
@@ -60,11 +55,40 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class _ProfileHeaderCard extends StatelessWidget {
+class _ProfileHeaderCard extends ConsumerWidget {
   const _ProfileHeaderCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userProvider);
+
+    return userAsync.when(
+      loading: () => _buildCard(
+        displayName: 'Loading...',
+        phone: '—',
+        isLoading: true,
+      ),
+      error: (_, _) => _buildCard(
+        displayName: 'Vehicle Owner',
+        phone: '—',
+        onRetry: () => ref.invalidate(userProvider),
+      ),
+      data: (user) {
+        final name = user?.profile.fullName.trim();
+        final displayName =
+            name != null && name.isNotEmpty ? name : 'Vehicle Owner';
+        final phone = user?.phoneNumber ?? '';
+        return _buildCard(displayName: displayName, phone: phone);
+      },
+    );
+  }
+
+  Widget _buildCard({
+    required String displayName,
+    required String phone,
+    bool isLoading = false,
+    VoidCallback? onRetry,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -87,14 +111,59 @@ class _ProfileHeaderCard extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Arun Kumar', style: kProfileNameB),
-                Text('+91 6282359916', style: kProfilePhoneR),
-              ],
-            ),
+            child: isLoading
+                ? Shimmer.fromColors(
+                    baseColor: kShimmerBaseColor,
+                    highlightColor: kWhite,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 18,
+                          width: 140,
+                          decoration: BoxDecoration(
+                            color: kShimmerBaseColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 14,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: kShimmerBaseColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(displayName, style: kProfileNameB),
+                      Text(
+                        phone.isNotEmpty ? phone : '—',
+                        style: kProfilePhoneR,
+                      ),
+                      if (onRetry != null) ...[
+                        const SizedBox(height: 6),
+                        TextButton(
+                          onPressed: onRetry,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Retry',
+                            style: kEditProfileM.copyWith(fontSize: kSize12),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
           ),
           const SizedBox(width: 6),
           const _EditProfileButton(),
@@ -143,25 +212,31 @@ class _QuickActionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Expanded(
           child: _QuickActionTile(
             label: 'Wallet',
             imagePath: 'assets/pngs/wallet_image.png',
+            onTap: () => NavigationService().pushNamed('wallet'),
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Expanded(
           child: _QuickActionTile(
             label: 'Refer & Earn',
             imagePath: 'assets/pngs/refferandearn_image.png',
+            onTap: () => NavigationService().pushNamed(
+              'wallet',
+              arguments: {'showReferral': true},
+            ),
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Expanded(
           child: _QuickActionTile(
             label: 'Help',
             imagePath: 'assets/pngs/Help_image.png',
+            onTap: _openHelp,
           ),
         ),
       ],
@@ -172,10 +247,12 @@ class _QuickActionsRow extends StatelessWidget {
 class _QuickActionTile extends StatelessWidget {
   final String label;
   final String imagePath;
+  final VoidCallback? onTap;
 
   const _QuickActionTile({
     required this.label,
     required this.imagePath,
+    this.onTap,
   });
 
   @override
@@ -184,7 +261,7 @@ class _QuickActionTile extends StatelessWidget {
       color: kWhite,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
@@ -223,14 +300,27 @@ class _QuickActionTile extends StatelessWidget {
   }
 }
 
-class _MenuCard extends StatelessWidget {
-  final List<String> items;
-  final int? dangerFromIndex;
+void _openHelp() {
+  NavigationService().pushNamed(
+    'raise_ticket',
+    arguments: {'tripId': 'General support'},
+  );
+}
 
-  const _MenuCard({required this.items, this.dangerFromIndex});
+class _MainMenuCard extends ConsumerWidget {
+  const _MainMenuCard();
+
+  static const _items = [
+    'Personal Details',
+    'My Vehicles',
+    'Notifications',
+    'FAQ',
+  ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(unreadNotificationCountProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: kWhite,
@@ -246,14 +336,14 @@ class _MenuCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (var i = 0; i < items.length; i++) ...[
+          for (var i = 0; i < _items.length; i++) ...[
             if (i > 0) const _MenuDivider(),
             SizedBox(
               height: _menuTileHeight,
               child: _MenuTile(
-                title: items[i],
-                isDanger: dangerFromIndex != null && i >= dangerFromIndex!,
-                onTap: switch (items[i]) {
+                title: _items[i],
+                badgeCount: _items[i] == 'Notifications' ? unread : 0,
+                onTap: switch (_items[i]) {
                   'Personal Details' => () =>
                       NavigationService().pushNamed('personal_details'),
                   'My Vehicles' => () =>
@@ -265,6 +355,93 @@ class _MenuCard extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountMenuCard extends ConsumerWidget {
+  const _AccountMenuCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: kBlack.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: _menuTileHeight,
+            child: _MenuTile(
+              title: 'Logout',
+              isDanger: true,
+              onTap: () => _confirmLogout(context, ref),
+            ),
+          ),
+          const _MenuDivider(),
+          SizedBox(
+            height: _menuTileHeight,
+            child: _MenuTile(
+              title: 'Delete Account',
+              isDanger: true,
+              onTap: () => _showDeleteAccountDialog(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('You will need to sign in again to use the app.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    await ref.read(authLogoutServiceProvider).logout(ref);
+    if (!context.mounted) return;
+    NavigationService().pushNamedAndRemoveUntil('Phone');
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete account'),
+        content: const Text(
+          'Account deletion is not available in the app yet. Please contact support for assistance.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
@@ -315,8 +492,14 @@ class _MenuTile extends StatelessWidget {
   final String title;
   final bool isDanger;
   final VoidCallback? onTap;
+  final int badgeCount;
 
-  const _MenuTile({required this.title, this.isDanger = false, this.onTap});
+  const _MenuTile({
+    required this.title,
+    this.isDanger = false,
+    this.onTap,
+    this.badgeCount = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -338,6 +521,20 @@ class _MenuTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (badgeCount > 0) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: const BoxDecoration(
+                    color: kRed,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    badgeCount > 9 ? '9+' : '$badgeCount',
+                    style: kStyle(kSemiBold, kSize10, color: kWhite),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
               const Icon(
                 Icons.chevron_right_rounded,
                 color: kChevronGrey,

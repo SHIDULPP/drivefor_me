@@ -1,10 +1,12 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BookingConfirmedPage extends StatefulWidget {
+class BookingConfirmedPage extends ConsumerStatefulWidget {
   final TripCompletedPaymentType paymentType;
   final String tripMongoId;
   final String tripId;
@@ -17,14 +19,22 @@ class BookingConfirmedPage extends StatefulWidget {
   });
 
   @override
-  State<BookingConfirmedPage> createState() => _BookingConfirmedPageState();
+  ConsumerState<BookingConfirmedPage> createState() =>
+      _BookingConfirmedPageState();
 }
 
-class _BookingConfirmedPageState extends State<BookingConfirmedPage> {
+class _BookingConfirmedPageState extends ConsumerState<BookingConfirmedPage> {
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 2), _goToWaitingDriver);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.tripMongoId.isNotEmpty) {
+        ref
+            .read(activeTripProvider.notifier)
+            .setActiveTrip(widget.tripMongoId);
+      }
+    });
   }
 
   void _goToWaitingDriver() {

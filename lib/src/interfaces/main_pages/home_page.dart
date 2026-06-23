@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/user_provider.dart';
+import 'package:driveforme_user/src/data/providers/notification_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,25 +103,8 @@ class _HeaderWithBookingCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Container(
-                  height: 46,
-                  width: 46,
-                  decoration: BoxDecoration(
-                    color: kWhite.withValues(alpha: 0.14),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: kBlack.withValues(alpha: 0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.notifications_none_rounded,
-                    color: kWhite,
-                    size: 24,
-                  ),
+                _NotificationBellButton(
+                  unreadCount: ref.watch(unreadNotificationCountProvider),
                 ),
               ],
             ),
@@ -363,6 +347,66 @@ class _DecorativeFooter extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
+      ),
+    );
+  }
+}
+
+class _NotificationBellButton extends StatelessWidget {
+  final int unreadCount;
+
+  const _NotificationBellButton({required this.unreadCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => NavigationService().pushNamed('notifications'),
+        customBorder: const CircleBorder(),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              height: 46,
+              width: 46,
+              decoration: BoxDecoration(
+                color: kWhite.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: kBlack.withValues(alpha: 0.1),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: kWhite,
+                size: 24,
+              ),
+            ),
+            if (unreadCount > 0)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: const BoxDecoration(
+                    color: kRed,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  child: Text(
+                    unreadCount > 9 ? '9+' : '$unreadCount',
+                    textAlign: TextAlign.center,
+                    style: kStyle(kSemiBold, kSize10, color: kWhite),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

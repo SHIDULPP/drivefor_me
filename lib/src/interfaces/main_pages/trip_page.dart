@@ -669,7 +669,13 @@ class _CompletedTripCard extends StatelessWidget {
               Expanded(
                 child: _OutlinedTripAction(
                   label: 'Download Invoice',
-                  onTap: () {},
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Invoice download coming soon.'),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

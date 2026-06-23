@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/sos/sos_shared.dart';
 import 'package:flutter/material.dart';
 
@@ -58,7 +59,7 @@ class SosHelpOnWayPage extends StatelessWidget {
                         titleColor: kWhite,
                         subtitleColor: kWhite,
                         borderColor: kSosRed,
-                        onTap: () {},
+                        onTap: () => launchPhoneCall('112'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -334,7 +335,7 @@ class _SupportCard extends StatelessWidget {
             color: kTripCtaBlue,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
-              onTap: () {},
+              onTap: () => launchPhoneCall(phone.replaceAll(' ', '')),
               borderRadius: BorderRadius.circular(12),
               child: Padding(
                 padding: const EdgeInsets.symmetric(

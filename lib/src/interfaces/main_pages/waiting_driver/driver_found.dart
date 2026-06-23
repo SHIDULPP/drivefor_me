@@ -4,8 +4,8 @@ import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +20,7 @@ class DriverFoundPage extends ConsumerStatefulWidget {
   final String price;
   final String distance;
   final String duration;
+  final String driverId;
   final String driverName;
   final double driverRating;
   final int driverTrips;
@@ -36,6 +37,7 @@ class DriverFoundPage extends ConsumerStatefulWidget {
     this.price = '₹ 235',
     this.distance = '12 km',
     this.duration = '2 hrs',
+    this.driverId = '',
     this.driverName = 'Ajith Kumar',
     this.driverRating = 4.8,
     this.driverTrips = 120,
@@ -172,12 +174,26 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
         'price': widget.price,
         'distance': widget.distance,
         'duration': widget.duration,
+        'driverId': widget.driverId,
         'driverName': widget.driverName,
         'driverRating': widget.driverRating,
         'driverTrips': widget.driverTrips,
         'vehicleTypes': widget.vehicleTypes,
         ...tripPaymentArguments(widget.paymentType),
       },
+    );
+  }
+
+  Future<void> _handleCancel() async {
+    final trip = await cancelTripWithDialog(
+      context: context,
+      ref: ref,
+      tripMongoId: widget.tripMongoId,
+    );
+    if (!mounted || trip == null) return;
+    NavigationService().pushNamedAndRemoveUntil(
+      'cancelled_trip_details',
+      arguments: trip.toCancelledDetailsArguments(),
     );
   }
 
@@ -243,10 +259,12 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
               distance: widget.distance,
               duration: widget.duration,
               driverName: widget.driverName,
+              driverId: widget.driverId,
+              tripMongoId: widget.tripMongoId,
               driverRating: widget.driverRating,
               driverTrips: widget.driverTrips,
               vehicleTypes: widget.vehicleTypes,
-              onCancel: () => Navigator.of(context).maybePop(),
+              onCancel: _handleCancel,
             ),
           ),
         ],
@@ -366,6 +384,8 @@ class _DriverFoundSheet extends StatelessWidget {
   final String distance;
   final String duration;
   final String driverName;
+  final String driverId;
+  final String tripMongoId;
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
@@ -384,6 +404,8 @@ class _DriverFoundSheet extends StatelessWidget {
     required this.distance,
     required this.duration,
     required this.driverName,
+    required this.driverId,
+    required this.tripMongoId,
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
@@ -426,6 +448,8 @@ class _DriverFoundSheet extends StatelessWidget {
             const SizedBox(height: 18),
             _DriverInfoCard(
               driverName: driverName,
+              driverId: driverId,
+              tripMongoId: tripMongoId,
               driverRating: driverRating,
               driverTrips: driverTrips,
               vehicleTypes: vehicleTypes,
@@ -496,12 +520,16 @@ class _DriverFoundSheet extends StatelessWidget {
 
 class _DriverInfoCard extends StatelessWidget {
   final String driverName;
+  final String driverId;
+  final String tripMongoId;
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
 
   const _DriverInfoCard({
     required this.driverName,
+    required this.driverId,
+    required this.tripMongoId,
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
@@ -567,11 +595,11 @@ class _DriverInfoCard extends StatelessWidget {
           _DriverActionButton(
             color: kActiveGreen,
             icon: Icons.chat_bubble_outline_rounded,
-            onTap: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (context) => ChatScreen()));
-            },
+            onTap: () => openChatScreen(
+              receiverId: driverId,
+              receiverName: driverName,
+              tripId: tripMongoId,
+            ),
           ),
           const SizedBox(width: 8),
           _DriverActionButton(

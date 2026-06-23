@@ -31,16 +31,12 @@ class OnboardingApi {
     required String dateOfBirth,
     required String gender,
   }) {
-    return _api.post(
-      '/onboarding/vehicle-owner/profile',
-      {
-        'fullName': fullName,
-        'email': email,
-        'dateOfBirth': dateOfBirth,
-        'gender': gender,
-      },
-      requireAuth: true,
-    );
+    return _api.post('/onboarding/vehicle-owner/profile', {
+      'fullName': fullName,
+      'email': email,
+      'dateOfBirth': dateOfBirth,
+      'gender': gender,
+    }, requireAuth: true);
   }
 }
 
