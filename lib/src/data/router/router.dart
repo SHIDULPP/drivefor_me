@@ -198,24 +198,27 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
             cancelledDetailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: cancelledDetailsArgs?['tripId'] as String? ?? '# ID2562',
         isLongTrip: cancelledDetailsArgs?['isLongTrip'] == true,
-        pickup: cancelledDetailsArgs?['pickup'] as String? ??
+        pickup:
+            cancelledDetailsArgs?['pickup'] as String? ??
             'Edappally, Lulu Mall',
-        dropoff: cancelledDetailsArgs?['dropoff'] as String? ??
-            'Infopark, Kakkanad',
-        metaLine: cancelledDetailsArgs?['metaLine'] as String? ??
+        dropoff:
+            cancelledDetailsArgs?['dropoff'] as String? ?? 'Infopark, Kakkanad',
+        metaLine:
+            cancelledDetailsArgs?['metaLine'] as String? ??
             'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
         amountPaid: cancelledDetailsArgs?['amountPaid'] as String? ?? '₹ 235',
         refundAmount:
             cancelledDetailsArgs?['refundAmount'] as String? ?? '₹ 355',
-        refundInitiatedAt: cancelledDetailsArgs?['refundInitiatedAt'] as String? ??
+        refundInitiatedAt:
+            cancelledDetailsArgs?['refundInitiatedAt'] as String? ??
             '25 April 2025, 08:45 AM',
         driverName:
             cancelledDetailsArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating:
             (cancelledDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: cancelledDetailsArgs?['driverTrips'] as int? ?? 120,
-        vehicleTypes: cancelledDetailsArgs?['vehicleTypes'] as String? ??
-            'Manual + Auto',
+        vehicleTypes:
+            cancelledDetailsArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -236,32 +239,36 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         tripId: completedDetailsArgs?['tripId'] as String? ?? '# ID2562',
         isLongTrip: completedDetailsArgs?['isLongTrip'] == true,
         pickup:
-            completedDetailsArgs?['pickup'] as String? ?? 'Edappally, Lulu Mall',
+            completedDetailsArgs?['pickup'] as String? ??
+            'Edappally, Lulu Mall',
         dropoff:
             completedDetailsArgs?['dropoff'] as String? ?? 'Infopark, Kakkanad',
-        metaLine: completedDetailsArgs?['metaLine'] as String? ??
+        metaLine:
+            completedDetailsArgs?['metaLine'] as String? ??
             'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
         tripFare: completedDetailsArgs?['tripFare'] as String? ?? '₹ 235',
         tripFareDurationLabel:
-            completedDetailsArgs?['tripFareDurationLabel'] as String? ?? '2 hrs',
+            completedDetailsArgs?['tripFareDurationLabel'] as String? ??
+            '2 hrs',
         extraTimeFare:
             completedDetailsArgs?['extraTimeFare'] as String? ?? '₹ 120',
         extraTimeDurationLabel:
             completedDetailsArgs?['extraTimeDurationLabel'] as String? ??
-                '30 min',
+            '30 min',
         totalPaid: completedDetailsArgs?['totalPaid'] as String? ?? '₹ 355',
         driverName:
             completedDetailsArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating:
             (completedDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: completedDetailsArgs?['driverTrips'] as int? ?? 120,
-        vehicleTypes: completedDetailsArgs?['vehicleTypes'] as String? ??
-            'Manual + Auto',
-        ticketSubject: completedDetailsArgs?['ticketSubject'] as String? ??
+        vehicleTypes:
+            completedDetailsArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+        ticketSubject:
+            completedDetailsArgs?['ticketSubject'] as String? ??
             CompletedTripDetailsPage.kDummyTicketSubject,
         ticketDescription:
             completedDetailsArgs?['ticketDescription'] as String? ??
-                CompletedTripDetailsPage.kDummyTicketDescription,
+            CompletedTripDetailsPage.kDummyTicketDescription,
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -278,7 +285,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       final chatArgs = settings?.arguments as Map?;
       page = ChatScreen(
         receiverId: chatArgs?['receiverId'] as String? ?? '',
-        receiverName: chatArgs?['receiverName'] as String? ??
+        receiverName:
+            chatArgs?['receiverName'] as String? ??
             chatArgs?['participantName'] as String? ??
             'Driver',
         tripId: chatArgs?['tripId'] as String?,
@@ -363,8 +371,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverName: ratingArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating: (ratingArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: ratingArgs?['driverTrips'] as int? ?? 120,
-        vehicleTypes:
-            ratingArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+        vehicleTypes: ratingArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -377,7 +384,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'sos_select':
       final sosArgs = settings?.arguments as Map?;
       page = SosSelectPage(
-        locationLabel: sosArgs?['locationLabel'] as String? ??
+        locationLabel:
+            sosArgs?['locationLabel'] as String? ??
             sosArgs?['pickupAddress'] as String? ??
             'Live location shared . MG road, Erankulam',
         tripId: sosArgs?['tripId'] as String?,
@@ -389,7 +397,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'sos_countdown':
       final countdownArgs = settings?.arguments as Map?;
       page = SosCountdownPage(
-        locationLabel: countdownArgs?['locationLabel'] as String? ??
+        locationLabel:
+            countdownArgs?['locationLabel'] as String? ??
             'MG Road, Eranakulam, Kochi, GPS Active',
         sosType: countdownArgs?['sosType'] as String? ?? 'Other Emergency',
         tripId: countdownArgs?['tripId'] as String?,
@@ -402,14 +411,14 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
     case 'sos_help_on_way':
       final helpArgs = settings?.arguments as Map?;
       page = SosHelpOnWayPage(
-        referenceNumber: helpArgs?['referenceNumber'] as String? ??
-            'SOS - 2014 - 9568',
-        locationLine1: helpArgs?['locationLine1'] as String? ??
-            'MG Road, Eranakulam',
-        locationLine2: helpArgs?['locationLine2'] as String? ??
+        referenceNumber:
+            helpArgs?['referenceNumber'] as String? ?? 'SOS - 2014 - 9568',
+        locationLine1:
+            helpArgs?['locationLine1'] as String? ?? 'MG Road, Eranakulam',
+        locationLine2:
+            helpArgs?['locationLine2'] as String? ??
             'Kochi, Kerala, 9.9312 N, 76.2673 E',
-        supportPhone:
-            helpArgs?['supportPhone'] as String? ?? '+91 6282359916',
+        supportPhone: helpArgs?['supportPhone'] as String? ?? '+91 6282359916',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -426,20 +435,23 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         paymentType: paymentType,
         paymentMethod: completedArgs?['paymentMethod'] as String? ?? 'cash',
         isRated: completedArgs?['isRated'] == true,
-        tripTypeLabel: completedArgs?['tripTypeLabel'] as String? ??
+        tripTypeLabel:
+            completedArgs?['tripTypeLabel'] as String? ??
             (paymentType == TripCompletedPaymentType.online
                 ? 'Short Trip'
                 : 'Long Trip'),
         destinationName:
             completedArgs?['destinationName'] as String? ?? 'Infopark',
-        destinationAddress: completedArgs?['destinationAddress'] as String? ??
+        destinationAddress:
+            completedArgs?['destinationAddress'] as String? ??
             'Infoparks Kerala, Infopark Kochi Phase 1, P.O, Infopark, Kochi, Kakkanad, Kerala 682042',
         totalFare: completedArgs?['totalFare'] as String? ?? '₹ 335',
         prepaidAmount: completedArgs?['prepaidAmount'] as String? ?? '₹ 255',
         prepaidDuration:
             completedArgs?['prepaidDuration'] as String? ?? '2 hrs 30 min',
         tripFare: completedArgs?['tripFare'] as String? ?? '₹ 335',
-        tripDuration: completedArgs?['tripDuration'] as String? ?? '2 hrs 30 min',
+        tripDuration:
+            completedArgs?['tripDuration'] as String? ?? '2 hrs 30 min',
         extraTimeAmount:
             completedArgs?['extraTimeAmount'] as String? ?? '₹ 255',
         extraTimeDuration:
