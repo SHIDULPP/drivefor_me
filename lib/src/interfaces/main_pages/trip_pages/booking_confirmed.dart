@@ -2,21 +2,18 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BookingConfirmedPage extends ConsumerStatefulWidget {
-  final TripCompletedPaymentType paymentType;
-  final String tripMongoId;
-  final String tripId;
+  final Map<String, dynamic> waitingArgs;
 
   const BookingConfirmedPage({
     super.key,
-    this.paymentType = TripCompletedPaymentType.offline,
-    this.tripMongoId = '',
-    this.tripId = '# —',
+    this.waitingArgs = const {},
   });
+
+  String get tripMongoId => waitingArgs['tripMongoId'] as String? ?? '';
 
   @override
   ConsumerState<BookingConfirmedPage> createState() =>
@@ -41,12 +38,7 @@ class _BookingConfirmedPageState extends ConsumerState<BookingConfirmedPage> {
     if (!mounted) return;
     NavigationService().pushNamedReplacement(
       'waiting_driver',
-      arguments: {
-        'tripTitle': 'One Way Trip',
-        'tripId': widget.tripId,
-        'tripMongoId': widget.tripMongoId,
-        ...tripPaymentArguments(widget.paymentType),
-      },
+      arguments: widget.waitingArgs,
     );
   }
 

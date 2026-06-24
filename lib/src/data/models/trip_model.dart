@@ -24,6 +24,8 @@ class TripModel {
   final String? driverName;
   final double? driverRating;
   final int? driverTrips;
+  final String? driverPhone;
+  final String? driverPhotoUrl;
   final String vehicleName;
   final String vehicleNumber;
   final String vehicleType;
@@ -58,6 +60,8 @@ class TripModel {
     this.driverName,
     this.driverRating,
     this.driverTrips,
+    this.driverPhone,
+    this.driverPhotoUrl,
     this.vehicleName = '',
     this.vehicleNumber = '',
     this.vehicleType = '',
@@ -126,6 +130,8 @@ class TripModel {
       driverName: _userName(driver),
       driverRating: _userRating(driver),
       driverTrips: _userTotalTrips(driver),
+      driverPhone: _userPhone(driver),
+      driverPhotoUrl: _driverPhotoUrl(driver),
       vehicleName: vehicleDetails is Map
           ? vehicleDetails['vehicleName']?.toString() ?? ''
           : '',
@@ -156,9 +162,13 @@ class TripModel {
 
   bool get isLongTrip => tripType == 'long_trip';
   bool get isOneWay => tripDirection == 'one_way';
-  bool get hasDriver => driverName != null && driverName!.isNotEmpty;
+  bool get hasDriver =>
+      driverId != null && driverId!.isNotEmpty && hasDriverName;
 
-  bool get isDriverAssigned => status == 'driver_assigned' && hasDriver;
+  bool get hasDriverName => driverName != null && driverName!.isNotEmpty;
+
+  bool get isDriverAssigned =>
+      status == 'driver_assigned' && driverId != null && driverId!.isNotEmpty;
 
   bool get isInProgress => status == 'in_progress';
 
@@ -184,12 +194,25 @@ class TripModel {
   }
 
   String get vehicleTypesLabel {
+    if (vehicleName.isNotEmpty && vehicleNumber.isNotEmpty) {
+      return '$vehicleName • $vehicleNumber';
+    }
+    if (vehicleName.isNotEmpty) return vehicleName;
+    if (vehicleNumber.isNotEmpty) return vehicleNumber;
+
     final type = _titleCase(vehicleType);
     final trans = _titleCase(transmission);
     if (type.isEmpty && trans.isEmpty) return '—';
     if (type.isEmpty) return trans;
     if (trans.isEmpty) return type;
     return '$trans + $type';
+  }
+
+  String get driverFoundSubtitle {
+    if (pickupAt != null && rideTime != 'now') {
+      return 'Pickup ${formatScheduleLine(pickupAt)}';
+    }
+    return 'Share the OTP below with your driver to start the trip';
   }
 
   String get durationLabel {
@@ -277,8 +300,12 @@ class TripModel {
       'duration': durationLabel,
       'driverId': driverId ?? '',
       'driverName': driverName ?? 'Driver',
+      'driverPhone': driverPhone ?? '',
+      'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
+      'vehicleName': vehicleName,
+      'vehicleNumber': vehicleNumber,
       'vehicleTypes': vehicleTypesLabel,
       'paymentType': paymentTypeKey,
     };
@@ -294,8 +321,12 @@ class TripModel {
       'dropoff': dropoffAddress ?? pickupAddress,
       'driverId': driverId ?? '',
       'driverName': driverName ?? 'Driver',
+      'driverPhone': driverPhone ?? '',
+      'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
+      'vehicleName': vehicleName,
+      'vehicleNumber': vehicleNumber,
       'vehicleTypes': vehicleTypesLabel,
       'price': displayPrice,
       'distance': distanceLabel.isEmpty ? '—' : distanceLabel,
@@ -325,8 +356,12 @@ class TripModel {
       'totalAmount': displayPrice,
       'driverId': driverId ?? '',
       'driverName': driverName ?? 'Driver',
+      'driverPhone': driverPhone ?? '',
+      'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
+      'vehicleName': vehicleName,
+      'vehicleNumber': vehicleNumber,
       'vehicleTypes': vehicleTypesLabel,
       'isRated': isRated,
     };
@@ -337,18 +372,27 @@ class TripModel {
       'tripMongoId': id,
       'driverId': driverId ?? '',
       'driverName': driverName ?? 'Driver',
+      'driverPhone': driverPhone ?? '',
+      'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
+      'vehicleName': vehicleName,
+      'vehicleNumber': vehicleNumber,
       'vehicleTypes': vehicleTypesLabel,
     };
   }
 
   Map<String, dynamic> toWaitingDriverArguments() {
     return {
+      'tripMongoId': id,
       'tripTitle': tripTitle,
       'tripId': displayTripId,
-      'tripMongoId': id,
       'paymentType': paymentTypeKey,
+      'pickup': pickupAddress,
+      'dropoff': dropoffAddress ?? pickupAddress,
+      'price': displayPrice,
+      'distance': distanceLabel.isEmpty ? '—' : distanceLabel,
+      'duration': durationLabel,
     };
   }
 
@@ -482,6 +526,25 @@ class TripModel {
   static int? _userTotalTrips(dynamic user) {
     if (user is Map && user['totalTrips'] != null) {
       return (user['totalTrips'] as num).toInt();
+    }
+    return null;
+  }
+
+  static String? _userPhone(dynamic user) {
+    if (user is Map) {
+      final phone = user['phoneNumber']?.toString().trim();
+      if (phone != null && phone.isNotEmpty) return phone;
+    }
+    return null;
+  }
+
+  static String? _driverPhotoUrl(dynamic user) {
+    if (user is Map) {
+      final verification = user['driverVerification'];
+      if (verification is Map) {
+        final url = verification['livePhotoUrl']?.toString().trim();
+        if (url != null && url.isNotEmpty) return url;
+      }
     }
     return null;
   }

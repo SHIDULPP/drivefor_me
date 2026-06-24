@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
+import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,10 +65,43 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   Timer? _cancelTimer;
   Timer? _pollTimer;
   bool _navigatedAway = false;
+  TripModel? _trip;
+
+  String get _tripTitle => _trip?.tripTitle ?? widget.tripTitle;
+
+  String get _tripId => _trip?.displayTripId ?? widget.tripId;
+
+  String get _headingTo =>
+      _trip?.dropoffAddress ?? _trip?.pickupAddress ?? widget.headingTo;
+
+  String get _driverId => _trip?.driverId ?? widget.driverId;
+
+  String get _driverName => _trip?.driverName ?? widget.driverName;
+
+  double get _driverRating => _trip?.driverRating ?? widget.driverRating;
+
+  int get _driverTrips => _trip?.driverTrips ?? widget.driverTrips;
+
+  String get _vehicleTypes => _trip?.vehicleTypesLabel ?? widget.vehicleTypes;
+
+  String get _pickup => _trip?.pickupAddress ?? widget.pickup;
+
+  String get _dropoff =>
+      _trip?.dropoffAddress ?? _trip?.pickupAddress ?? widget.dropoff;
+
+  String get _price => _trip?.displayPrice ?? widget.price;
+
+  String get _distance =>
+      _trip != null && _trip!.distanceLabel.isNotEmpty
+          ? _trip!.distanceLabel
+          : widget.distance;
+
+  String get _duration => _trip?.durationLabel ?? widget.duration;
 
   @override
   void initState() {
     super.initState();
+    _loadTrip();
     _cancelTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       if (_cancelRemaining.inSeconds <= 0) {
@@ -81,6 +115,12 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     _startPolling();
   }
 
+  Future<void> _loadTrip() async {
+    final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
+    if (!mounted || trip == null) return;
+    setState(() => _trip = trip);
+  }
+
   void _startPolling() {
     if (widget.tripMongoId.isEmpty) return;
     _pollTripStatus();
@@ -90,12 +130,11 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   Future<void> _pollTripStatus() async {
     if (_navigatedAway || !mounted || widget.tripMongoId.isEmpty) return;
 
-    final response =
-        await ref.read(tripApiProvider).getTripById(widget.tripMongoId);
+    final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
     if (!mounted || _navigatedAway) return;
-    if (!response.success || response.data == null) return;
+    if (trip == null) return;
 
-    final trip = response.data!;
+    setState(() => _trip = trip);
 
     if (trip.isCancelled) {
       _navigatedAway = true;
@@ -129,9 +168,9 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     NavigationService().pushNamed(
       'sos_select',
       arguments: {
-        'locationLabel': widget.pickup,
+        'locationLabel': _pickup,
         'tripId': widget.tripMongoId,
-        'pickupAddress': widget.pickup,
+        'pickupAddress': _pickup,
       },
     );
   }
@@ -164,8 +203,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
       body: Column(
         children: [
           _TripProgressHeader(
-            tripTitle: widget.tripTitle,
-            tripId: widget.tripId,
+            tripTitle: _tripTitle,
+            tripId: _tripId,
             onBack: () => Navigator.of(context).maybePop(),
           ),
           SizedBox(
@@ -190,20 +229,20 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
           ),
           Expanded(
             child: _TripProgressSheet(
-              headingTo: widget.headingTo,
-              driverId: widget.driverId,
+              headingTo: _headingTo,
+              driverId: _driverId,
               tripMongoId: widget.tripMongoId,
-              driverName: widget.driverName,
-              driverRating: widget.driverRating,
-              driverTrips: widget.driverTrips,
-              vehicleTypes: widget.vehicleTypes,
+              driverName: _driverName,
+              driverRating: _driverRating,
+              driverTrips: _driverTrips,
+              vehicleTypes: _vehicleTypes,
               completedStops: widget.completedStops,
               showTimeLimitReached: widget.showTimeLimitReached,
-              pickup: widget.pickup,
-              dropoff: widget.dropoff,
-              price: widget.price,
-              distance: widget.distance,
-              duration: widget.duration,
+              pickup: _pickup,
+              dropoff: _dropoff,
+              price: _price,
+              distance: _distance,
+              duration: _duration,
               timerLabel: _cancelTimerLabel,
               policyTimerBlue: _policyTimerBlue,
             ),

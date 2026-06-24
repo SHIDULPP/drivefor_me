@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:driveforme_user/src/data/models/trip_model.dart';
+import 'package:driveforme_user/src/data/models/trip_price_estimate_model.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
@@ -46,6 +49,12 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   List<VehicleModel> _vehicles = [];
   VehicleModel? _selectedVehicle;
   bool _isLoadingVehicles = true;
+  TripPriceEstimateModel? _priceEstimate;
+  bool _isLoadingEstimate = false;
+  Timer? _estimateDebounce;
+
+  static const _tripProtectionFee = 19;
+  static const _estimateDebounceDuration = Duration(milliseconds: 350);
 
   static final _scheduleDisplayFormat = DateFormat('EEE, dd MMM • hh:mm a');
   static final _apiDateFormat = DateFormat('yyyy-MM-dd');
@@ -54,7 +63,97 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadVehicles());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadVehicles();
+      _schedulePriceEstimate();
+    });
+  }
+
+  @override
+  void dispose() {
+    _estimateDebounce?.cancel();
+    super.dispose();
+  }
+
+  void _mutateTripForm(VoidCallback fn) {
+    setState(fn);
+    _schedulePriceEstimate();
+  }
+
+  void _schedulePriceEstimate() {
+    _estimateDebounce?.cancel();
+    _estimateDebounce = Timer(_estimateDebounceDuration, _fetchPriceEstimate);
+  }
+
+  Future<void> _fetchPriceEstimate() async {
+    final duration = _resolveDuration();
+    if (!duration.success || duration.data == null) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingEstimate = false;
+        _priceEstimate = null;
+      });
+      return;
+    }
+
+    final overnight = _resolveOvernightStay(duration.data!);
+    if (!overnight.success || overnight.data == null) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingEstimate = false;
+        _priceEstimate = null;
+      });
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _isLoadingEstimate = true);
+
+    final response = await ref.read(tripApiProvider).estimateTripPrice({
+      'tripType': isShortTrip ? 'short_trip' : 'long_trip',
+      'durationValue': duration.data!['durationValue'],
+      'durationUnit': duration.data!['durationUnit'],
+      'tripProtection': {
+        'enabled': isTripProtectionEnabled,
+        'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
+      },
+      'overnightStay': overnight.data,
+      'rideTime': isRideNow ? 'now' : 'scheduled',
+      if (!isRideNow && scheduledRideAt != null)
+        'pickupTime': _apiTimeFormat.format(scheduledRideAt!),
+    });
+
+    if (!mounted) return;
+    setState(() {
+      _isLoadingEstimate = false;
+      _priceEstimate =
+          response.success && response.data != null ? response.data : null;
+    });
+  }
+
+  String get _durationPriceLabel {
+    if (_isLoadingEstimate) return '...';
+    return _priceEstimate?.displayAmount ?? '—';
+  }
+
+  String get _selectedPaymentTotalLabel {
+    if (_isLoadingEstimate) return '...';
+    if (_priceEstimate == null) return '—';
+    return _priceEstimate!.totalForPaymentMethod(
+      selectedPaymentIndex == 1 ? 'pay_online' : 'cash',
+    );
+  }
+
+  String get _onlinePaymentTotalLabel {
+    if (_isLoadingEstimate) return '...';
+    return _priceEstimate?.totalForPaymentMethod('pay_online') ?? '—';
+  }
+
+  String get _durationUsageLabel {
+    if (!isShortTrip && selectedHour == -1) {
+      return '$customDays Day • $customHours Hour';
+    }
+    return '${isShortTrip ? selectedHour : selectedHour} hrs';
   }
 
   Future<void> _loadVehicles({VehicleModel? selectVehicle}) async {
@@ -203,7 +302,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       children: [
                         Text('Total', style: kTripTotalLabelR),
                         Text(
-                          '₹ ${selectedPaymentIndex == 1 ? "235" : "280"}',
+                          _selectedPaymentTotalLabel,
                           style: kTripTotalPriceB,
                         ),
                       ],
@@ -654,7 +753,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 child: _rideTimeOption(
                   label: 'Now',
                   selected: isRideNow,
-                  onTap: () => setState(() {
+                  onTap: () => _mutateTripForm(() {
                     isRideNow = true;
                     scheduledRideAt = null;
                   }),
@@ -693,19 +792,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     if (result == null) {
       if (openOnScheduleTab) {
-        setState(() => isRideNow = scheduledRideAt == null);
+        _mutateTripForm(() => isRideNow = scheduledRideAt == null);
       }
       return;
     }
 
-    setState(() {
+    _mutateTripForm(() {
       isRideNow = result.isNow;
       scheduledRideAt = result.scheduledAt;
     });
   }
 
   Future<void> _onScheduleTap() async {
-    setState(() => isRideNow = false);
+    _mutateTripForm(() => isRideNow = false);
     await _openScheduleSheet(openOnScheduleTab: true);
   }
 
@@ -764,7 +863,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                   title: 'Short Trip',
                   selected: isShortTrip,
                   onTap: () {
-                    setState(() {
+                    _mutateTripForm(() {
                       isShortTrip = true;
                       if (selectedHour > 7 || selectedHour == -1) {
                         selectedHour = 1;
@@ -781,7 +880,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                   title: 'Long Trip',
                   selected: !isShortTrip,
                   onTap: () {
-                    setState(() {
+                    _mutateTripForm(() {
                       isShortTrip = false;
                       if (selectedHour < 9 && selectedHour != -1) {
                         selectedHour = 9;
@@ -803,10 +902,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             text: TextSpan(
               style: kTripDurationMetaR.copyWith(color: kTextColor),
               children: [
-                TextSpan(text: '₹280 ', style: kTripDurationPriceB),
+                TextSpan(text: '$_durationPriceLabel ', style: kTripDurationPriceB),
                 TextSpan(
-                  text:
-                      'Based on ${selectedHour == -1 && !isShortTrip ? "$customDays Day • $customHours Hour" : "${isShortTrip ? selectedHour : selectedHour} hrs"} usage',
+                  text: 'Based on $_durationUsageLabel usage',
                   style: kTripDurationMetaR,
                 ),
               ],
@@ -923,7 +1021,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
                 return GestureDetector(
                   onTap: () {
-                    setState(() {
+                    _mutateTripForm(() {
                       selectedHour = hour;
                     });
                   },
@@ -967,7 +1065,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     subtitle: 'Driver will not stay overnight',
                     isSelected: isOvernightStay == false,
                     onTap: () {
-                      setState(() {
+                      _mutateTripForm(() {
                         isOvernightStay = false;
                       });
                     },
@@ -980,7 +1078,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     subtitle: 'Include driver\'s accommodation allowance',
                     isSelected: isOvernightStay == true,
                     onTap: () {
-                      setState(() {
+                      _mutateTripForm(() {
                         isOvernightStay = true;
                       });
                     },
@@ -1095,7 +1193,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
                     return GestureDetector(
                       onTap: () {
-                        setState(() {
+                        _mutateTripForm(() {
                           selectedNight = night;
                         });
                       },
@@ -1231,7 +1329,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
                     const SizedBox(width: 10),
 
-                    Text('+ ₹19', style: kTripProtectionAddonB),
+                    Text(
+                      '+ ₹$_tripProtectionFee',
+                      style: kTripProtectionAddonB,
+                    ),
                   ],
                 ),
 
@@ -1273,7 +1374,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             activeColor: kWhite,
             activeTrackColor: kBrandBlue,
             onChanged: (value) {
-              setState(() {
+              _mutateTripForm(() {
                 isTripProtectionEnabled = value;
               });
             },
@@ -1327,7 +1428,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             trailingWidget: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('₹ 235', style: kTripPaymentPriceB),
+                Text(_onlinePaymentTotalLabel, style: kTripPaymentPriceB),
                 const SizedBox(width: 10),
                 Icon(
                   selectedPaymentIndex == 1
@@ -1456,7 +1557,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     );
 
     if (result != null) {
-      setState(() {
+      _mutateTripForm(() {
         selectedHour = -1; // -1 means custom
         customDays = result['days']!;
         customHours = result['hours']!;
@@ -1481,7 +1582,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     );
 
     if (result != null) {
-      setState(() {
+      _mutateTripForm(() {
         selectedNight = -1; // -1 means custom
         customNights = result;
       });
@@ -1501,13 +1602,22 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return;
     }
 
+    await _fetchPriceEstimate();
+    if (!mounted) return;
+
+    final refreshedPayloadResult = _buildTripPayload(userResponse.data!.userId);
+    if (!refreshedPayloadResult.success || refreshedPayloadResult.data == null) {
+      _showError(refreshedPayloadResult.message ?? 'Please review trip details.');
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
-    log('Create Trip Request Body: ${payloadResult.data}');
+    log('Create Trip Request Body: ${refreshedPayloadResult.data}');
 
     final createResponse = await ref
         .read(tripApiProvider)
-        .createManualTrip(payloadResult.data!);
+        .createManualTrip(refreshedPayloadResult.data!);
 
     log('Create Trip Response Message: ${createResponse.message}');
 
@@ -1520,23 +1630,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
 
     final tripData = nestedData(createResponse.data) ?? createResponse.data;
-    final tripMongoId = tripData?['_id']?.toString() ?? '';
-    final tripNumber = tripData?['tripNumber']?.toString();
-    final displayTripId = tripNumber != null && tripNumber.isNotEmpty
-        ? '# $tripNumber'
-        : (tripMongoId.isNotEmpty ? '# ${tripMongoId.substring(0, 8)}' : '# —');
-    final paymentType = selectedPaymentIndex == 1 ? 'online' : 'offline';
+    if (tripData == null) {
+      _showError('Trip created but response was invalid.');
+      return;
+    }
+
+    final trip = TripModel.fromJson(Map<String, dynamic>.from(tripData));
 
     if (!isRideNow && scheduledRideAt != null) {
       NavigationService().pushNamed(
         'trip_scheduled',
         arguments: {
-          'paymentType': paymentType,
+          ...trip.toWaitingDriverArguments(),
           'scheduledAt': scheduledRideAt,
-          'tripId': displayTripId,
-          'tripMongoId': tripMongoId,
-          'pickup': _pickupAddress,
-          'dropoff': _dropoffAddress ?? 'Destination',
         },
       );
       return;
@@ -1544,11 +1650,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     NavigationService().pushNamed(
       'booking_confirmed',
-      arguments: {
-        'paymentType': paymentType,
-        'tripId': displayTripId,
-        'tripMongoId': tripMongoId,
-      },
+      arguments: trip.toWaitingDriverArguments(),
     );
   }
 
@@ -1595,10 +1697,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'assignmentType': 'auto_assign',
       'tripProtection': {
         'enabled': isTripProtectionEnabled,
-        'fee': isTripProtectionEnabled ? 19 : 0,
+        'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
       },
       'paymentMethod': selectedPaymentIndex == 1 ? 'pay_online' : 'cash',
-      'priceEstimate': {'currency': 'INR', 'includesWaitingTime': isShortTrip},
+      if (_priceEstimate != null)
+        'priceEstimate': _priceEstimate!.toPriceEstimatePayload()
+      else
+        'priceEstimate': {'currency': 'INR', 'includesWaitingTime': isShortTrip},
       'overnightStay': overnight.data,
     };
 

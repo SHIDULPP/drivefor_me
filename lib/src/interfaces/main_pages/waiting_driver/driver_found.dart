@@ -3,46 +3,23 @@ import 'dart:async';
 import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
+import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
+import 'package:driveforme_user/src/interfaces/components/trip_route_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class DriverFoundPage extends ConsumerStatefulWidget {
   final String tripMongoId;
-  final String tripTitle;
-  final String tripId;
-  final String pickup;
-  final String dropoff;
-  final String price;
-  final String distance;
-  final String duration;
-  final String driverId;
-  final String driverName;
-  final double driverRating;
-  final int driverTrips;
-  final String vehicleTypes;
-  final TripCompletedPaymentType paymentType;
 
   const DriverFoundPage({
     super.key,
     this.tripMongoId = '',
-    this.tripTitle = 'One Way Trip',
-    this.tripId = '# —',
-    this.pickup = 'Edappally',
-    this.dropoff = 'Infopark',
-    this.price = '₹ 235',
-    this.distance = '12 km',
-    this.duration = '2 hrs',
-    this.driverId = '',
-    this.driverName = 'Ajith Kumar',
-    this.driverRating = 4.8,
-    this.driverTrips = 120,
-    this.vehicleTypes = 'Manual + Auto',
-    this.paymentType = TripCompletedPaymentType.offline,
   });
 
   @override
@@ -54,6 +31,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   static const _policyTimerBlue = Color(0xFF165A91);
   static const _pollInterval = Duration(seconds: 3);
 
+  TripModel? _trip;
   String? _otp;
   bool _isLoadingOtp = true;
   String? _otpError;
@@ -62,11 +40,54 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   Duration _cancelRemaining = const Duration(minutes: 10);
   bool _navigatedToProgress = false;
 
+  String get _tripTitle => _trip?.tripTitle ?? 'One Way Trip';
+
+  String get _tripId => _trip?.displayTripId ?? '# —';
+
+  String get _pickup => _trip?.pickupAddress.isNotEmpty == true
+      ? _trip!.pickupAddress
+      : '—';
+
+  String get _dropoff => _trip?.dropoffAddress?.isNotEmpty == true
+      ? _trip!.dropoffAddress!
+      : _pickup;
+
+  String get _price => _trip?.displayPrice ?? '—';
+
+  String get _distance =>
+      _trip != null && _trip!.distanceLabel.isNotEmpty ? _trip!.distanceLabel : '—';
+
+  String get _duration => _trip?.durationLabel ?? '—';
+
+  String get _driverName => _trip?.driverName ?? 'Driver';
+
+  String get _driverId => _trip?.driverId ?? '';
+
+  double get _driverRating => _trip?.driverRating ?? 5.0;
+
+  int get _driverTrips => _trip?.driverTrips ?? 0;
+
+  String get _vehicleTypes => _trip?.vehicleTypesLabel ?? '—';
+
+  String? get _driverPhone => _trip?.driverPhone;
+
+  String? get _driverPhotoUrl => _trip?.driverPhotoUrl;
+
+  String get _subtitle => _trip?.driverFoundSubtitle ??
+      'Share the OTP below with your driver to start the trip';
+
   @override
   void initState() {
     super.initState();
+    _loadTrip();
     _loadStartOtp();
     _startTripStatusPolling();
+  }
+
+  Future<void> _loadTrip() async {
+    final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
+    if (!mounted || trip == null) return;
+    setState(() => _trip = trip);
   }
 
   Future<void> _loadStartOtp() async {
@@ -146,41 +167,29 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
       return;
     }
 
-    final response = await ref
-        .read(tripApiProvider)
-        .getTripById(widget.tripMongoId);
+    final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
 
     if (!mounted || _navigatedToProgress) return;
-    if (!response.success || response.data == null) return;
+    if (trip == null) return;
 
-    if (response.data!.isInProgress) {
-      _goToTripProgress();
+    setState(() => _trip = trip);
+
+    if (trip.isInProgress) {
+      _goToTripProgress(trip);
     }
   }
 
-  void _goToTripProgress() {
+  void _goToTripProgress([TripModel? trip]) {
     if (_navigatedToProgress || !mounted) return;
+    final activeTrip = trip ?? _trip;
+    if (activeTrip == null) return;
+
     _navigatedToProgress = true;
     _pollTimer?.cancel();
 
     NavigationService().pushNamed(
       'trip_progress',
-      arguments: {
-        'tripMongoId': widget.tripMongoId,
-        'tripTitle': widget.tripTitle,
-        'tripId': widget.tripId,
-        'pickup': widget.pickup,
-        'dropoff': widget.dropoff,
-        'price': widget.price,
-        'distance': widget.distance,
-        'duration': widget.duration,
-        'driverId': widget.driverId,
-        'driverName': widget.driverName,
-        'driverRating': widget.driverRating,
-        'driverTrips': widget.driverTrips,
-        'vehicleTypes': widget.vehicleTypes,
-        ...tripPaymentArguments(widget.paymentType),
-      },
+      arguments: activeTrip.toProgressArguments(),
     );
   }
 
@@ -225,8 +234,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
       body: Column(
         children: [
           _DriverFoundHeader(
-            tripTitle: widget.tripTitle,
-            tripId: widget.tripId,
+            tripTitle: _tripTitle,
+            tripId: _tripId,
             onBack: () => Navigator.of(context).maybePop(),
           ),
           SizedBox(
@@ -241,29 +250,38 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
                   width: double.infinity,
                   height: double.infinity,
                 ),
-                const Positioned(right: 20, bottom: 12, child: _HelpButton()),
+                Positioned(
+                  right: 20,
+                  bottom: 12,
+                  child: _HelpButton(
+                    onTap: () => openTripHelp(tripLabel: _tripId),
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
             child: _DriverFoundSheet(
+              subtitle: _subtitle,
               otp: _otp,
               isLoadingOtp: _isLoadingOtp,
               otpError: _otpError,
               otpBorderColor: _otpBorderColor,
               policyTimerBlue: _policyTimerBlue,
               cancelTimerLabel: _cancelTimerLabel,
-              pickup: widget.pickup,
-              dropoff: widget.dropoff,
-              price: widget.price,
-              distance: widget.distance,
-              duration: widget.duration,
-              driverName: widget.driverName,
-              driverId: widget.driverId,
+              pickup: _pickup,
+              dropoff: _dropoff,
+              price: _price,
+              distance: _distance,
+              duration: _duration,
+              driverName: _driverName,
+              driverId: _driverId,
               tripMongoId: widget.tripMongoId,
-              driverRating: widget.driverRating,
-              driverTrips: widget.driverTrips,
-              vehicleTypes: widget.vehicleTypes,
+              driverRating: _driverRating,
+              driverTrips: _driverTrips,
+              vehicleTypes: _vehicleTypes,
+              driverPhone: _driverPhone,
+              driverPhotoUrl: _driverPhotoUrl,
               onCancel: _handleCancel,
             ),
           ),
@@ -339,7 +357,9 @@ class _DriverFoundHeader extends StatelessWidget {
 }
 
 class _HelpButton extends StatelessWidget {
-  const _HelpButton();
+  final VoidCallback onTap;
+
+  const _HelpButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +369,7 @@ class _HelpButton extends StatelessWidget {
       shadowColor: kBlack.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -372,6 +392,7 @@ class _HelpButton extends StatelessWidget {
 }
 
 class _DriverFoundSheet extends StatelessWidget {
+  final String subtitle;
   final String? otp;
   final bool isLoadingOtp;
   final String? otpError;
@@ -389,9 +410,12 @@ class _DriverFoundSheet extends StatelessWidget {
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
+  final String? driverPhone;
+  final String? driverPhotoUrl;
   final VoidCallback onCancel;
 
   const _DriverFoundSheet({
+    required this.subtitle,
     required this.otp,
     required this.isLoadingOtp,
     this.otpError,
@@ -409,6 +433,8 @@ class _DriverFoundSheet extends StatelessWidget {
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
+    this.driverPhone,
+    this.driverPhotoUrl,
     required this.onCancel,
   });
 
@@ -441,7 +467,7 @@ class _DriverFoundSheet extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '200 meters away • Arriving in 10 minutes...',
+              subtitle,
               textAlign: TextAlign.center,
               style: kDriverFoundSubtitleR,
             ),
@@ -453,6 +479,8 @@ class _DriverFoundSheet extends StatelessWidget {
               driverRating: driverRating,
               driverTrips: driverTrips,
               vehicleTypes: vehicleTypes,
+              driverPhone: driverPhone,
+              driverPhotoUrl: driverPhotoUrl,
             ),
             const SizedBox(height: 14),
             _OtpCard(
@@ -462,7 +490,7 @@ class _DriverFoundSheet extends StatelessWidget {
               borderColor: otpBorderColor,
             ),
             const SizedBox(height: 14),
-            _TripSummaryCard(
+            TripRouteSummaryCard(
               pickup: pickup,
               dropoff: dropoff,
               price: price,
@@ -525,6 +553,8 @@ class _DriverInfoCard extends StatelessWidget {
   final double driverRating;
   final int driverTrips;
   final String vehicleTypes;
+  final String? driverPhone;
+  final String? driverPhotoUrl;
 
   const _DriverInfoCard({
     required this.driverName,
@@ -533,10 +563,14 @@ class _DriverInfoCard extends StatelessWidget {
     required this.driverRating,
     required this.driverTrips,
     required this.vehicleTypes,
+    this.driverPhone,
+    this.driverPhotoUrl,
   });
 
   @override
   Widget build(BuildContext context) {
+    final photoUrl = driverPhotoUrl;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -548,18 +582,15 @@ class _DriverInfoCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              'https://i.pravatar.cc/128?u=ajith_kumar_driver',
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                width: 56,
-                height: 56,
-                color: kChipGreyBg,
-                child: const Icon(Icons.person, color: kMutedText, size: 32),
-              ),
-            ),
+            child: photoUrl != null && photoUrl.isNotEmpty
+                ? Image.network(
+                    photoUrl,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _driverAvatarFallback(),
+                  )
+                : _driverAvatarFallback(),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -605,10 +636,24 @@ class _DriverInfoCard extends StatelessWidget {
           _DriverActionButton(
             color: kBlue,
             icon: Icons.phone_in_talk_rounded,
-            onTap: () {},
+            onTap: () {
+              final phone = driverPhone;
+              if (phone != null && phone.isNotEmpty) {
+                launchPhoneCall(phone);
+              }
+            },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _driverAvatarFallback() {
+    return Container(
+      width: 56,
+      height: 56,
+      color: kChipGreyBg,
+      child: const Icon(Icons.person, color: kMutedText, size: 32),
     );
   }
 
@@ -777,111 +822,6 @@ class _OtpDigitBox extends StatelessWidget {
         border: Border.all(color: borderColor, width: 1.5),
       ),
       child: Text(digit, style: kDriverFoundOtpDigitSB),
-    );
-  }
-}
-
-class _TripSummaryCard extends StatelessWidget {
-  final String pickup;
-  final String dropoff;
-  final String price;
-  final String distance;
-  final String duration;
-
-  const _TripSummaryCard({
-    required this.pickup,
-    required this.dropoff,
-    required this.price,
-    required this.distance,
-    required this.duration,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: kCardBorder),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            color: kActiveGreenBg,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          pickup,
-                          style: kDriverFoundRouteSB,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6),
-                        child: Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 18,
-                          color: kActiveGreen,
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          dropoff,
-                          style: kDriverFoundRouteSB,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(price, style: kDriverFoundPriceSB),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: Column(
-              children: [
-                _TripMetaRow(
-                  icon: Icons.location_on_outlined,
-                  label: 'Distance: $distance',
-                ),
-                const SizedBox(height: 6),
-                _TripMetaRow(
-                  icon: Icons.access_time_rounded,
-                  label: 'Time Duration: $duration',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TripMetaRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _TripMetaRow({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: kTripIconMuted),
-        const SizedBox(width: 6),
-        Text(label, style: kDriverFoundTripMetaR),
-      ],
     );
   }
 }

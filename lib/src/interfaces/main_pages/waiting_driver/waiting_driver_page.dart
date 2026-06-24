@@ -1,13 +1,14 @@
 import 'dart:async';
 
-import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
+import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:driveforme_user/src/interfaces/components/trip_route_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -43,19 +44,11 @@ extension WaitingDriverStageX on WaitingDriverStage {
 }
 
 class WaitingDriverPage extends ConsumerStatefulWidget {
-  final String tripTitle;
-  final String tripId;
   final String tripMongoId;
-  final WaitingDriverStage initialStage;
-  final TripCompletedPaymentType paymentType;
 
   const WaitingDriverPage({
     super.key,
-    this.tripTitle = 'One Way Trip',
-    this.tripId = '# —',
     this.tripMongoId = '',
-    this.initialStage = WaitingDriverStage.matchingNearby,
-    this.paymentType = TripCompletedPaymentType.offline,
   });
 
   @override
@@ -72,26 +65,45 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
   Timer? _stageTimer;
   Timer? _pollTimer;
   bool _navigatedToDriverFound = false;
+  TripModel? _trip;
+
+  String get _tripTitle => _trip?.tripTitle ?? 'One Way Trip';
+
+  String get _tripId => _trip?.displayTripId ?? '# —';
+
+  String get _pickup => _trip?.pickupAddress.isNotEmpty == true
+      ? _trip!.pickupAddress
+      : '—';
+
+  String get _dropoff => _trip?.dropoffAddress?.isNotEmpty == true
+      ? _trip!.dropoffAddress!
+      : _pickup;
+
+  String get _price => _trip?.displayPrice ?? '—';
+
+  String get _distance =>
+      _trip != null && _trip!.distanceLabel.isNotEmpty ? _trip!.distanceLabel : '—';
+
+  String get _duration => _trip?.durationLabel ?? '—';
 
   @override
   void initState() {
     super.initState();
-    _stage = widget.initialStage;
+    _stage = WaitingDriverStage.matchingNearby;
     _progressController = AnimationController(
       vsync: this,
       duration: _stageDuration,
       value: 0,
     );
     _runStage(_stage);
-    _persistActiveTrip();
+    _loadTrip();
     _startPolling();
   }
 
-  Future<void> _persistActiveTrip() async {
-    if (widget.tripMongoId.isEmpty) return;
-    await ref
-        .read(activeTripProvider.notifier)
-        .setActiveTrip(widget.tripMongoId);
+  Future<void> _loadTrip() async {
+    final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
+    if (!mounted || trip == null) return;
+    setState(() => _trip = trip);
   }
 
   void _startPolling() {
@@ -106,15 +118,12 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       return;
     }
 
-    final response = await ref
-        .read(tripApiProvider)
-        .getTripById(widget.tripMongoId);
+    final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
 
     if (!mounted || _navigatedToDriverFound) return;
+    if (trip == null) return;
 
-    if (!response.success || response.data == null) return;
-
-    final trip = response.data!;
+    setState(() => _trip = trip);
 
     if (trip.isCancelled) {
       _pollTimer?.cancel();
@@ -189,8 +198,8 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       body: Column(
         children: [
           _WaitingDriverHeader(
-            tripTitle: widget.tripTitle,
-            tripId: widget.tripId,
+            tripTitle: _tripTitle,
+            tripId: _tripId,
             onBack: () => Navigator.of(context).maybePop(),
           ),
           Expanded(
@@ -203,13 +212,24 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
                   width: double.infinity,
                   height: double.infinity,
                 ),
-                const Positioned(right: 20, bottom: 16, child: _HelpButton()),
+                Positioned(
+                  right: 20,
+                  bottom: 16,
+                  child: _HelpButton(
+                    onTap: () => openTripHelp(tripLabel: _tripId),
+                  ),
+                ),
               ],
             ),
           ),
           _WaitingDriverSheet(
             stage: _stage,
             progress: _progressController,
+            pickup: _pickup,
+            dropoff: _dropoff,
+            price: _price,
+            distance: _distance,
+            duration: _duration,
             onCancel: _handleCancel,
           ),
         ],
@@ -284,7 +304,9 @@ class _WaitingDriverHeader extends StatelessWidget {
 }
 
 class _HelpButton extends StatelessWidget {
-  const _HelpButton();
+  final VoidCallback onTap;
+
+  const _HelpButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +316,7 @@ class _HelpButton extends StatelessWidget {
       shadowColor: kBlack.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -319,11 +341,21 @@ class _HelpButton extends StatelessWidget {
 class _WaitingDriverSheet extends StatelessWidget {
   final WaitingDriverStage stage;
   final Animation<double> progress;
+  final String pickup;
+  final String dropoff;
+  final String price;
+  final String distance;
+  final String duration;
   final VoidCallback onCancel;
 
   const _WaitingDriverSheet({
     required this.stage,
     required this.progress,
+    required this.pickup,
+    required this.dropoff,
+    required this.price,
+    required this.distance,
+    required this.duration,
     required this.onCancel,
   });
 
@@ -389,6 +421,14 @@ class _WaitingDriverSheet extends StatelessWidget {
                     );
                   },
                   child: _StageCopy(key: ValueKey(stage), stage: stage),
+                ),
+                const SizedBox(height: 20),
+                TripRouteSummaryCard(
+                  pickup: pickup,
+                  dropoff: dropoff,
+                  price: price,
+                  distance: distance,
+                  duration: duration,
                 ),
                 const SizedBox(height: 28),
                 primaryButton(
