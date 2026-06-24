@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/screen_size_provider.dart';
-import 'package:driveforme_user/src/data/services/active_trip_service.dart';
 import 'package:driveforme_user/src/data/services/auth_session_service.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
@@ -95,14 +94,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     NavigationService().pushNamedAndRemoveUntil(route);
 
     if (route == 'navbar') {
-      final target =
-          await ref.read(activeTripServiceProvider).resolveResumableTrip();
-      if (target != null && mounted) {
-        NavigationService().pushNamed(
-          target.route,
-          arguments: target.arguments,
-        );
-      }
+      // Active trip resume is handled once by NavBar.
     }
   }
 

@@ -46,7 +46,13 @@ class CancelledTripDetailsPage extends StatelessWidget {
           _CancelledTripHeader(
             tripTitle: tripTitle,
             tripId: tripId,
-            onBack: () => Navigator.of(context).maybePop(),
+            onBack: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                NavigationService().resetToNavbar();
+              }
+            },
           ),
           Expanded(
             child: SingleChildScrollView(

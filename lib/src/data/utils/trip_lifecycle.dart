@@ -60,6 +60,15 @@ Future<TripModel?> cancelTripWithDialog({
   return response.data;
 }
 
+Future<void> navigateAfterTripCancelled(
+  Map<String, dynamic> cancelledArguments,
+) async {
+  NavigationService().resetToNavbarThenPush(
+    'cancelled_trip_details',
+    arguments: cancelledArguments,
+  );
+}
+
 void openChatScreen({
   required String receiverId,
   required String receiverName,

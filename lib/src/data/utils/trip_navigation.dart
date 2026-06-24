@@ -45,10 +45,7 @@ TripNavigationTarget? tripNavigationTarget(TripModel trip) {
         arguments: trip.toTripCompletedArguments(),
       );
     case 'cancelled':
-      return TripNavigationTarget(
-        route: 'cancelled_trip_details',
-        arguments: trip.toCancelledDetailsArguments(),
-      );
+      return null;
     default:
       return null;
   }

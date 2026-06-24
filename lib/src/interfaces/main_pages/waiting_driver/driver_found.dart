@@ -200,10 +200,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
       tripMongoId: widget.tripMongoId,
     );
     if (!mounted || trip == null) return;
-    NavigationService().pushNamedAndRemoveUntil(
-      'cancelled_trip_details',
-      arguments: trip.toCancelledDetailsArguments(),
-    );
+    await navigateAfterTripCancelled(trip.toCancelledDetailsArguments());
   }
 
   @override

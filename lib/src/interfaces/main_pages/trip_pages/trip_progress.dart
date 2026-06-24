@@ -141,10 +141,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
       _pollTimer?.cancel();
       await ref.read(activeTripProvider.notifier).clear();
       if (!mounted) return;
-      NavigationService().pushNamedAndRemoveUntil(
-        'cancelled_trip_details',
-        arguments: trip.toCancelledDetailsArguments(),
-      );
+      await navigateAfterTripCancelled(trip.toCancelledDetailsArguments());
       return;
     }
 

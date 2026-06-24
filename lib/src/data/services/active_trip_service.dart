@@ -1,5 +1,4 @@
 import 'package:driveforme_user/src/data/apis/trip_api.dart';
-import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
 import 'package:driveforme_user/src/data/utils/trip_navigation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,54 +13,38 @@ class ActiveTripService {
   })  : _storage = storage,
         _tripApi = tripApi;
 
+  /// Resumes only the trip id persisted during booking — never scans all trips.
   Future<TripNavigationTarget?> resolveResumableTrip() async {
     final storedId = await _storage.getActiveTripId();
-    if (storedId != null && storedId.isNotEmpty) {
-      final target = await _targetFromTripId(storedId);
-      if (target != null) return target;
-      await _storage.clearActiveTripId();
-    }
+    if (storedId == null || storedId.isEmpty) return null;
 
-    final inProgress = await _tripApi.listOngoingTrips();
-    if (inProgress.success &&
-        inProgress.data != null &&
-        inProgress.data!.isNotEmpty) {
-      final trip = inProgress.data!.first;
-      await _storage.saveActiveTripId(trip.id);
-      return tripNavigationTarget(trip);
-    }
-
-    final upcoming = await _tripApi.listUpcomingTrips();
-    if (!upcoming.success || upcoming.data == null) return null;
-
-    TripModel? best;
-    for (final trip in upcoming.data!) {
-      if (!isActiveTripStatus(trip.status)) continue;
-      if (trip.status == 'driver_assigned') {
-        best = trip;
-        break;
-      }
-      best ??= trip;
-    }
-
-    if (best == null) return null;
-    await _storage.saveActiveTripId(best.id);
-    return tripNavigationTarget(best);
+    return _targetFromTripId(storedId);
   }
 
   Future<TripNavigationTarget?> _targetFromTripId(String tripId) async {
     final response = await _tripApi.getTripById(tripId);
-    if (!response.success || response.data == null) return null;
-
-    final trip = response.data!;
-    if (!isActiveTripStatus(trip.status) &&
-        trip.status != 'completed') {
+    if (!response.success || response.data == null) {
+      await _storage.clearActiveTripId();
       return null;
     }
 
-    if (trip.status == 'completed' && trip.isRated) return null;
+    final trip = response.data!;
 
-    return tripNavigationTarget(trip);
+    if (trip.isCancelled || (trip.isCompleted && trip.isRated)) {
+      await _storage.clearActiveTripId();
+      return null;
+    }
+
+    if (!isActiveTripStatus(trip.status) && !trip.isCompleted) {
+      await _storage.clearActiveTripId();
+      return null;
+    }
+
+    final target = tripNavigationTarget(trip);
+    if (target == null) {
+      await _storage.clearActiveTripId();
+    }
+    return target;
   }
 }
 

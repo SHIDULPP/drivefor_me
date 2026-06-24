@@ -133,10 +133,7 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('This trip was cancelled.')),
       );
-      NavigationService().pushNamedAndRemoveUntil(
-        'cancelled_trip_details',
-        arguments: trip.toCancelledDetailsArguments(),
-      );
+      await navigateAfterTripCancelled(trip.toCancelledDetailsArguments());
       return;
     }
 
@@ -177,10 +174,7 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       tripMongoId: widget.tripMongoId,
     );
     if (!mounted || trip == null) return;
-    NavigationService().pushNamedAndRemoveUntil(
-      'cancelled_trip_details',
-      arguments: trip.toCancelledDetailsArguments(),
-    );
+    await navigateAfterTripCancelled(trip.toCancelledDetailsArguments());
   }
 
   @override

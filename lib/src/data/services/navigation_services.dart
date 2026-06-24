@@ -23,6 +23,20 @@ class NavigationService {
         arguments: arguments);
   }
 
+  /// Clears the stack and sets [navbar] as the only route.
+  Future<dynamic> resetToNavbar() {
+    return pushNamedAndRemoveUntil('navbar');
+  }
+
+  /// Returns to home, optionally opening a detail screen on top.
+  Future<void> resetToNavbarThenPush(
+    String routeName, {
+    Map<String, dynamic>? arguments,
+  }) async {
+    await resetToNavbar();
+    await pushNamed(routeName, arguments: arguments);
+  }
+
   Future<dynamic> pushRemoveUntil(Widget child) {
     return navigatorKey.currentState!.pushAndRemoveUntil(
         MaterialPageRoute(
