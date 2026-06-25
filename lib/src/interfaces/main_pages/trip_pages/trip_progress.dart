@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
+import 'package:driveforme_user/src/interfaces/components/trip_map_view.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -97,6 +99,23 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
           : widget.distance;
 
   String get _duration => _trip?.durationLabel ?? widget.duration;
+
+  TripLocation get _pickupLocation =>
+      _trip?.pickupLocation ?? TripLocation.fromAddress(widget.pickup);
+
+  TripLocation? get _dropoffLocation {
+    final fromTrip = _trip?.dropoffLocation;
+    if (fromTrip != null &&
+        (fromTrip.hasAddress || fromTrip.hasCoordinates)) {
+      return fromTrip;
+    }
+    if (widget.dropoff.trim().isNotEmpty) {
+      return TripLocation.fromAddress(widget.dropoff);
+    }
+    return _pickupLocation.hasAddress || _pickupLocation.hasCoordinates
+        ? _pickupLocation
+        : null;
+  }
 
   @override
   void initState() {
@@ -210,11 +229,9 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  'assets/pngs/waiting_map.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+                TripMapView(
+                  pickup: _pickupLocation,
+                  dropoff: _dropoffLocation,
                 ),
                 Positioned(
                   right: 14,

@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
+import 'package:driveforme_user/src/interfaces/components/trip_map_view.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:driveforme_user/src/interfaces/components/trip_route_summary_card.dart';
 import 'package:flutter/material.dart';
@@ -85,6 +87,17 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       _trip != null && _trip!.distanceLabel.isNotEmpty ? _trip!.distanceLabel : '—';
 
   String get _duration => _trip?.durationLabel ?? '—';
+
+  TripLocation? get _pickupLocation => _trip?.pickupLocation;
+
+  TripLocation? get _dropoffLocation {
+    final dropoff = _trip?.dropoffLocation;
+    if (dropoff != null &&
+        (dropoff.hasAddress || dropoff.hasCoordinates)) {
+      return dropoff;
+    }
+    return _pickupLocation;
+  }
 
   @override
   void initState() {
@@ -200,11 +213,9 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  'assets/pngs/waiting_map.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+                TripMapView(
+                  pickup: _pickupLocation,
+                  dropoff: _dropoffLocation,
                 ),
                 Positioned(
                   right: 20,
