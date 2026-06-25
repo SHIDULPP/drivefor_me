@@ -59,6 +59,20 @@ class TripLocation {
     );
   }
 
+  String get displayLabel {
+    if (!hasAddress) return 'Current location';
+
+    final parts = address
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) return address;
+    if (parts.length == 1) return parts.first;
+    return '${parts[0]}, ${parts[1]}';
+  }
+
   static double? _toDouble(dynamic value) {
     if (value == null) return null;
     if (value is num) return value.toDouble();

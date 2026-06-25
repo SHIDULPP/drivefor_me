@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/current_location_provider.dart';
 import 'package:driveforme_user/src/data/providers/user_provider.dart';
 import 'package:driveforme_user/src/data/providers/notification_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
@@ -56,6 +57,14 @@ class _HeaderWithBookingCard extends ConsumerWidget {
       error: (_, _) => 'Hii there!',
     );
 
+    final locationLabel = ref
+        .watch(currentLocationProvider)
+        .when(
+          data: (location) => location?.displayLabel ?? 'Location unavailable',
+          loading: () => 'Getting location...',
+          error: (_, _) => 'Location unavailable',
+        );
+
     return SizedBox(
       height: _stackHeight,
       child: Stack(
@@ -91,7 +100,7 @@ class _HeaderWithBookingCard extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              'Edappally, Lulu Mall',
+                              locationLabel,
                               style: kCaption14R.copyWith(
                                 color: kWhite.withValues(alpha: 0.95),
                               ),
@@ -392,12 +401,18 @@ class _NotificationBellButton extends StatelessWidget {
                 right: -2,
                 top: -2,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
                   decoration: const BoxDecoration(
                     color: kRed,
                     shape: BoxShape.circle,
                   ),
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
                   child: Text(
                     unreadCount > 9 ? '9+' : '$unreadCount',
                     textAlign: TextAlign.center,
