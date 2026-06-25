@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/place_prediction_model.dart';
+import 'package:driveforme_user/src/data/services/location_service.dart';
+import 'package:driveforme_user/src/data/services/places_service.dart';
 import 'package:flutter/material.dart';
 
 class SearchLocationPage extends StatefulWidget {
   final String title;
   final bool showCurrentLocation;
+
   const SearchLocationPage({
     super.key,
     required this.title,
@@ -16,30 +22,112 @@ class SearchLocationPage extends StatefulWidget {
 }
 
 class _SearchLocationPageState extends State<SearchLocationPage> {
-  final TextEditingController _searchController = TextEditingController();
+  static const _debounceDuration = Duration(milliseconds: 350);
 
-  static const List<Map<String, String>> _allLocations = [
-    {'title': 'Infopark Phase I', 'subtitle': 'Kakkanad'},
-    {'title': 'Infopark Phase II', 'subtitle': 'Kakkanad'},
-    {'title': 'Lulu Mall', 'subtitle': 'Edappally'},
-    {'title': 'MG Road Metro', 'subtitle': 'Ernakulam'},
-  ];
+  final TextEditingController _searchController = TextEditingController();
+  final PlacesService _placesService = PlacesService();
+  final LocationService _locationService = const LocationService();
+
+  Timer? _debounce;
+  List<PlacePrediction> _predictions = const [];
+  bool _isSearching = false;
+  bool _isResolvingSelection = false;
+  bool _isFetchingCurrentLocation = false;
+  String? _searchError;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onQueryChanged);
+  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _searchController.removeListener(_onQueryChanged);
     _searchController.dispose();
+    _placesService.dispose();
     super.dispose();
+  }
+
+  void _onQueryChanged() {
+    _debounce?.cancel();
+    _debounce = Timer(_debounceDuration, _runAutocomplete);
+  }
+
+  Future<void> _runAutocomplete() async {
+    final query = _searchController.text.trim();
+    if (query.length < 2) {
+      if (!mounted) return;
+      setState(() {
+        _predictions = const [];
+        _isSearching = false;
+        _searchError = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _searchError = null;
+    });
+
+    final predictions = await _placesService.autocomplete(query);
+    if (!mounted) return;
+
+    setState(() {
+      _predictions = predictions;
+      _isSearching = false;
+      _searchError =
+          predictions.isEmpty ? 'No places found. Try another search.' : null;
+    });
+  }
+
+  Future<void> _selectPrediction(PlacePrediction prediction) async {
+    setState(() {
+      _isResolvingSelection = true;
+      _searchError = null;
+    });
+
+    final location = await _placesService.placeDetails(prediction.placeId);
+    if (!mounted) return;
+
+    if (location == null || !location.hasCoordinates) {
+      setState(() {
+        _isResolvingSelection = false;
+        _searchError = 'Could not load location details. Please try again.';
+      });
+      return;
+    }
+
+    Navigator.pop(context, location.toJson());
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() {
+      _isFetchingCurrentLocation = true;
+      _searchError = null;
+    });
+
+    final location = await _locationService.getCurrentLocation();
+    if (!mounted) return;
+
+    if (location == null || !location.hasCoordinates) {
+      setState(() {
+        _isFetchingCurrentLocation = false;
+        _searchError =
+            'Unable to access your location. Check permissions and try again.';
+      });
+      return;
+    }
+
+    Navigator.pop(context, location.toJson());
   }
 
   @override
   Widget build(BuildContext context) {
-    final query = _searchController.text.trim().toLowerCase();
-    final filteredLocations = _allLocations.where((location) {
-      final title = (location['title'] ?? '').toLowerCase();
-      final subtitle = (location['subtitle'] ?? '').toLowerCase();
-      if (query.isEmpty) return true;
-      return title.contains(query) || subtitle.contains(query);
-    }).toList();
+    final query = _searchController.text.trim();
+    final showSuggestions = query.length >= 2;
 
     return Scaffold(
       backgroundColor: kScreenBg,
@@ -98,18 +186,18 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                         child: Row(
                           children: [
                             const Icon(
-                              Icons.my_location,
-                              size: 34,
+                              Icons.search,
+                              size: 30,
                               color: kTextColor,
                             ),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: TextField(
                                 controller: _searchController,
-                                onChanged: (_) => setState(() {}),
+                                autofocus: true,
                                 style: kStyle(kRegular, 16, color: kTextColor),
                                 decoration: InputDecoration(
-                                  hintText: 'Search',
+                                  hintText: 'Search for a place',
                                   hintStyle: kStyle(
                                     kLight,
                                     16,
@@ -119,20 +207,26 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                                 ),
                               ),
                             ),
+                            if (_isSearching || _isResolvingSelection)
+                              const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                ),
+                              ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 42),
+                    const SizedBox(height: 28),
                     if (widget.showCurrentLocation) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 36),
                         child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context, {
-                              'address': 'Current location',
-                            });
-                          },
+                          onTap: _isFetchingCurrentLocation
+                              ? null
+                              : _useCurrentLocation,
                           child: Row(
                             children: [
                               const Icon(
@@ -141,26 +235,30 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                                 color: kTextColor,
                               ),
                               const SizedBox(width: 24),
-                              Text(
-                                'Use current location',
-                                style: kStyle(
-                                  kSemiBold,
-                                  16,
-                                  color: const Color(0xFF39463D),
+                              Expanded(
+                                child: Text(
+                                  _isFetchingCurrentLocation
+                                      ? 'Getting current location...'
+                                      : 'Use current location',
+                                  style: kStyle(
+                                    kSemiBold,
+                                    16,
+                                    color: const Color(0xFF39463D),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 44),
+                      const SizedBox(height: 32),
                     ],
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 38),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'RECENT',
+                          showSuggestions ? 'SUGGESTIONS' : 'SEARCH',
                           style: kStyle(
                             kSemiBold,
                             16,
@@ -170,25 +268,49 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: [
-                          for (final location in filteredLocations)
-                            _LocationTile(
-                              title: location['title'] ?? '',
-                              subtitle: location['subtitle'] ?? '',
-                              onTap: () {
-                                final address = [
-                                  location['title'],
-                                  location['subtitle'],
-                                ].where((e) => (e ?? '').isNotEmpty).join(', ');
-                                Navigator.pop(context, {'address': address});
-                              },
-                            ),
-                        ],
+                    const SizedBox(height: 16),
+                    if (_searchError != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 38),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _searchError!,
+                            style: kStyle(kRegular, 14, color: kMutedText),
+                          ),
+                        ),
                       ),
+                    Expanded(
+                      child: showSuggestions
+                          ? ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: _predictions.length,
+                              itemBuilder: (context, index) {
+                                final prediction = _predictions[index];
+                                return _LocationTile(
+                                  title: prediction.title,
+                                  subtitle: prediction.subtitle,
+                                  onTap: _isResolvingSelection
+                                      ? null
+                                      : () => _selectPrediction(prediction),
+                                );
+                              },
+                            )
+                          : Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 38),
+                              child: Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  'Start typing to search places in India.',
+                                  style: kStyle(
+                                    kRegular,
+                                    14,
+                                    color: kMutedText,
+                                  ),
+                                ),
+                              ),
+                            ),
                     ),
                   ],
                 ),
@@ -204,7 +326,7 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
 class _LocationTile extends StatelessWidget {
   final String title;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _LocationTile({
     required this.title,
@@ -248,15 +370,17 @@ class _LocationTile extends StatelessWidget {
                           color: const Color(0xFF39463D),
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        subtitle,
-                        style: kStyle(
-                          kRegular,
-                          14,
-                          color: const Color(0xFF39463D),
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          subtitle,
+                          style: kStyle(
+                            kRegular,
+                            14,
+                            color: const Color(0xFF39463D),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

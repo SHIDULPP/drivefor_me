@@ -11,6 +11,7 @@ class TripModel {
   final String rideTime;
   final TripLocation pickupLocation;
   final TripLocation? dropoffLocation;
+  final TripLocation? driverLocation;
   final double? distanceKm;
   final String? estimatedDurationLabel;
   final int durationValue;
@@ -47,6 +48,7 @@ class TripModel {
     required this.rideTime,
     required this.pickupLocation,
     this.dropoffLocation,
+    this.driverLocation,
     this.distanceKm,
     this.estimatedDurationLabel,
     required this.durationValue,
@@ -106,6 +108,7 @@ class TripModel {
       dropoffLocation: routeMap != null
           ? _optionalLocation(routeMap['dropoffLocation'])
           : null,
+      driverLocation: _resolveDriverLocation(json, routeMap),
       distanceKm: _toDouble(routeSummary?['distanceKm']),
       estimatedDurationLabel:
           routeSummary?['estimatedDurationLabel']?.toString(),
@@ -487,6 +490,42 @@ class TripModel {
     final parsed = TripLocation.fromDynamic(location);
     if (!parsed.hasAddress && !parsed.hasCoordinates) return null;
     return parsed;
+  }
+
+  static TripLocation? _resolveDriverLocation(
+    Map<String, dynamic> json,
+    Map<String, dynamic>? routeMap,
+  ) {
+    final candidates = <dynamic>[
+      json['driverLocation'],
+      routeMap?['driverLocation'],
+      routeMap?['liveDriverLocation'],
+    ];
+
+    final driver = _resolveDriver(json);
+    if (driver is Map) {
+      candidates.addAll([
+        driver['currentLocation'],
+        driver['location'],
+        driver['liveLocation'],
+      ]);
+    }
+
+    final assignment = json['driverAssignment'];
+    if (assignment is Map) {
+      candidates.addAll([
+        assignment['currentLocation'],
+        assignment['driverLocation'],
+        assignment['liveLocation'],
+      ]);
+    }
+
+    for (final candidate in candidates) {
+      final location = TripLocation.fromDynamic(candidate);
+      if (location.hasCoordinates) return location;
+    }
+
+    return null;
   }
 
   static DateTime? _parseDate(dynamic value) {

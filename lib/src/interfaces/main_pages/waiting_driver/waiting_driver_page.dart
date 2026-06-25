@@ -99,6 +99,8 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     return _pickupLocation;
   }
 
+  bool get _showRoute => _trip?.isOneWay ?? true;
+
   @override
   void initState() {
     super.initState();
@@ -216,6 +218,7 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
                 TripMapView(
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
+                  showRoute: _showRoute,
                 ),
                 Positioned(
                   right: 20,

@@ -89,6 +89,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     return _pickupLocation;
   }
 
+  TripLocation? get _driverLocation => _trip?.driverLocation;
+
   @override
   void initState() {
     super.initState();
@@ -257,6 +259,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
                 TripMapView(
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
+                  driverLocation: _driverLocation,
+                  showRoute: _trip?.isOneWay ?? true,
                 ),
                 Positioned(
                   right: 20,

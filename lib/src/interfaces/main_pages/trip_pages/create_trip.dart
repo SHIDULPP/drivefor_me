@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/models/trip_price_estimate_model.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
@@ -44,8 +45,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   DateTime? scheduledRideAt;
   int? selectedPaymentIndex;
   bool _isSubmitting = false;
-  String _pickupAddress = 'Edappally, Lulu mall';
-  String? _dropoffAddress;
+  TripLocation _pickupLocation =
+      const TripLocation(address: 'Edappally, Lulu mall');
+  TripLocation? _dropoffLocation;
   List<VehicleModel> _vehicles = [];
   VehicleModel? _selectedVehicle;
   bool _isLoadingVehicles = true;
@@ -475,7 +477,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                                 Text('From', style: kTripLocationLabelR),
                                 const SizedBox(height: 4),
                                 Text(
-                                  _pickupAddress,
+                                  _pickupLocation.address,
                                   style: kTripLocationValueM,
                                 ),
                               ],
@@ -520,9 +522,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                           ),
                           const SizedBox(height: 14),
                           Text(
-                            _dropoffAddress ?? 'Enter destination',
+                            _dropoffLocation?.address ?? 'Enter destination',
                             style: kTripLocationValueM.copyWith(
-                              color: _dropoffAddress == null
+                              color: _dropoffLocation == null
                                   ? kTripMutedLabel
                                   : kTextColor,
                             ),
@@ -1655,12 +1657,12 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   }
 
   ApiResponse<Map<String, dynamic>> _buildTripPayload(String userId) {
-    if (_pickupAddress.trim().isEmpty) {
+    if (!_pickupLocation.hasAddress) {
       return ApiResponse.error('Please select pickup location.');
     }
 
     if (isOneWay &&
-        (_dropoffAddress == null || _dropoffAddress!.trim().isEmpty)) {
+        (_dropoffLocation == null || !_dropoffLocation!.hasAddress)) {
       return ApiResponse.error('Please select destination for one-way trip.');
     }
 
@@ -1687,8 +1689,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     final payload = <String, dynamic>{
       'userId': userId,
       'tripDirection': isOneWay ? 'one_way' : 'round_trip',
-      'pickupLocation': {'address': _pickupAddress},
-      if (isOneWay) 'dropoffLocation': {'address': _dropoffAddress},
+      'pickupLocation': _pickupLocation.toJson(),
+      if (isOneWay && _dropoffLocation != null)
+        'dropoffLocation': _dropoffLocation!.toJson(),
       'tripType': isShortTrip ? 'short_trip' : 'long_trip',
       'rideTime': isRideNow ? 'now' : 'scheduled',
       'durationValue': duration.data!['durationValue'],
@@ -1789,11 +1792,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       },
     );
 
-    final selectedAddress = _extractAddressFromSelection(result);
-    if (selectedAddress == null || selectedAddress.isEmpty || !mounted) return;
+    final selectedLocation = _extractLocationFromSelection(result);
+    if (selectedLocation == null || !selectedLocation.hasAddress || !mounted) {
+      return;
+    }
 
     setState(() {
-      _pickupAddress = selectedAddress;
+      _pickupLocation = selectedLocation;
     });
   }
 
@@ -1806,18 +1811,23 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       },
     );
 
-    final selectedAddress = _extractAddressFromSelection(result);
-    if (selectedAddress == null || selectedAddress.isEmpty || !mounted) return;
+    final selectedLocation = _extractLocationFromSelection(result);
+    if (selectedLocation == null || !selectedLocation.hasAddress || !mounted) {
+      return;
+    }
 
     setState(() {
-      _dropoffAddress = selectedAddress;
+      _dropoffLocation = selectedLocation;
     });
   }
 
-  String? _extractAddressFromSelection(dynamic result) {
-    if (result is String) return result.trim();
-    if (result is Map && result['address'] is String) {
-      return (result['address'] as String).trim();
+  TripLocation? _extractLocationFromSelection(dynamic result) {
+    if (result is TripLocation) return result;
+    if (result is Map) return TripLocation.fromDynamic(result);
+    if (result is String) {
+      final address = result.trim();
+      if (address.isEmpty) return null;
+      return TripLocation.fromAddress(address);
     }
     return null;
   }

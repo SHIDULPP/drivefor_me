@@ -117,6 +117,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
         : null;
   }
 
+  TripLocation? get _driverLocation => _trip?.driverLocation;
+
   @override
   void initState() {
     super.initState();
@@ -232,6 +234,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
                 TripMapView(
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
+                  driverLocation: _driverLocation,
+                  showRoute: _trip?.isOneWay ?? true,
                 ),
                 Positioned(
                   right: 14,

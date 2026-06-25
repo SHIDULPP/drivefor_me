@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
+import 'package:driveforme_user/src/data/services/directions_service.dart';
 import 'package:driveforme_user/src/data/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,13 +8,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class TripMapView extends StatefulWidget {
   final TripLocation? pickup;
   final TripLocation? dropoff;
+  final TripLocation? driverLocation;
   final bool showDropoff;
+  final bool showRoute;
 
   const TripMapView({
     super.key,
     this.pickup,
     this.dropoff,
+    this.driverLocation,
     this.showDropoff = true,
+    this.showRoute = false,
   });
 
   @override
@@ -22,17 +27,20 @@ class TripMapView extends StatefulWidget {
 
 class _TripMapViewState extends State<TripMapView> {
   static const _locationService = LocationService();
+  final DirectionsService _directionsService = DirectionsService();
 
   GoogleMapController? _mapController;
   TripLocation? _resolvedPickup;
   TripLocation? _resolvedDropoff;
+  TripLocation? _resolvedDriver;
+  List<LatLng> _routePoints = const [];
   bool _isResolving = true;
   int _resolveGeneration = 0;
 
   @override
   void initState() {
     super.initState();
-    _resolveLocations();
+    _resolveMapData();
   }
 
   @override
@@ -40,12 +48,14 @@ class _TripMapViewState extends State<TripMapView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.pickup != widget.pickup ||
         oldWidget.dropoff != widget.dropoff ||
-        oldWidget.showDropoff != widget.showDropoff) {
-      _resolveLocations();
+        oldWidget.driverLocation != widget.driverLocation ||
+        oldWidget.showDropoff != widget.showDropoff ||
+        oldWidget.showRoute != widget.showRoute) {
+      _resolveMapData();
     }
   }
 
-  Future<void> _resolveLocations() async {
+  Future<void> _resolveMapData() async {
     final generation = ++_resolveGeneration;
 
     if (mounted) {
@@ -54,11 +64,31 @@ class _TripMapViewState extends State<TripMapView> {
 
     final pickup = widget.pickup ?? const TripLocation.empty();
     final dropoff = widget.dropoff;
+    final driver = widget.driverLocation;
 
     final resolvedPickup = await _locationService.resolveLocation(pickup);
     TripLocation? resolvedDropoff;
-    if (widget.showDropoff && dropoff != null && dropoff.hasAddress) {
+    if (widget.showDropoff && dropoff != null) {
       resolvedDropoff = await _locationService.resolveLocation(dropoff);
+    }
+
+    TripLocation? resolvedDriver;
+    if (driver != null) {
+      resolvedDriver = await _locationService.resolveLocation(driver);
+    }
+
+    var routePoints = <LatLng>[];
+    final pickupPoint = resolvedPickup.latLng;
+    final dropoffPoint = resolvedDropoff?.latLng;
+    if (widget.showRoute &&
+        pickupPoint != null &&
+        dropoffPoint != null &&
+        (pickupPoint.latitude != dropoffPoint.latitude ||
+            pickupPoint.longitude != dropoffPoint.longitude)) {
+      routePoints = await _directionsService.routeBetween(
+        pickupPoint,
+        dropoffPoint,
+      );
     }
 
     if (!mounted || generation != _resolveGeneration) return;
@@ -66,6 +96,8 @@ class _TripMapViewState extends State<TripMapView> {
     setState(() {
       _resolvedPickup = resolvedPickup;
       _resolvedDropoff = resolvedDropoff;
+      _resolvedDriver = resolvedDriver;
+      _routePoints = routePoints;
       _isResolving = false;
     });
 
@@ -102,11 +134,38 @@ class _TripMapViewState extends State<TripMapView> {
       );
     }
 
+    final driver = _resolvedDriver?.latLng;
+    if (driver != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('driver'),
+          position: driver,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
+        ),
+      );
+    }
+
     return markers;
   }
 
+  Set<Polyline> _buildPolylines() {
+    if (_routePoints.length < 2) return const {};
+
+    return {
+      Polyline(
+        polylineId: const PolylineId('trip_route'),
+        points: _routePoints,
+        color: const Color(0xFF165A91),
+        width: 5,
+      ),
+    };
+  }
+
   LatLng _initialTarget() {
-    return _resolvedPickup?.latLng ??
+    return _resolvedDriver?.latLng ??
+        _resolvedPickup?.latLng ??
         _resolvedDropoff?.latLng ??
         kDefaultMapCenter;
   }
@@ -123,6 +182,8 @@ class _TripMapViewState extends State<TripMapView> {
       final points = <LatLng>[
         if (_resolvedPickup?.latLng != null) _resolvedPickup!.latLng!,
         if (_resolvedDropoff?.latLng != null) _resolvedDropoff!.latLng!,
+        if (_resolvedDriver?.latLng != null) _resolvedDriver!.latLng!,
+        ..._routePoints,
       ];
 
       try {
@@ -194,6 +255,7 @@ class _TripMapViewState extends State<TripMapView> {
             zoom: 14,
           ),
           markers: _buildMarkers(),
+          polylines: _buildPolylines(),
           myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
           mapToolbarEnabled: false,
