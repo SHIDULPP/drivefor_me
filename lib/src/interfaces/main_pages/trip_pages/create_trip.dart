@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:driveforme_user/src/data/providers/current_location_provider.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/models/trip_price_estimate_model.dart';
@@ -45,8 +46,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   DateTime? scheduledRideAt;
   int? selectedPaymentIndex;
   bool _isSubmitting = false;
-  TripLocation _pickupLocation =
-      const TripLocation(address: 'Edappally, Lulu mall');
+  bool _hasUserSetPickup = false;
+  bool _isLoadingPickup = true;
+  TripLocation _pickupLocation = const TripLocation.empty();
   TripLocation? _dropoffLocation;
   List<VehicleModel> _vehicles = [];
   VehicleModel? _selectedVehicle;
@@ -62,12 +64,32 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   static final _apiDateFormat = DateFormat('yyyy-MM-dd');
   static final _apiTimeFormat = DateFormat('HH:mm');
 
+  String get _pickupDisplayLabel {
+    if (_isLoadingPickup) return 'Getting location...';
+    if (_pickupLocation.hasAddress) return _pickupLocation.displayLabel;
+    return 'Select pickup location';
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadVehicles();
       _schedulePriceEstimate();
+      _applyDefaultPickupLocation();
+    });
+  }
+
+  Future<void> _applyDefaultPickupLocation() async {
+    final location = await ref.read(currentLocationProvider.future);
+    if (!mounted || _hasUserSetPickup) return;
+
+    setState(() {
+      _isLoadingPickup = false;
+      if (location != null &&
+          (location.hasAddress || location.hasCoordinates)) {
+        _pickupLocation = location;
+      }
     });
   }
 
@@ -477,7 +499,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                                 Text('From', style: kTripLocationLabelR),
                                 const SizedBox(height: 4),
                                 Text(
-                                  _pickupLocation.address,
+                                  _pickupDisplayLabel,
                                   style: kTripLocationValueM,
                                 ),
                               ],
@@ -1798,6 +1820,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
 
     setState(() {
+      _hasUserSetPickup = true;
+      _isLoadingPickup = false;
       _pickupLocation = selectedLocation;
     });
   }
