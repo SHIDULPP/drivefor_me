@@ -1,6 +1,5 @@
 import 'package:driveforme_user/src/data/models/api_response.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
-import 'package:driveforme_user/src/data/models/trip_price_estimate_model.dart';
 import 'package:driveforme_user/src/data/providers/api_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,33 +12,6 @@ class TripApi {
     Map<String, dynamic> payload,
   ) {
     return _api.post('/trips/manual', payload, requireAuth: true);
-  }
-
-  Future<ApiResponse<TripPriceEstimateModel>> estimateTripPrice(
-    Map<String, dynamic> payload,
-  ) async {
-    final response = await _api.post(
-      '/trips/estimate',
-      payload,
-      requireAuth: true,
-    );
-
-    if (!response.success) {
-      return ApiResponse.error(
-        response.message ?? 'Failed to estimate trip price.',
-        response.statusCode,
-      );
-    }
-
-    final data = nestedData(response.data) ?? response.data;
-    if (data == null) {
-      return ApiResponse.error('Invalid price estimate response');
-    }
-
-    return ApiResponse.success(
-      TripPriceEstimateModel.fromJson(Map<String, dynamic>.from(data)),
-      response.statusCode,
-    );
   }
 
   Future<ApiResponse<List<TripModel>>> listOngoingTrips() {

@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:driveforme_user/src/data/models/route_summary_model.dart';
+import 'package:driveforme_user/src/data/services/directions_service.dart';
+import 'package:driveforme_user/src/data/utils/trip_plan_service.dart';
 import 'package:driveforme_user/src/data/providers/current_location_provider.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
@@ -13,6 +16,8 @@ import 'package:driveforme_user/src/data/apis/vehicle_api.dart';
 import 'package:driveforme_user/src/data/models/api_response.dart';
 import 'package:driveforme_user/src/data/models/vehicle_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/providers/pricing_provider.dart';
+import 'package:driveforme_user/src/data/services/trip_fare_service.dart';
 import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:driveforme_user/src/interfaces/components/schedule_sheet.dart';
@@ -47,15 +52,22 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   int? selectedPaymentIndex;
   bool _isSubmitting = false;
   bool _hasUserSetPickup = false;
+  bool _hasUserAdjustedDuration = false;
   bool _isLoadingPickup = true;
+  bool _isLoadingRoute = false;
   TripLocation _pickupLocation = const TripLocation.empty();
   TripLocation? _dropoffLocation;
+  RouteSummary? _routeSummary;
   List<VehicleModel> _vehicles = [];
   VehicleModel? _selectedVehicle;
   bool _isLoadingVehicles = true;
   TripPriceEstimateModel? _priceEstimate;
   bool _isLoadingEstimate = false;
+  int _estimateRequestId = 0;
   Timer? _estimateDebounce;
+  Timer? _routeDebounce;
+  final DirectionsService _directionsService = DirectionsService();
+  static const _tripPlanService = TripPlanService();
 
   static const _tripProtectionFee = 19;
   static const _estimateDebounceDuration = Duration(milliseconds: 350);
@@ -68,6 +80,23 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     if (_isLoadingPickup) return 'Getting location...';
     if (_pickupLocation.hasAddress) return _pickupLocation.displayLabel;
     return 'Select pickup location';
+  }
+
+  String get _tripTypeLabel => isShortTrip ? 'Short Trip' : 'Long Trip';
+
+  String get _routeInsightLabel {
+    if (_isLoadingRoute) return 'Calculating route...';
+    if (_routeSummary == null) {
+      return isOneWay
+          ? 'Select destination to auto-detect trip type'
+          : 'Route details appear after pickup is set';
+    }
+    return 'Drive time: ${_routeSummary!.durationLabel} • Booking: $_durationUsageLabel';
+  }
+
+  bool get _isDayBasedLongTrip {
+    if (isShortTrip) return false;
+    return selectedHour == -1 && customDays > 0;
   }
 
   @override
@@ -91,17 +120,103 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
         _pickupLocation = location;
       }
     });
+    _scheduleRouteRefresh();
   }
 
   @override
   void dispose() {
     _estimateDebounce?.cancel();
+    _routeDebounce?.cancel();
+    _directionsService.dispose();
     super.dispose();
   }
 
-  void _mutateTripForm(VoidCallback fn) {
-    setState(fn);
+  void _mutateTripForm(VoidCallback fn, {bool userAdjustedDuration = false}) {
+    setState(() {
+      fn();
+      if (userAdjustedDuration) {
+        _hasUserAdjustedDuration = true;
+      }
+    });
     _schedulePriceEstimate();
+  }
+
+  void _scheduleRouteRefresh() {
+    _routeDebounce?.cancel();
+    _routeDebounce = Timer(_estimateDebounceDuration, _refreshRouteAndTripPlan);
+  }
+
+  Future<void> _refreshRouteAndTripPlan() async {
+    if (!isOneWay ||
+        !_pickupLocation.hasAddress ||
+        _dropoffLocation == null ||
+        !_dropoffLocation!.hasAddress) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingRoute = false;
+        _routeSummary = null;
+      });
+      _schedulePriceEstimate();
+      return;
+    }
+
+    if (mounted) setState(() => _isLoadingRoute = true);
+
+    final summary = await _directionsService.routeSummaryBetween(
+      origin: _pickupLocation,
+      destination: _dropoffLocation!,
+    );
+
+    if (!mounted) return;
+
+    if (summary == null) {
+      setState(() => _isLoadingRoute = false);
+      _schedulePriceEstimate();
+      return;
+    }
+
+    setState(() {
+      _routeSummary = summary;
+      _isLoadingRoute = false;
+      if (!_hasUserAdjustedDuration) {
+        _applyTripPlan(
+          _tripPlanService.suggestFromRoute(
+            route: summary,
+            isOneWay: isOneWay,
+          ),
+        );
+      }
+    });
+    _schedulePriceEstimate();
+  }
+
+  void _applyTripPlan(TripPlanSuggestion plan) {
+    isShortTrip = plan.isShortTrip;
+    if (plan.durationUnit == 'days') {
+      selectedHour = -1;
+      customDays = plan.durationValue;
+      isOvernightStay = false;
+      selectedNight = 1;
+      return;
+    }
+
+    isOvernightStay = null;
+
+    if (plan.isShortTrip) {
+      selectedHour = plan.durationValue.clamp(1, TripPlanService.shortTripMaxHours);
+      return;
+    }
+
+    if (plan.durationValue > 14) {
+      selectedHour = -1;
+      customHours = plan.durationValue;
+      return;
+    }
+
+    selectedHour = plan.durationValue.clamp(
+      TripPlanService.longTripMinHours,
+      14,
+    );
   }
 
   void _schedulePriceEstimate() {
@@ -131,27 +246,39 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
 
     if (!mounted) return;
+    final requestId = ++_estimateRequestId;
     setState(() => _isLoadingEstimate = true);
 
-    final response = await ref.read(tripApiProvider).estimateTripPrice({
-      'tripType': isShortTrip ? 'short_trip' : 'long_trip',
-      'durationValue': duration.data!['durationValue'],
-      'durationUnit': duration.data!['durationUnit'],
-      'tripProtection': {
-        'enabled': isTripProtectionEnabled,
-        'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
-      },
-      'overnightStay': overnight.data,
-      'rideTime': isRideNow ? 'now' : 'scheduled',
-      if (!isRideNow && scheduledRideAt != null)
-        'pickupTime': _apiTimeFormat.format(scheduledRideAt!),
-    });
+    final settings = await ref.read(pricingSettingsProvider.future);
 
-    if (!mounted) return;
+    final estimate = ref.read(tripFareServiceProvider).estimate(
+      payload: {
+        'tripType': isShortTrip ? 'short_trip' : 'long_trip',
+        'tripDirection': isOneWay ? 'one_way' : 'round_trip',
+        'durationValue': duration.data!['durationValue'],
+        'durationUnit': duration.data!['durationUnit'],
+        'pickupLocation': _pickupLocation.toJson(),
+        if (_dropoffLocation != null)
+          'dropoffLocation': _dropoffLocation!.toJson(),
+        if (_routeSummary != null) 'routeSummary': _routeSummary!.toJson(),
+        'tripProtection': {
+          'enabled': isTripProtectionEnabled,
+          'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
+        },
+        'overnightStay': overnight.data,
+        'rideTime': isRideNow ? 'now' : 'scheduled',
+        if (!isRideNow && scheduledRideAt != null) ...{
+          'pickupTime': _apiTimeFormat.format(scheduledRideAt!),
+          'pickupDate': _apiDateFormat.format(scheduledRideAt!),
+        },
+      },
+      settings: settings,
+    );
+
+    if (!mounted || requestId != _estimateRequestId) return;
     setState(() {
       _isLoadingEstimate = false;
-      _priceEstimate =
-          response.success && response.data != null ? response.data : null;
+      _priceEstimate = estimate;
     });
   }
 
@@ -160,12 +287,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     return _priceEstimate?.displayAmount ?? '—';
   }
 
-  String get _selectedPaymentTotalLabel {
+  String get _estimatedTotalLabel {
     if (_isLoadingEstimate) return '...';
     if (_priceEstimate == null) return '—';
-    return _priceEstimate!.totalForPaymentMethod(
-      selectedPaymentIndex == 1 ? 'pay_online' : 'cash',
-    );
+    if (selectedPaymentIndex == 1) {
+      return _priceEstimate!.totalForPaymentMethod('pay_online');
+    }
+    return _priceEstimate!.displayAmount;
   }
 
   String get _onlinePaymentTotalLabel {
@@ -303,7 +431,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
           ),
         ),
       ),
-      bottomNavigationBar: selectedPaymentIndex == null
+      bottomNavigationBar: _priceEstimate == null && !_isLoadingEstimate
           ? null
           : Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
@@ -324,9 +452,12 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total', style: kTripTotalLabelR),
                         Text(
-                          _selectedPaymentTotalLabel,
+                          selectedPaymentIndex == null ? 'Estimated' : 'Total',
+                          style: kTripTotalLabelR,
+                        ),
+                        Text(
+                          _estimatedTotalLabel,
                           style: kTripTotalPriceB,
                         ),
                       ],
@@ -336,10 +467,12 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       child: primaryButton(
                         label: _isSubmitting
                             ? 'Creating trip...'
+                            : selectedPaymentIndex == null
+                            ? 'Select payment to continue'
                             : selectedPaymentIndex == 1
                             ? 'Pay Online & find driver'
                             : 'Confirm Cash on Pay',
-                        onPressed: _isSubmitting
+                        onPressed: _isSubmitting || selectedPaymentIndex == null
                             ? null
                             : () => _submitTripCreation(),
                         buttonHeight: 64,
@@ -379,9 +512,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      setState(() {
+                      _mutateTripForm(() {
                         isOneWay = true;
+                        _hasUserAdjustedDuration = false;
                       });
+                      _scheduleRouteRefresh();
                     },
                     child: Container(
                       margin: const EdgeInsets.all(6),
@@ -412,9 +547,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      setState(() {
+                      _mutateTripForm(() {
                         isOneWay = false;
+                        _hasUserAdjustedDuration = false;
                       });
+                      _scheduleRouteRefresh();
                     },
                     child: Container(
                       margin: const EdgeInsets.all(6),
@@ -878,42 +1015,27 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
           Text('Trip type', style: kTripSubSectionSB),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
 
-          Row(
-            children: [
-              Expanded(
-                child: _tripTypeButton(
-                  title: 'Short Trip',
-                  selected: isShortTrip,
-                  onTap: () {
-                    _mutateTripForm(() {
-                      isShortTrip = true;
-                      if (selectedHour > 7 || selectedHour == -1) {
-                        selectedHour = 1;
-                      }
-                    });
-                  },
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: kTripSelectedTint,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: kTripGold),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_tripTypeLabel, style: kTripChipDurationSB),
+                const SizedBox(height: 6),
+                Text(
+                  _routeInsightLabel,
+                  style: kTripDurationMetaR.copyWith(color: kMutedText),
                 ),
-              ),
-
-              const SizedBox(width: 18),
-
-              Expanded(
-                child: _tripTypeButton(
-                  title: 'Long Trip',
-                  selected: !isShortTrip,
-                  onTap: () {
-                    _mutateTripForm(() {
-                      isShortTrip = false;
-                      if (selectedHour < 9 && selectedHour != -1) {
-                        selectedHour = 9;
-                      }
-                    });
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           const SizedBox(height: 28),
@@ -1047,7 +1169,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                   onTap: () {
                     _mutateTripForm(() {
                       selectedHour = hour;
-                    });
+                    }, userAdjustedDuration: true);
                   },
                   child: Container(
                     width: 74,
@@ -1079,7 +1201,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             ),
           ),
 
-          if (!isShortTrip) ...[
+          if (_isDayBasedLongTrip) ...[
             const SizedBox(height: 24),
             Row(
               children: [
@@ -1104,6 +1226,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     onTap: () {
                       _mutateTripForm(() {
                         isOvernightStay = true;
+                        if (selectedNight < 1) {
+                          selectedNight = 1;
+                        }
                       });
                     },
                   ),
@@ -1312,24 +1437,6 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     );
   }
 
-  Widget _tripTypeButton({
-    required String title,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 66,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? kTripGold : kTripBorder),
-        ),
-        child: Center(child: Text(title, style: kTripTypeChipM)),
-      ),
-    );
-  }
-
   /// ============================================================
   /// PROTECTION CARD
   /// ============================================================
@@ -1432,7 +1539,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             trailingText: 'Pay after trip',
             isSelected: selectedPaymentIndex == 0,
             onTap: () {
-              setState(() {
+              _mutateTripForm(() {
                 selectedPaymentIndex = 0;
               });
             },
@@ -1445,7 +1552,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             subtitle: 'Pay now and we will start searching driver for you.',
             isSelected: selectedPaymentIndex == 1,
             onTap: () {
-              setState(() {
+              _mutateTripForm(() {
                 selectedPaymentIndex = 1;
               });
             },
@@ -1582,10 +1689,18 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     if (result != null) {
       _mutateTripForm(() {
-        selectedHour = -1; // -1 means custom
+        selectedHour = -1;
         customDays = result['days']!;
         customHours = result['hours']!;
-      });
+        if (customDays > 0) {
+          isShortTrip = false;
+          isOvernightStay = false;
+          selectedNight = 1;
+        } else if (customHours >= TripPlanService.longTripMinHours) {
+          isShortTrip = false;
+          isOvernightStay = null;
+        }
+      }, userAdjustedDuration: true);
     }
   }
 
@@ -1714,6 +1829,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'pickupLocation': _pickupLocation.toJson(),
       if (isOneWay && _dropoffLocation != null)
         'dropoffLocation': _dropoffLocation!.toJson(),
+      if (_routeSummary != null) 'routeSummary': _routeSummary!.toJson(),
       'tripType': isShortTrip ? 'short_trip' : 'long_trip',
       'rideTime': isRideNow ? 'now' : 'scheduled',
       'durationValue': duration.data!['durationValue'],
@@ -1823,7 +1939,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       _hasUserSetPickup = true;
       _isLoadingPickup = false;
       _pickupLocation = selectedLocation;
+      _hasUserAdjustedDuration = false;
     });
+    _scheduleRouteRefresh();
   }
 
   Future<void> _pickDropoffLocation() async {
@@ -1842,7 +1960,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     setState(() {
       _dropoffLocation = selectedLocation;
+      _hasUserAdjustedDuration = false;
     });
+    _scheduleRouteRefresh();
   }
 
   TripLocation? _extractLocationFromSelection(dynamic result) {
