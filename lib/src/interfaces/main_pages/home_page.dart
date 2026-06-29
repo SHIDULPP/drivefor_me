@@ -37,12 +37,12 @@ class _SupportCardLayout {
   double _s(double value) => cardWidth * (value / _figmaW);
 
   /// Figma card is 342 × 148.
-  static const _figmaH = 148.0;
+  static const _figmaH = 158.0;
 
   double get aspectRatio => _figmaW / _figmaH;
 
   double get radius => _s(24);
-  double get imageWidth => _s(155);
+  double get imageWidth => _s(110);
   double get imageRight => _s(4);
   double get imageVerticalInset => _s(0);
   double get contentPadTop => _s(16);
@@ -425,6 +425,7 @@ class _SupportCard extends StatelessWidget {
                         cardLayout: metrics,
                       ),
                     ),
+                    SizedBox(height: 20),
                   ],
                 ),
                 Positioned(
