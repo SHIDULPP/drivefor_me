@@ -8,11 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// Matches floating nav bar height: bar (68) + circle lift (36) + safe inset.
+/// Matches floating nav bar: bar (64) + circle lift (32) + safe inset.
 double _navBarClearance(BuildContext context) =>
-    68 + 36 + MediaQuery.paddingOf(context).bottom;
-
-const double _menuTileHeight = 48;
+    64 + 32 + MediaQuery.paddingOf(context).bottom + 8;
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -23,29 +21,21 @@ class ProfilePage extends ConsumerWidget {
       backgroundColor: kScreenBg,
       body: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 10, 20, _navBarClearance(context)),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, _navBarClearance(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _ProfileHeaderCard(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               const _QuickActionsRow(),
-              const SizedBox(height: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const _MainMenuCard(),
-                      const SizedBox(height: 6),
-                      const _PartnerMenuCard(),
-                      const SizedBox(height: 6),
-                      const _AccountMenuCard(),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 12),
+              const _MainMenuCard(),
+              const SizedBox(height: 12),
+              const _PartnerMenuCard(),
+              const SizedBox(height: 12),
+              const _AccountMenuCard(),
+              const SizedBox(height: 16),
               Center(child: Text('v4.625.100005', style: kVersionR)),
             ],
           ),
@@ -53,6 +43,20 @@ class ProfilePage extends ConsumerWidget {
       ),
     );
   }
+}
+
+BoxDecoration _profileCardDecoration() {
+  return BoxDecoration(
+    color: kWhite,
+    borderRadius: BorderRadius.circular(20),
+    boxShadow: [
+      BoxShadow(
+        color: kBlack.withValues(alpha: 0.05),
+        blurRadius: 12,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  );
 }
 
 class _ProfileHeaderCard extends ConsumerWidget {
@@ -63,11 +67,8 @@ class _ProfileHeaderCard extends ConsumerWidget {
     final userAsync = ref.watch(userProvider);
 
     return userAsync.when(
-      loading: () => _buildCard(
-        displayName: 'Loading...',
-        phone: '—',
-        isLoading: true,
-      ),
+      loading: () =>
+          _buildCard(displayName: 'Loading...', phone: '—', isLoading: true),
       error: (_, _) => _buildCard(
         displayName: 'Vehicle Owner',
         phone: '—',
@@ -75,8 +76,9 @@ class _ProfileHeaderCard extends ConsumerWidget {
       ),
       data: (user) {
         final name = user?.profile.fullName.trim();
-        final displayName =
-            name != null && name.isNotEmpty ? name : 'Vehicle Owner';
+        final displayName = name != null && name.isNotEmpty
+            ? name
+            : 'Vehicle Owner';
         final phone = user?.phoneNumber ?? '';
         return _buildCard(displayName: displayName, phone: phone);
       },
@@ -90,26 +92,16 @@ class _ProfileHeaderCard extends ConsumerWidget {
     VoidCallback? onRetry,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: _profileCardDecoration(),
       child: Row(
         children: [
           const CircleAvatar(
-            radius: 28,
+            radius: 30,
             backgroundColor: kTertiary,
             backgroundImage: AssetImage('assets/pngs/profile.png'),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: isLoading
                 ? Shimmer.fromColors(
@@ -143,6 +135,7 @@ class _ProfileHeaderCard extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(displayName, style: kProfileNameB),
+                      const SizedBox(height: 2),
                       Text(
                         phone.isNotEmpty ? phone : '—',
                         style: kProfilePhoneR,
@@ -165,7 +158,7 @@ class _ProfileHeaderCard extends ConsumerWidget {
                     ],
                   ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           const _EditProfileButton(),
         ],
       ),
@@ -184,18 +177,15 @@ class _EditProfileButton extends StatelessWidget {
         onTap: () => NavigationService().pushNamed('personal_details'),
         borderRadius: BorderRadius.circular(50),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(50),
-            border: Border.all(color: kBrandBlue, width: 1.1),
+            border: Border.all(color: kBrandBlue, width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Edit Profile',
-                style: kEditProfileM.copyWith(fontSize: kSize12),
-              ),
+              Text('Edit Profile', style: kEditProfileM),
               const SizedBox(width: 2),
               const Icon(Icons.chevron_right, size: 18, color: kBrandBlue),
             ],
@@ -220,7 +210,7 @@ class _QuickActionsRow extends StatelessWidget {
             onTap: () => NavigationService().pushNamed('wallet'),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
           child: _QuickActionTile(
             label: 'Refer & Earn',
@@ -231,7 +221,7 @@ class _QuickActionsRow extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
           child: _QuickActionTile(
             label: 'Help',
@@ -258,41 +248,33 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: kWhite,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: kBlack.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                imagePath,
-                width: 44,
-                height: 44,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: kQuickActionM.copyWith(fontSize: kSize12),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          decoration: _profileCardDecoration(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  imagePath,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: kQuickActionM,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -322,39 +304,54 @@ class _MainMenuCard extends ConsumerWidget {
     final unread = ref.watch(unreadNotificationCountProvider);
 
     return Container(
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: _profileCardDecoration(),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (var i = 0; i < _items.length; i++) ...[
-            if (i > 0) const _MenuDivider(),
-            SizedBox(
-              height: _menuTileHeight,
-              child: _MenuTile(
-                title: _items[i],
-                badgeCount: _items[i] == 'Notifications' ? unread : 0,
-                onTap: switch (_items[i]) {
-                  'Personal Details' => () =>
-                      NavigationService().pushNamed('personal_details'),
-                  'My Vehicles' => () =>
-                      NavigationService().pushNamed('my_vehicles'),
-                  'Notifications' => () =>
-                      NavigationService().pushNamed('notifications'),
-                  _ => null,
-                },
-              ),
+          for (var i = 0; i < _items.length; i++)
+            _MenuRow(
+              title: _items[i],
+              badgeCount: _items[i] == 'Notifications' ? unread : 0,
+              onTap: switch (_items[i]) {
+                'Personal Details' => () => NavigationService().pushNamed(
+                  'personal_details',
+                ),
+                'My Vehicles' => () => NavigationService().pushNamed(
+                  'my_vehicles',
+                ),
+                'Notifications' => () => NavigationService().pushNamed(
+                  'notifications',
+                ),
+                _ => null,
+              },
             ),
-          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PartnerMenuCard extends StatelessWidget {
+  const _PartnerMenuCard();
+
+  static const _items = ['Join as Driver partner', 'B2B Enquiries'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: _profileCardDecoration(),
+      padding: const EdgeInsets.only(top: 14, bottom: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text('For Partners', style: kSectionLabelR),
+          ),
+          const SizedBox(height: 4),
+          for (final title in _items) _MenuRow(title: title),
         ],
       ),
     );
@@ -367,36 +364,20 @@ class _AccountMenuCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: _profileCardDecoration(),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            height: _menuTileHeight,
-            child: _MenuTile(
-              title: 'Logout',
-              isDanger: true,
-              onTap: () => _confirmLogout(context, ref),
-            ),
+          _MenuRow(
+            title: 'Logout',
+            isDanger: true,
+            onTap: () => _confirmLogout(context, ref),
           ),
-          const _MenuDivider(),
-          SizedBox(
-            height: _menuTileHeight,
-            child: _MenuTile(
-              title: 'Delete Account',
-              isDanger: true,
-              onTap: () => _showDeleteAccountDialog(context),
-            ),
+          _MenuRow(
+            title: 'Delete Account',
+            isDanger: true,
+            onTap: () => _showDeleteAccountDialog(context),
           ),
         ],
       ),
@@ -448,53 +429,13 @@ class _AccountMenuCard extends ConsumerWidget {
   }
 }
 
-class _PartnerMenuCard extends StatelessWidget {
-  const _PartnerMenuCard();
-
-  static const _items = ['Join as Driver partner', 'B2B Enquiries'];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-            child: Text('For Partners', style: kSectionLabelR),
-          ),
-          for (var i = 0; i < _items.length; i++) ...[
-            if (i > 0) const _MenuDivider(),
-            SizedBox(
-              height: _menuTileHeight,
-              child: _MenuTile(title: _items[i]),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _MenuTile extends StatelessWidget {
+class _MenuRow extends StatelessWidget {
   final String title;
   final bool isDanger;
   final VoidCallback? onTap;
   final int badgeCount;
 
-  const _MenuTile({
+  const _MenuRow({
     required this.title,
     this.isDanger = false,
     this.onTap,
@@ -508,22 +449,23 @@ class _MenuTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   title,
-                  style: (isDanger ? kMenuItemDangerM : kMenuItemM).copyWith(
-                    fontSize: kSize15,
-                  ),
+                  style: isDanger ? kMenuItemDangerM : kMenuItemM,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (badgeCount > 0) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: const BoxDecoration(
                     color: kRed,
                     shape: BoxShape.circle,
@@ -533,7 +475,7 @@ class _MenuTile extends StatelessWidget {
                     style: kStyle(kSemiBold, kSize10, color: kWhite),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
               ],
               const Icon(
                 Icons.chevron_right_rounded,
@@ -544,18 +486,6 @@ class _MenuTile extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _MenuDivider extends StatelessWidget {
-  const _MenuDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(height: 1, thickness: 1, color: kLineGrey),
     );
   }
 }
