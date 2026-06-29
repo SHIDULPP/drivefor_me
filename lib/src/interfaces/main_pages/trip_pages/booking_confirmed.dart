@@ -45,7 +45,7 @@ class _BookingConfirmedPageState extends ConsumerState<BookingConfirmedPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),

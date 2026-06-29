@@ -18,7 +18,7 @@ class NotificationsPage extends ConsumerWidget {
     final notificationsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       appBar: AppBar(
         backgroundColor: kWhite,
         surfaceTintColor: kWhite,

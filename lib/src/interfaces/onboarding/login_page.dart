@@ -58,7 +58,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 20),
@@ -109,8 +109,8 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                             showCountryFlag: false,
                             cursorColor: kBlack,
                             decoration: InputDecoration(
-                              filled: true,
-                              fillColor: kBackgroundColor,
+                              // filled: true,
+                              // fillColor: kBackgroundColor,
                               hintText: 'Mobile Number',
                               hintStyle: kSubHeadingR.copyWith(
                                 fontSize: 25,
@@ -383,7 +383,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

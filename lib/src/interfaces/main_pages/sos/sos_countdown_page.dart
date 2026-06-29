@@ -102,7 +102,7 @@ class _SosCountdownPageState extends ConsumerState<SosCountdownPage> {
         (widget.initialSeconds - _secondsLeft) / widget.initialSeconds;
 
     return Scaffold(
-      backgroundColor: kSosScreenBg,
+      backgroundColor: kScreenBg,
       body: Column(
         children: [
           Expanded(

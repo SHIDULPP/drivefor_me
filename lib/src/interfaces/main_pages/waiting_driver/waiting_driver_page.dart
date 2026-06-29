@@ -203,7 +203,7 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: Column(
         children: [
           _WaitingDriverHeader(

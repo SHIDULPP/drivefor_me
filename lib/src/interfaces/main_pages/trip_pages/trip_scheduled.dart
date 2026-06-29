@@ -51,7 +51,7 @@ class TripScheduledPage extends ConsumerWidget {
     final scheduledLabel = _scheduledDateTimeFormat.format(scheduledAt);
 
     return Scaffold(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),

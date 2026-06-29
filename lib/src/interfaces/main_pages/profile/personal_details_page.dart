@@ -81,11 +81,11 @@ class _PersonalDetailsPageState extends ConsumerState<PersonalDetailsPage> {
 
     return userAsync.when(
       loading: () => const Scaffold(
-        backgroundColor: kWhite,
+        backgroundColor: kScreenBg,
         body: Center(child: CircularProgressIndicator(color: kBrandBlue)),
       ),
       error: (_, _) => Scaffold(
-        backgroundColor: kWhite,
+        backgroundColor: kScreenBg,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -107,7 +107,7 @@ class _PersonalDetailsPageState extends ConsumerState<PersonalDetailsPage> {
         _populateFromUser(user);
 
         return Scaffold(
-          backgroundColor: kWhite,
+          backgroundColor: kScreenBg,
           appBar: AppBar(
             backgroundColor: kWhite,
             surfaceTintColor: kWhite,

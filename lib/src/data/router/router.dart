@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/cancelled_trip_screens/cancelled_trip_details.dart';
@@ -510,7 +511,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       return MaterialPageRoute(
         settings: settings,
         builder: (context) => Scaffold(
-          backgroundColor: Colors.grey[100],
+          backgroundColor: kScreenBg,
           body: Center(child: Text('No path for ${settings?.name}')),
         ),
       );

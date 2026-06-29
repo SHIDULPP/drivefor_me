@@ -43,7 +43,7 @@ class PaymentCompletedPage extends StatelessWidget {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),

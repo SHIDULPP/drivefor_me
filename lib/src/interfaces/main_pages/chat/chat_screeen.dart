@@ -150,7 +150,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       resizeToAvoidBottomInset: true,
       appBar: _ChatAppBar(
         participantName: _displayName,

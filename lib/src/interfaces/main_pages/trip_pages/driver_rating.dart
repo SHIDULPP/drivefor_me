@@ -91,7 +91,7 @@ class _DriverRatingPageState extends ConsumerState<DriverRatingPage> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

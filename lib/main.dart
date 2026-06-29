@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/providers/screen_size_provider.dart';
 import 'package:driveforme_user/src/data/router/router.dart' as router;
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
@@ -25,9 +26,11 @@ class MyApp extends StatelessWidget {
       title: 'Drive For Me',
       theme: ThemeData(
         brightness: Brightness.light,
+        scaffoldBackgroundColor: kScreenBg,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
           brightness: Brightness.light,
+          surface: kScreenBg,
         ),
         fontFamily: 'ClashGrotesk',
         useMaterial3: true,

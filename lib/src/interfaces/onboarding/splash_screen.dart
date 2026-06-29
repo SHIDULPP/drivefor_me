@@ -111,7 +111,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final screenSize = ref.watch(screenSizeProvider);
     final logoSize = screenSize.responsivePadding(220);
     return Scaffold(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: kScreenBg,
       body: Stack(
         children: [
           Container(

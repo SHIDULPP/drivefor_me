@@ -242,7 +242,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     final mapHeight = MediaQuery.sizeOf(context).height * 0.26;
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: Column(
         children: [
           _DriverFoundHeader(

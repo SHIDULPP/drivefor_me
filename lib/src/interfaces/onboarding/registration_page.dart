@@ -94,7 +94,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: SafeArea(
         child: Column(
           children: [

@@ -217,7 +217,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     final mapHeight = MediaQuery.sizeOf(context).height * 0.29;
 
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       body: Column(
         children: [
           _TripProgressHeader(

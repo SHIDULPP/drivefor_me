@@ -93,7 +93,7 @@ class _MyVehiclesPageState extends ConsumerState<MyVehiclesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kWhite,
+      backgroundColor: kScreenBg,
       appBar: AppBar(
         backgroundColor: kWhite,
         surfaceTintColor: kWhite,

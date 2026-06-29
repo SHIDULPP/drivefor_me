@@ -23,7 +23,7 @@ class SosHelpOnWayPage extends StatelessWidget {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: kSosScreenBg,
+      backgroundColor: kScreenBg,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
