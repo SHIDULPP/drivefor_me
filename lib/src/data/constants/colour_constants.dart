@@ -48,7 +48,7 @@ const Color kDropBlue = Color(0xFF0B5EA8);
 
 const Color kChipGreyBg = Color(0xFFF3F4EE);
 const Color kSearchFieldBg = Color(0xFFF4F5EF);
-const Color kDecorText = Color(0xFFD8D8DD);
+const Color kDecorText = Color(0xFFD6D6DC);
 const Color kLineGrey = Color(0xFFD8D8DE);
 const Color kMutedText = Color(0xFF888888);
 const Color kCardBorder = Color(0xFFE4E4EA);

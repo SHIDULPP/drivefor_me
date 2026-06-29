@@ -158,21 +158,21 @@ final kTripChipR = kStyle(kRegular, kSize13);
 final kTrackTripSB = kStyle(kSemiBold, kSize14, color: kWhite, height: 1.1);
 
 final kSupportTitleB = kStyle(kSemiBold, kSize17, color: kWhite, height: 1.2);
-final kSupportSubtitleR = kStyle(kRegular, kSize12, color: kWhite, height: 1.3);
+final kSupportSubtitleR = kStyle(kRegular, kSize13, color: kWhite, height: 1.35);
 final kPhoneNumberB = kStyle(
   kSemiBold,
   kSize14,
   color: kTextColor,
-  height: 1.15,
+  height: 1.0,
 );
-final kPhoneSupportR = kStyle(kRegular, kSize11, height: 1.15);
+final kPhoneSupportR = kStyle(kRegular, kSize11, height: 1.0);
 
 final kDecorTitleEB = kStyle(
   kExtraBold,
   kSize36,
   color: kDecorText,
-  height: 1.05,
-  letterSpacing: -0.3,
+  height: 1.02,
+  letterSpacing: -0.8,
 );
 final kFooterCaptionR = kStyle(kRegular, kSize13, height: 1.35);
 final kFooterBrandB = kStyle(kSemiBold, kSize13, color: kBrandBlue);

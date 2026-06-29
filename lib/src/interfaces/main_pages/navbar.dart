@@ -118,10 +118,10 @@ class _FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double barHeight = 68;
-    const double circleDiameter = 72;
+    const double barHeight = 64;
+    const double circleDiameter = 64;
     const double circleRadius = circleDiameter / 2;
-    const double circleLift = 36;
+    const double circleLift = 32;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return SizedBox(
@@ -138,7 +138,7 @@ class _FloatingNavBar extends StatelessWidget {
               painter: _NotchBarPainter(
                 selectedIndex: selectedIndex,
                 itemCount: _navItems.length,
-                notchRadius: circleRadius + 10,
+                notchRadius: circleRadius + 8,
                 bottomPadding: bottomInset,
               ),
               child: SizedBox(height: barHeight + bottomInset),
@@ -161,17 +161,17 @@ class _FloatingNavBar extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         if (!isSelected) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           SvgPicture.asset(
                             item.inactiveIcon,
-                            width: 24,
-                            height: 24,
+                            width: 22,
+                            height: 22,
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(item.label, style: kNavLabelR),
                         ] else
                           Text(item.label, style: kNavLabelM),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -182,7 +182,7 @@ class _FloatingNavBar extends StatelessWidget {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.fastOutSlowIn,
-            bottom: bottomInset + barHeight - circleRadius - 6,
+            bottom: bottomInset + barHeight - circleRadius - 4,
             left: _circleLeft(context, selectedIndex, circleRadius),
             child: GestureDetector(
               onTap: () => onTap(selectedIndex),
@@ -220,17 +220,17 @@ class _ActiveCircle extends StatelessWidget {
         color: kBrandBlue,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.18),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.14),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       alignment: Alignment.center,
       child: SvgPicture.asset(
         icon,
-        width: 26,
-        height: 26,
+        width: 24,
+        height: 24,
         colorFilter: const ColorFilter.mode(kWhite, BlendMode.srcIn),
       ),
     );
@@ -261,9 +261,9 @@ class _NotchBarPainter extends CustomPainter {
     final itemWidth = size.width / itemCount;
     final centerX = itemWidth * selectedIndex + itemWidth / 2;
 
-    const cornerRadius = 34.0;
-    final notchWidth = notchRadius * 1.8;
-    const notchDepth = 48.0;
+    const cornerRadius = 28.0;
+    final notchWidth = notchRadius * 1.75;
+    const notchDepth = 42.0;
 
     final notchStart = (centerX - notchWidth < cornerRadius)
         ? cornerRadius
@@ -315,7 +315,7 @@ class _NotchBarPainter extends CustomPainter {
 
     path.close();
 
-    canvas.drawShadow(path, Colors.black.withOpacity(0.12), 16, false);
+    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.08), 12, false);
 
     canvas.drawPath(path, paint);
   }

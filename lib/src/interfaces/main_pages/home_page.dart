@@ -5,35 +5,132 @@ import 'package:driveforme_user/src/data/providers/user_provider.dart';
 import 'package:driveforme_user/src/data/providers/notification_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Nav bar body clearance: bar (68) + floating lift (26) + safe padding.
+/// Nav bar body clearance: bar (64) + floating lift (32) + safe padding.
 double _navBarClearance(BuildContext context) =>
-    68 + 26 + MediaQuery.paddingOf(context).bottom + 20;
+    64 + 32 + MediaQuery.paddingOf(context).bottom + 12;
+
+/// Responsive layout tokens scaled from a 390pt-wide Figma frame.
+class _HomeLayout {
+  _HomeLayout(double screenWidth)
+    : horizontalPadding = screenWidth * (24 / 390),
+      cardGap = screenWidth * (16 / 390),
+      supportFooterGap = screenWidth * (52 / 390);
+
+  final double horizontalPadding;
+  final double cardGap;
+  final double supportFooterGap;
+
+  static _HomeLayout of(BuildContext context) =>
+      _HomeLayout(MediaQuery.sizeOf(context).width);
+}
+
+class _SupportCardLayout {
+  _SupportCardLayout(this.cardWidth);
+
+  final double cardWidth;
+
+  static const _figmaW = 342.0;
+
+  double _s(double value) => cardWidth * (value / _figmaW);
+
+  /// Figma card is 342 × 148.
+  static const _figmaH = 148.0;
+
+  double get aspectRatio => _figmaW / _figmaH;
+
+  double get radius => _s(24);
+  double get imageWidth => _s(155);
+  double get imageRight => _s(4);
+  double get imageVerticalInset => _s(0);
+  double get contentPadTop => _s(16);
+  double get contentPadLeft => _s(20);
+  double get titleGap => _s(4);
+  double get textPadRight => _s(80);
+  double get pillBottomInset => 0;
+
+  double get phonePadLeft => _s(14);
+  double get phoneIconSize => _s(38);
+  double get phoneIconGap => _s(10);
+}
+
+class _PhoneStripLayout {
+  _PhoneStripLayout(this.cardWidth, this.cardLayout);
+
+  final double cardWidth;
+  final _SupportCardLayout cardLayout;
+
+  double _s(double value) => cardWidth * (value / _SupportCardLayout._figmaW);
+
+  double get padLeft => cardLayout.phonePadLeft;
+  double get padRight => _s(20);
+  double get padTop => _s(10);
+  double get padBottom => _s(10);
+  double get iconSize => cardLayout.phoneIconSize;
+  double get iconGap => cardLayout.phoneIconGap;
+  double get labelGap => _s(1);
+  double get pillRadius => _s(50);
+  double get borderWidth => _s(1.2);
+}
+
+class _DecorativeLayout {
+  _DecorativeLayout(double screenWidth)
+    : fontSize = (screenWidth * (36 / 390)).clamp(28.0, 42.0),
+      letterSpacing = (screenWidth * (-0.8 / 390)).clamp(-1.2, -0.5),
+      footerFontSize = (screenWidth * (12 / 390)).clamp(11.0, 14.0),
+      horizontalPadding = screenWidth * (24 / 390),
+      topPadding = screenWidth * (8 / 390);
+
+  final double fontSize;
+  final double letterSpacing;
+  final double footerFontSize;
+  final double horizontalPadding;
+  final double topPadding;
+
+  static _DecorativeLayout of(BuildContext context) =>
+      _DecorativeLayout(MediaQuery.sizeOf(context).width);
+}
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kScreenBg,
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: _navBarClearance(context)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const _HeaderWithBookingCard(),
-              const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: _SupportCard(),
-              ),
-              const SizedBox(height: 80),
-              const _DecorativeFooter(),
-            ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: kScreenBg,
+        body: SafeArea(
+          bottom: false,
+          top: false,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: _navBarClearance(context)),
+            child: Builder(
+              builder: (context) {
+                final layout = _HomeLayout.of(context);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const _HeaderWithBookingCard(),
+                    SizedBox(height: layout.cardGap),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: layout.horizontalPadding,
+                      ),
+                      child: const _SupportCard(),
+                    ),
+                    SizedBox(height: layout.supportFooterGap),
+                    const _DecorativeFooter(),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -44,12 +141,15 @@ class HomePage extends StatelessWidget {
 class _HeaderWithBookingCard extends ConsumerWidget {
   const _HeaderWithBookingCard();
 
-  static const _headerHeight = 220.0;
-  static const _cardTop = 120.0;
-  static const _stackHeight = 262.0;
+  static const _headerHeight = 208.0;
+  static const _cardTop = 108.0;
+  static const _stackHeight = 250.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final topInset = MediaQuery.paddingOf(context).top;
+    final layout = _HomeLayout.of(context);
+    final cardTop = topInset + _cardTop;
     final userAsync = ref.watch(userProvider);
     final greeting = userAsync.when(
       data: (user) => 'Hii ${greetingFirstName(user)}!',
@@ -66,21 +166,26 @@ class _HeaderWithBookingCard extends ConsumerWidget {
         );
 
     return SizedBox(
-      height: _stackHeight,
+      height: _stackHeight + topInset,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
             width: double.infinity,
-            height: _headerHeight,
+            height: _headerHeight + topInset,
             decoration: const BoxDecoration(
               color: kBrandBlue,
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
               ),
             ),
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            padding: EdgeInsets.fromLTRB(
+              layout.horizontalPadding,
+              topInset + 12,
+              layout.horizontalPadding,
+              0,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -89,20 +194,21 @@ class _HeaderWithBookingCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(greeting, style: kLabel22White),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(
                             Icons.location_on_outlined,
                             color: kWhite,
-                            size: 16,
+                            size: 14,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               locationLabel,
                               style: kCaption14R.copyWith(
-                                color: kWhite.withValues(alpha: 0.95),
+                                color: kWhite.withValues(alpha: 0.92),
+                                fontSize: 13,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -118,11 +224,11 @@ class _HeaderWithBookingCard extends ConsumerWidget {
               ],
             ),
           ),
-          const Positioned(
-            left: 24,
-            right: 24,
-            top: _cardTop,
-            child: _BookingCard(),
+          Positioned(
+            left: layout.horizontalPadding,
+            right: layout.horizontalPadding,
+            top: cardTop,
+            child: const _BookingCard(),
           ),
         ],
       ),
@@ -135,79 +241,125 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Book Your',
-                    style: kLabel17B.copyWith(color: kTextColor),
-                  ),
-                  Text('Personal Driver', style: kLabel17BGold),
-                ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth;
+        final radius = cardWidth * (20 / 342);
+        final padH = cardWidth * (18 / 342);
+        final padTop = cardWidth * (18 / 342);
+        final padBottom = cardWidth * (16 / 342);
+        final carHeight = cardWidth * (88 / 342);
+        final searchHeight = cardWidth * (44 / 342);
+
+        return Container(
+          decoration: BoxDecoration(
+            color: kWhite,
+            borderRadius: BorderRadius.circular(radius),
+            boxShadow: [
+              BoxShadow(
+                color: kBlack.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
               ),
-              Expanded(
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                top: -cardWidth * (8 / 342),
+                right: -cardWidth * (4 / 342),
+                child: Container(
+                  width: cardWidth * (140 / 342),
+                  height: cardWidth * (140 / 342),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFFFE8C8).withValues(alpha: 0.55),
+                        kWhite.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  padH,
+                  padTop,
+                  cardWidth * (12 / 342),
+                  padBottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Book Your',
+                              style: kLabel17B.copyWith(color: kTextColor),
+                            ),
+                            Text('Personal Driver', style: kLabel17BGold),
+                          ],
+                        ),
+                        SizedBox(width: cardWidth * (72 / 342)),
+                      ],
+                    ),
+                    SizedBox(height: cardWidth * (14 / 342)),
+                    GestureDetector(
+                      onTap: () {
+                        NavigationService().pushNamed('create_trip');
+                      },
+                      child: Container(
+                        height: searchHeight,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: cardWidth * (16 / 342),
+                        ),
+                        decoration: BoxDecoration(
+                          color: kWhite,
+                          borderRadius: BorderRadius.circular(50),
+                          border: Border.all(color: kGoldAccent, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              size: cardWidth * (18 / 342),
+                              color: kBlack.withValues(alpha: 0.65),
+                            ),
+                            SizedBox(width: cardWidth * (10 / 342)),
+                            Text(
+                              'Where to go?',
+                              style: kCaption14R.copyWith(
+                                color: kBlack.withValues(alpha: 0.4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                right: cardWidth * (4 / 342),
+                top: cardWidth * (2 / 342),
                 child: Image.asset(
                   'assets/pngs/car_driving.png',
-                  height: 72,
+                  height: carHeight,
                   fit: BoxFit.contain,
-                  alignment: Alignment.centerRight,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () {
-              NavigationService().pushNamed('create_trip');
-            },
-            child: Container(
-              height: 42,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: kSearchFieldBg,
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(color: kGoldAccent, width: 1.1),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.search_rounded,
-                    size: 20,
-                    color: kBlack.withValues(alpha: 0.45),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Where to go?',
-                    style: kCaption14R.copyWith(
-                      color: kBlack.withValues(alpha: 0.45),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -215,106 +367,151 @@ class _BookingCard extends StatelessWidget {
 class _SupportCard extends StatelessWidget {
   const _SupportCard();
 
-  static const _cardRadius = 24.0;
-
   @override
   Widget build(BuildContext context) {
-    final responsiveHeight = MediaQuery.sizeOf(context).height * 0.25;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final metrics = _SupportCardLayout(constraints.maxWidth);
 
-    return Container(
-      constraints: BoxConstraints(minHeight: responsiveHeight),
-      decoration: BoxDecoration(
-        color: kBrandBlue,
-        borderRadius: BorderRadius.circular(_cardRadius),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 24, 96, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        return AspectRatio(
+          aspectRatio: metrics.aspectRatio,
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: kBrandBlue,
+              borderRadius: BorderRadius.circular(metrics.radius),
+              boxShadow: [
+                BoxShadow(
+                  color: kBlack.withValues(alpha: 0.07),
+                  blurRadius: 16,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Need help booking a driver?', style: kSupportTitleB),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Call our team and get instant assistance.',
-                      style: kSupportSubtitleR.copyWith(
-                        color: kWhite.withValues(alpha: 0.88),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        metrics.contentPadLeft,
+                        metrics.contentPadTop,
+                        metrics.textPadRight,
+                        0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Need help booking a driver?',
+                            style: kSupportTitleB,
+                          ),
+                          SizedBox(height: metrics.titleGap),
+                          Text(
+                            'Call our team and get instant assistance.',
+                            style: kSupportSubtitleR.copyWith(
+                              color: kWhite.withValues(alpha: 0.95),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: _PhoneStrip(
+                        cardWidth: constraints.maxWidth,
+                        cardLayout: metrics,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 30),
-              const Align(
-                alignment: Alignment.bottomLeft,
-                child: _PhoneStrip(),
-              ),
-            ],
-          ),
-          Positioned(
-            right: 8,
-            top: 8,
-            bottom: 4,
-            child: Image.asset(
-              'assets/pngs/support_headphone.png',
-              width: 92,
-              fit: BoxFit.contain,
-              alignment: Alignment.centerRight,
+                Positioned(
+                  right: metrics.imageRight,
+                  top: metrics.imageVerticalInset,
+                  bottom: metrics.imageVerticalInset,
+                  child: Image.asset(
+                    'assets/pngs/support_headphone.png',
+                    width: metrics.imageWidth,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.centerRight,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class _PhoneStrip extends StatelessWidget {
-  const _PhoneStrip();
+  final double cardWidth;
+  final _SupportCardLayout cardLayout;
 
-  static const _pillRadius = 50.0;
+  const _PhoneStrip({required this.cardWidth, required this.cardLayout});
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _PhoneStripLayout(cardWidth, cardLayout);
+    final iconSize = metrics.iconSize;
+    final borderWidth = metrics.borderWidth;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 9, 22, 10),
+      padding: EdgeInsets.fromLTRB(
+        metrics.padLeft,
+        metrics.padTop,
+        metrics.padRight,
+        metrics.padBottom,
+      ),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(_pillRadius),
-          bottomRight: Radius.circular(_pillRadius),
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(metrics.pillRadius),
+          bottomRight: Radius.circular(metrics.pillRadius),
         ),
-        border: const Border(
-          top: BorderSide(color: kGoldAccent, width: 1.2),
-          right: BorderSide(color: kGoldAccent, width: 1.2),
+        border: Border(
+          top: BorderSide(color: kGoldAccent, width: borderWidth),
+          right: BorderSide(color: kGoldAccent, width: borderWidth),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            height: 36,
-            width: 36,
+            height: iconSize,
+            width: iconSize,
             decoration: const BoxDecoration(
               color: kGoldAccent,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.call, color: kWhite, size: 18),
+            child: Icon(Icons.call, color: kWhite, size: iconSize * 0.5),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: metrics.iconGap),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('+91 75929 33933', style: kPhoneNumberB),
+              Text(
+                '+91 75929 33933',
+                style: kPhoneNumberB,
+                textHeightBehavior: const TextHeightBehavior(
+                  applyHeightToFirstAscent: false,
+                  applyHeightToLastDescent: false,
+                ),
+              ),
+              SizedBox(height: metrics.labelGap),
               Text(
                 '24/7 Support',
                 style: kPhoneSupportR.copyWith(
-                  color: kBlack.withValues(alpha: 0.55),
+                  color: kBlack.withValues(alpha: 0.5),
+                ),
+                textHeightBehavior: const TextHeightBehavior(
+                  applyHeightToFirstAscent: false,
+                  applyHeightToLastDescent: false,
                 ),
               ),
             ],
@@ -330,31 +527,56 @@ class _DecorativeFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _DecorativeLayout.of(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.fromLTRB(
+        metrics.horizontalPadding,
+        metrics.topPadding,
+        metrics.horizontalPadding,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('YOUR TRUSTED\nDRIVER,\nJUST A TAP AWAY!', style: kDecorTitleEB),
-          const SizedBox(height: 14),
-          Center(
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: kFooterCaptionR.copyWith(
-                  color: kBlack.withValues(alpha: 0.8),
-                ),
-                children: [
-                  const TextSpan(text: 'Powered by '),
-                  TextSpan(text: 'Skybertech', style: kFooterBrandB),
-                  const TextSpan(text: ' & Developed by '),
-                  TextSpan(text: 'Xyvin Technologies', style: kFooterBrandB),
-                ],
-              ),
+          Text(
+            'YOUR TRUSTED\nDRIVER,\nJUST A TAP AWAY!',
+            textAlign: TextAlign.left,
+            style: kDecorTitleEB.copyWith(
+              fontSize: metrics.fontSize,
+              letterSpacing: metrics.letterSpacing,
+              height: 1.02,
+              color: kDecorText,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: metrics.horizontalPadding * 0.5),
+          RichText(
+            textAlign: TextAlign.left,
+            text: TextSpan(
+              style: kFooterCaptionR.copyWith(
+                fontSize: metrics.footerFontSize,
+                color: kBlack.withValues(alpha: 0.5),
+                height: 1.4,
+              ),
+              children: [
+                const TextSpan(text: 'Powered by '),
+                TextSpan(
+                  text: 'Skybertech',
+                  style: kFooterBrandB.copyWith(
+                    fontSize: metrics.footerFontSize,
+                  ),
+                ),
+                const TextSpan(text: ' & Developed by '),
+                TextSpan(
+                  text: 'Xyvin Technologies',
+                  style: kFooterBrandB.copyWith(
+                    fontSize: metrics.footerFontSize,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -377,23 +599,23 @@ class _NotificationBellButton extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              height: 46,
-              width: 46,
-              decoration: BoxDecoration(
-                color: kWhite.withValues(alpha: 0.14),
+              height: 44,
+              width: 44,
+              decoration: const BoxDecoration(
+                color: kWhite,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: kBlack.withValues(alpha: 0.1),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+                    color: Color(0x1A000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
               child: const Icon(
                 Icons.notifications_none_rounded,
-                color: kWhite,
-                size: 24,
+                color: kBrandBlue,
+                size: 22,
               ),
             ),
             if (unreadCount > 0)
