@@ -384,30 +384,50 @@ class _AccountMenuCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
+  void _confirmLogout(BuildContext context, WidgetRef ref) {
+    showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Log out?'),
         content: const Text('You will need to sign in again to use the app.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _performLogout(context, ref);
+            },
             child: const Text('Log out'),
           ),
         ],
       ),
     );
+  }
 
-    if (confirmed != true || !context.mounted) return;
+  Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
+    final logoutService = ref.read(authLogoutServiceProvider);
 
-    await ref.read(authLogoutServiceProvider).logout(ref);
-    if (!context.mounted) return;
-    NavigationService().pushNamedAndRemoveUntil('Phone');
+    try {
+      await logoutService.performLogout(ref);
+
+      if (context.mounted) {
+        NavigationService().pushNamedAndRemoveUntil('Phone');
+      }
+    } catch (e) {
+      try {
+        await logoutService.clearAllData(ref);
+      } catch (_) {}
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+        NavigationService().pushNamedAndRemoveUntil('Phone');
+      }
+    }
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
