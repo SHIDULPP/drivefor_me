@@ -13,31 +13,31 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class _NavItem {
   final String label;
-  final String activeIcon;
   final String inactiveIcon;
+  final String activeGif;
 
   const _NavItem({
     required this.label,
-    required this.activeIcon,
     required this.inactiveIcon,
+    required this.activeGif,
   });
 }
 
 const _navItems = [
   _NavItem(
     label: 'Home',
-    activeIcon: 'assets/svg/active_home_.svg',
     inactiveIcon: 'assets/svg/inactive_home.svg',
+    activeGif: 'assets/gifs/home_icon.gif',
   ),
   _NavItem(
     label: 'Trips',
-    activeIcon: 'assets/svg/active_trip.svg',
     inactiveIcon: 'assets/svg/inactive_trip.svg',
+    activeGif: 'assets/gifs/trips.gif',
   ),
   _NavItem(
     label: 'Profile',
-    activeIcon: 'assets/svg/active_profile.svg',
     inactiveIcon: 'assets/svg/inactive_profile.svg',
+    activeGif: 'assets/gifs/profile.gif',
   ),
 ];
 
@@ -62,14 +62,12 @@ class _NavBarState extends ConsumerState<NavBar> {
     if (_checkedActiveTrip) return;
     _checkedActiveTrip = true;
 
-    final target =
-        await ref.read(activeTripServiceProvider).resolveResumableTrip();
+    final target = await ref
+        .read(activeTripServiceProvider)
+        .resolveResumableTrip();
     if (!mounted || target == null) return;
 
-    NavigationService().pushNamed(
-      target.route,
-      arguments: target.arguments,
-    );
+    NavigationService().pushNamed(target.route, arguments: target.arguments);
   }
 
   @override
@@ -188,7 +186,7 @@ class _FloatingNavBar extends StatelessWidget {
               onTap: () => onTap(selectedIndex),
               child: _ActiveCircle(
                 diameter: circleDiameter,
-                icon: _navItems[selectedIndex].inactiveIcon,
+                gif: _navItems[selectedIndex].activeGif,
               ),
             ),
           ),
@@ -204,11 +202,30 @@ class _FloatingNavBar extends StatelessWidget {
   }
 }
 
+class _NavGifIcon extends StatelessWidget {
+  final String asset;
+  final double size;
+
+  const _NavGifIcon({required this.asset, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      asset,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      gaplessPlayback: true,
+      filterQuality: FilterQuality.medium,
+    );
+  }
+}
+
 class _ActiveCircle extends StatelessWidget {
   final double diameter;
-  final String icon;
+  final String gif;
 
-  const _ActiveCircle({required this.diameter, required this.icon});
+  const _ActiveCircle({required this.diameter, required this.gif});
 
   @override
   Widget build(BuildContext context) {
@@ -227,12 +244,7 @@ class _ActiveCircle extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: SvgPicture.asset(
-        icon,
-        width: 24,
-        height: 24,
-        colorFilter: const ColorFilter.mode(kWhite, BlendMode.srcIn),
-      ),
+      child: _NavGifIcon(asset: gif, size: 28),
     );
   }
 }

@@ -589,6 +589,8 @@ class _NotificationBellButton extends StatelessWidget {
 
   const _NotificationBellButton({required this.unreadCount});
 
+  static const _gif = 'assets/gifs/notification.gif';
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -603,7 +605,7 @@ class _NotificationBellButton extends StatelessWidget {
               height: 44,
               width: 44,
               decoration: const BoxDecoration(
-                color: kWhite,
+                color: kBrandBlue,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -613,10 +615,13 @@ class _NotificationBellButton extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: kBrandBlue,
-                size: 22,
+              alignment: Alignment.center,
+              child: Image.asset(
+                _gif,
+                width: 22,
+                height: 22,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
               ),
             ),
             if (unreadCount > 0)
