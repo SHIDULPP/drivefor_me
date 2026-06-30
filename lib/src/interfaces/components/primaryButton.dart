@@ -144,7 +144,7 @@ class _InteractiveButtonState extends State<_InteractiveButton> {
                       Text(
                         widget.label,
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: widget.labelColor,
                           // fontSize: GlobalVariables.preferredLanguage == 'ml'
                           //     ? widget.fontSize - 1

@@ -427,7 +427,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                               text: _maskedPhone(),
                               style: const TextStyle(
                                 color: kPrimaryColor,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const TextSpan(
@@ -530,7 +530,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                                         '00:${_start.toString().padLeft(2, '0')}',
                                     style: const TextStyle(
                                       color: kPrimaryColor,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
@@ -544,7 +544,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                                 style: TextStyle(
                                   fontFamily: 'ClashGrotesk',
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                   color: kPrimaryColor,
                                 ),
                               ),

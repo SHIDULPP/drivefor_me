@@ -206,7 +206,7 @@ class _RatingHeader extends StatelessWidget {
           ),
           Text(
             'Rate your Driver',
-            style: kDriverRatingAppBarSB.copyWith(fontWeight: FontWeight.w500),
+            style: kDriverRatingAppBarSB,
           ),
         ],
       ),

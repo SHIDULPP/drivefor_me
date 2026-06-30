@@ -151,7 +151,7 @@ class InputField extends StatelessWidget {
       style: const TextStyle(
         fontFamily: 'ClashGrotesk',
         fontSize: 16,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
         color: kTextColor,
       ),
       cursorColor: kPrimaryColor,
@@ -167,9 +167,10 @@ class InputField extends StatelessWidget {
         hintText: hint,
 
         hintStyle: const TextStyle(
+          fontFamily: 'ClashGrotesk',
           color: Color(0xFF9C9C9C),
           fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
         ),
 
         errorStyle: const TextStyle(height: 0),

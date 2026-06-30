@@ -161,7 +161,10 @@ class _HelpOnWayHeader extends StatelessWidget {
                       TextSpan(text: 'Emergency services notified . '),
                       TextSpan(
                         text: 'Drive4me',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          fontFamily: 'ClashGrotesk',
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       TextSpan(text: ' support alerted'),
                     ],

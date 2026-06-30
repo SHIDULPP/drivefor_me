@@ -311,7 +311,7 @@ class _FieldLabel extends StatelessWidget {
       style: const TextStyle(
         fontFamily: 'ClashGrotesk',
         fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
         color: kTextColor,
       ),
     );

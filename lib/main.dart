@@ -33,6 +33,76 @@ class MyApp extends StatelessWidget {
           surface: kScreenBg,
         ),
         fontFamily: 'ClashGrotesk',
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          displayMedium: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          displaySmall: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          headlineLarge: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          headlineMedium: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          headlineSmall: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          titleLarge: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          titleMedium: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          titleSmall: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+          ),
+          bodyLarge: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w400,
+          ),
+          bodyMedium: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w400,
+          ),
+          bodySmall: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w400,
+          ),
+          labelLarge: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w400,
+          ),
+          labelMedium: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w400,
+          ),
+          labelSmall: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        appBarTheme: const AppBarTheme(
+          titleTextStyle: TextStyle(
+            fontFamily: 'ClashGrotesk',
+            fontWeight: FontWeight.w500,
+            fontSize: 18,
+            color: kTextColor,
+          ),
+        ),
         useMaterial3: true,
       ),
       builder: (context, child) {

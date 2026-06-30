@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 
 // ================= FONT WEIGHTS =================
 
-// Clash Grotesk works best with these mappings
+// Clash Grotesk — Regular (400) for body, Medium (500) for headings.
+// No bold / semibold in the app; legacy names alias to these two weights.
 
-const kExtraLight = FontWeight.w200;
-const kUltraLight = FontWeight.w300;
-const kLight = FontWeight.w400;
-const kRegular = FontWeight.w500;
-const kMedium = FontWeight.w600;
-const kSemiBold = FontWeight.w700;
-const kBold = FontWeight.w800;
-const kExtraBold = FontWeight.w900;
-const kBlackFont = FontWeight.w900;
+const kRegular = FontWeight.w400;
+const kMedium = FontWeight.w500;
+
+const kLight = kRegular;
+const kUltraLight = kRegular;
+const kExtraLight = kRegular;
+const kSemiBold = kMedium;
+const kBold = kMedium;
+const kExtraBold = kMedium;
+const kBlackFont = kMedium;
 
 // ================= LETTER SPACING =================
 
@@ -168,7 +170,7 @@ final kPhoneNumberB = kStyle(
 final kPhoneSupportR = kStyle(kRegular, kSize11, height: 1.0);
 
 final kDecorTitleEB = kStyle(
-  kExtraBold,
+  FontWeight.w700,
   kSize36,
   color: kDecorText,
   height: 1.02,
