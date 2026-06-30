@@ -644,6 +644,9 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
       await storage.saveUserId(userId);
       await storage.saveAuthToken(token);
       await storage.savePhoneNumber(widget.phoneNumber);
+      await storage.saveOnboardingStatus(
+        onboardingStatus ?? 'profile_pending',
+      );
 
       await ref
           .read(notificationTokenServiceProvider)

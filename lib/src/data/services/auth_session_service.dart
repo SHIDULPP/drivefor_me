@@ -26,12 +26,23 @@ class AuthSessionService {
     }
 
     final response = await _onboardingApi.getMe();
-    if (!response.success || response.data == null) {
+    if (response.success && response.data != null) {
+      await _storage.saveOnboardingStatus(response.data!.onboardingStatus);
+      return routeForUser(response.data!);
+    }
+
+    final statusCode = response.statusCode;
+    if (statusCode == 401 || statusCode == 403) {
       await _storage.clearSession();
       return 'Phone';
     }
 
-    return routeForUser(response.data!);
+    final cachedStatus = await _storage.getOnboardingStatus();
+    if (cachedStatus != null && cachedStatus.isNotEmpty) {
+      return routeForOnboardingStatus(cachedStatus);
+    }
+
+    return 'Phone';
   }
 }
 

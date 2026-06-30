@@ -1,21 +1,31 @@
+import 'package:driveforme_user/src/data/apis/support_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RaiseTicketPage extends StatefulWidget {
+class RaiseTicketPage extends ConsumerStatefulWidget {
   final String tripId;
+  final String? tripMongoId;
+  final String category;
 
-  const RaiseTicketPage({super.key, this.tripId = '# ID2562'});
+  const RaiseTicketPage({
+    super.key,
+    this.tripId = '# ID2562',
+    this.tripMongoId,
+    this.category = 'General Support',
+  });
 
   @override
-  State<RaiseTicketPage> createState() => _RaiseTicketPageState();
+  ConsumerState<RaiseTicketPage> createState() => _RaiseTicketPageState();
 }
 
-class _RaiseTicketPageState extends State<RaiseTicketPage> {
+class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
   final _subjectController = TextEditingController();
   final _descriptionController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -24,11 +34,36 @@ class _RaiseTicketPageState extends State<RaiseTicketPage> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final subject = _subjectController.text.trim();
     final description = _descriptionController.text.trim();
     if (subject.isEmpty || description.isEmpty) return;
 
+    setState(() => _isSubmitting = true);
+
+    final tripMongoId = widget.tripMongoId ??
+        (isMongoObjectId(widget.tripId) ? widget.tripId : null);
+
+    final response = await ref.read(supportApiProvider).createTicket(
+          category: widget.category,
+          subject: subject,
+          description: description,
+          tripMongoId: tripMongoId,
+        );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (!response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to submit ticket.')),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Support ticket submitted successfully.')),
+    );
     Navigator.of(context).pop({
       'subject': subject,
       'description': description,
@@ -96,7 +131,8 @@ class _RaiseTicketPageState extends State<RaiseTicketPage> {
             padding: EdgeInsets.fromLTRB(20, 8, 20, bottomInset + 16),
             child: primaryButton(
               label: 'Submit',
-              onPressed: _submit,
+              onPressed: _isSubmitting ? null : _submit,
+              isLoading: _isSubmitting,
               buttonColor: kTripCtaBlue,
               buttonHeight: 54,
               fontSize: 16,

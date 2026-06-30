@@ -64,7 +64,8 @@ class SosModel {
       ),
       tripId: json['tripId']?.toString(),
       status: json['status']?.toString() ?? '',
-      referenceNumber: json['referenceNumber']?.toString() ??
+      referenceNumber: json['sosId']?.toString() ??
+          json['referenceNumber']?.toString() ??
           json['reference']?.toString() ??
           '',
       supportPhone: json['supportPhone']?.toString(),

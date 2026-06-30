@@ -18,9 +18,17 @@ Future<TripModel?> fetchAndCacheTrip(WidgetRef ref, String tripMongoId) async {
   return trip;
 }
 
-void openTripHelp({required String tripLabel}) {
+void openTripHelp({
+  required String tripLabel,
+  String? tripMongoId,
+}) {
   NavigationService().pushNamed(
     'raise_ticket',
-    arguments: {'tripId': tripLabel},
+    arguments: {
+      'tripId': tripLabel,
+      if (tripMongoId != null && tripMongoId.isNotEmpty)
+        'tripMongoId': tripMongoId,
+      'category': 'Trip Support',
+    },
   );
 }

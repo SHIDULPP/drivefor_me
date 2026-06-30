@@ -433,6 +433,7 @@ class TripModel {
     return {
       'tripTitle': tripTitle,
       'tripId': displayTripId,
+      'tripMongoId': id,
       'isLongTrip': isLongTrip,
       'pickup': pickupAddress,
       'dropoff': dropoffAddress ?? pickupAddress,
@@ -454,6 +455,7 @@ class TripModel {
     return {
       'tripTitle': tripTitle,
       'tripId': displayTripId,
+      'tripMongoId': id,
       'isLongTrip': isLongTrip,
       'pickup': pickupAddress,
       'dropoff': dropoffAddress ?? pickupAddress,

@@ -266,7 +266,10 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
                   right: 20,
                   bottom: 12,
                   child: _HelpButton(
-                    onTap: () => openTripHelp(tripLabel: _tripId),
+                    onTap: () => openTripHelp(
+                      tripLabel: _tripId,
+                      tripMongoId: widget.tripMongoId,
+                    ),
                   ),
                 ),
               ],

@@ -198,6 +198,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         tripTitle:
             cancelledDetailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: cancelledDetailsArgs?['tripId'] as String? ?? '# ID2562',
+        tripMongoId: cancelledDetailsArgs?['tripMongoId'] as String?,
         isLongTrip: cancelledDetailsArgs?['isLongTrip'] == true,
         pickup:
             cancelledDetailsArgs?['pickup'] as String? ??
@@ -228,6 +229,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       final raiseTicketArgs = settings?.arguments as Map?;
       page = RaiseTicketPage(
         tripId: raiseTicketArgs?['tripId'] as String? ?? '# ID2562',
+        tripMongoId: raiseTicketArgs?['tripMongoId'] as String?,
+        category: raiseTicketArgs?['category'] as String? ?? 'General Support',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -238,6 +241,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         tripTitle:
             completedDetailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: completedDetailsArgs?['tripId'] as String? ?? '# ID2562',
+        tripMongoId: completedDetailsArgs?['tripMongoId'] as String?,
         isLongTrip: completedDetailsArgs?['isLongTrip'] == true,
         pickup:
             completedDetailsArgs?['pickup'] as String? ??

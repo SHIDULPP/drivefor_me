@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class CompletedTripDetailsPage extends StatelessWidget {
   final String tripTitle;
   final String tripId;
+  final String? tripMongoId;
   final bool isLongTrip;
   final String pickup;
   final String dropoff;
@@ -35,6 +36,7 @@ class CompletedTripDetailsPage extends StatelessWidget {
     super.key,
     this.tripTitle = 'One Way Trip',
     this.tripId = '# ID2562',
+    this.tripMongoId,
     this.isLongTrip = false,
     this.pickup = 'Edappally, Lulu Mall',
     this.dropoff = 'Infopark, Kakkanad',
@@ -187,7 +189,12 @@ class CompletedTripDetailsPage extends StatelessWidget {
                     onPressed: () {
                       NavigationService().pushNamed(
                         'raise_ticket',
-                        arguments: {'tripId': tripId},
+                        arguments: {
+                          'tripId': tripId,
+                          if (tripMongoId != null && tripMongoId!.isNotEmpty)
+                            'tripMongoId': tripMongoId,
+                          'category': 'Trip Support',
+                        },
                       );
                     },
                   ),

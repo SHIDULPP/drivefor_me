@@ -224,7 +224,10 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
                   right: 20,
                   bottom: 16,
                   child: _HelpButton(
-                    onTap: () => openTripHelp(tripLabel: _tripId),
+                    onTap: () => openTripHelp(
+                      tripLabel: _tripId,
+                      tripMongoId: widget.tripMongoId,
+                    ),
                   ),
                 ),
               ],

@@ -29,7 +29,7 @@ class WalletApi {
     );
   }
 
-  Future<ApiResponse<WalletModel>> applyReferral(String referralCode) async {
+  Future<ApiResponse<void>> applyReferral(String referralCode) async {
     final response = await _api.post(
       '/wallet/apply-referral',
       {'referralCode': referralCode.trim()},
@@ -43,15 +43,7 @@ class WalletApi {
       );
     }
 
-    final data = nestedData(response.data);
-    if (data == null) {
-      return ApiResponse.error('Invalid referral response');
-    }
-
-    return ApiResponse.success(
-      WalletModel.fromJson(data),
-      response.statusCode,
-    );
+    return ApiResponse.success(null, response.statusCode);
   }
 }
 
