@@ -231,8 +231,17 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     ref.read(loadingProvider.notifier).startLoading();
 
     try {
+      log(
+        'Calling requestOtp API for: $phoneNumber',
+        name: 'PhoneNumberScreen',
+      );
       final response = await ref.read(authApiProvider).requestOtp(phoneNumber);
       if (!mounted) return;
+
+      log(
+        'requestOtp API Response: success=${response.success}, statusCode=${response.statusCode}, message=${response.message}, data=${response.data}',
+        name: 'PhoneNumberScreen',
+      );
 
       if (!response.success) {
         _showMessage(response.message ?? 'Failed to send OTP');
@@ -257,6 +266,14 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
           ),
         ),
       );
+    } catch (e, stackTrace) {
+      log(
+        'Unexpected error in requestOtp: $e',
+        error: e,
+        stackTrace: stackTrace,
+        name: 'PhoneNumberScreen',
+      );
+      _showMessage('An error occurred. Please try again.');
     } finally {
       ref.read(loadingProvider.notifier).stopLoading();
     }
@@ -584,10 +601,19 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
     ref.read(loadingProvider.notifier).startLoading();
 
     try {
+      log(
+        'Calling requestOtp (resend) API for: ${widget.phoneNumber}',
+        name: 'OTPScreen',
+      );
       final response = await ref
           .read(authApiProvider)
           .requestOtp(widget.phoneNumber);
       if (!mounted) return;
+
+      log(
+        'requestOtp (resend) API Response: success=${response.success}, statusCode=${response.statusCode}, message=${response.message}, data=${response.data}',
+        name: 'OTPScreen',
+      );
 
       if (!response.success) {
         _showMessage(response.message ?? 'Failed to resend OTP');
@@ -600,6 +626,14 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
       }
 
       _showMessage('OTP sent again');
+    } catch (e, stackTrace) {
+      log(
+        'Unexpected error in resendOtp: $e',
+        error: e,
+        stackTrace: stackTrace,
+        name: 'OTPScreen',
+      );
+      _showMessage('Failed to resend OTP. Please try again.');
     } finally {
       ref.read(loadingProvider.notifier).stopLoading();
     }
@@ -615,10 +649,19 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
     ref.read(loadingProvider.notifier).startLoading();
 
     try {
+      log(
+        'Calling verifyOtp API for phone: ${widget.phoneNumber}, otp: $otp',
+        name: 'OTPScreen',
+      );
       final response = await ref
           .read(authApiProvider)
           .verifyOtp(phoneNumber: widget.phoneNumber, otp: otp);
       if (!mounted) return;
+
+      log(
+        'verifyOtp API Response: success=${response.success}, statusCode=${response.statusCode}, message=${response.message}, data=${response.data}',
+        name: 'OTPScreen',
+      );
 
       if (!response.success) {
         _showMessage(response.message ?? 'Invalid OTP');
@@ -644,9 +687,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
       await storage.saveUserId(userId);
       await storage.saveAuthToken(token);
       await storage.savePhoneNumber(widget.phoneNumber);
-      await storage.saveOnboardingStatus(
-        onboardingStatus ?? 'profile_pending',
-      );
+      await storage.saveOnboardingStatus(onboardingStatus ?? 'profile_pending');
 
       await ref
           .read(notificationTokenServiceProvider)
@@ -656,6 +697,14 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         onboardingStatus ?? 'profile_pending',
       );
       NavigationService().pushNamedAndRemoveUntil(route);
+    } catch (e, stackTrace) {
+      log(
+        'Unexpected error in verifyOtp: $e',
+        error: e,
+        stackTrace: stackTrace,
+        name: 'OTPScreen',
+      );
+      _showMessage('An error occurred during verification. Please try again.');
     } finally {
       ref.read(loadingProvider.notifier).stopLoading();
     }

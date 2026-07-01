@@ -72,7 +72,6 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   static const _tripProtectionFee = 19;
   static const _estimateDebounceDuration = Duration(milliseconds: 350);
 
-  static final _scheduleDisplayFormat = DateFormat('EEE, dd MMM • hh:mm a');
   static final _apiDateFormat = DateFormat('yyyy-MM-dd');
   static final _apiTimeFormat = DateFormat('HH:mm');
 
@@ -81,8 +80,6 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     if (_pickupLocation.hasAddress) return _pickupLocation.displayLabel;
     return 'Select pickup location';
   }
-
-  String get _tripTypeLabel => isShortTrip ? 'Short Trip' : 'Long Trip';
 
   String get _routeInsightLabel {
     if (_isLoadingRoute) return 'Calculating route...';
@@ -345,11 +342,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       backgroundColor: kScreenBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               /// ================= HEADER =================
               Row(
@@ -357,17 +354,17 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      height: 56,
-                      width: 56,
+                      height: 40,
+                      width: 40,
                       decoration: const BoxDecoration(
                         color: kWhite,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new, size: 24),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 16),
                     ),
                   ),
 
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 12),
 
                   Expanded(
                     child: Text('Where to go?', style: kTripPageTitleSB),
@@ -375,20 +372,20 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 22,
-                      vertical: 18,
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
                       color: kTripCreamBg,
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: GestureDetector(
                       onTap: () => showSelectRiderBottomSheet(context),
                       child: Row(
                         children: [
                           Text('For: My Self', style: kTripForPillM),
-                          SizedBox(width: 10),
-                          Icon(Icons.keyboard_arrow_down),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.keyboard_arrow_down, size: 18),
                         ],
                       ),
                     ),
@@ -396,37 +393,32 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 ],
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 14),
 
               /// ================= LOCATION CARD =================
               _buildLocationCard(),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               /// ================= VEHICLE CARD =================
               _buildVehicleCard(),
 
-              const SizedBox(height: 18),
-
-              /// ================= RIDE TIME =================
-              _buildRideTimeCard(),
-
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               /// ================= TRIP DETAILS =================
               _buildTripDetailsCard(),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               /// ================= TRIP PROTECTION =================
               _buildProtectionCard(),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               /// ================= PAYMENT =================
               _buildPaymentCard(),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -493,213 +485,216 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
   Widget _buildLocationCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
-          /// top switch
-          Container(
-            height: 68,
+          _TripDirectionToggle(
+            isOneWay: isOneWay,
+            onOneWayTap: () {
+              _mutateTripForm(() {
+                isOneWay = true;
+                _hasUserAdjustedDuration = false;
+              });
+              _scheduleRouteRefresh();
+            },
+            onRoundTripTap: () {
+              _mutateTripForm(() {
+                isOneWay = false;
+                _dropoffLocation = null;
+                _routeSummary = null;
+                _hasUserAdjustedDuration = false;
+              });
+              _scheduleRouteRefresh();
+            },
+          ),
+
+          const SizedBox(height: 14),
+
+          if (isOneWay)
+            _buildOneWayLocationFields()
+          else
+            _buildRoundTripLocationField(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoundTripLocationField() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          height: 18,
+          width: 18,
+          decoration: BoxDecoration(
+            color: kActiveGreen,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(Icons.star, size: 12, color: kWhite),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: GestureDetector(
+            onTap: _pickPickupLocation,
+            behavior: HitTestBehavior.opaque,
+            child: Text(
+              _pickupLocation.hasAddress
+                  ? _pickupLocation.displayLabel
+                  : 'Select location',
+              style: kTripLocationValueM.copyWith(
+                color: _pickupLocation.hasAddress
+                    ? kTextColor
+                    : kTripMutedLabel,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => _openScheduleSheet(openOnScheduleTab: !isRideNow),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: kTripCreamBg,
-              borderRadius: BorderRadius.circular(34),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      _mutateTripForm(() {
-                        isOneWay = true;
-                        _hasUserAdjustedDuration = false;
-                      });
-                      _scheduleRouteRefresh();
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: isOneWay ? kTripGold : Colors.transparent,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.arrow_right_alt,
-                            color: isOneWay ? kWhite : kTextColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'One Way',
-                            style: isOneWay
-                                ? kTripSegmentActiveM
-                                : kTripSegmentInactiveM,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                const Icon(Icons.access_time, size: 15),
+                const SizedBox(width: 6),
+                Text(
+                  isRideNow ? 'Now' : 'Later',
+                  style: kTripTimePillM,
                 ),
-
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      _mutateTripForm(() {
-                        isOneWay = false;
-                        _hasUserAdjustedDuration = false;
-                      });
-                      _scheduleRouteRefresh();
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: !isOneWay ? kTripGold : Colors.transparent,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.sync_alt,
-                            color: !isOneWay ? kWhite : kTextColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Round Trip',
-                            style: !isOneWay
-                                ? kTripSegmentActiveM
-                                : kTripSegmentInactiveM,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(width: 2),
+                const Icon(Icons.keyboard_arrow_down, size: 18),
               ],
             ),
           ),
+        ),
+      ],
+    );
+  }
 
-          const SizedBox(height: 24),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// left icons
-              Column(
-                children: [
-                  Container(
-                    height: 28,
-                    width: 28,
-                    decoration: BoxDecoration(
-                      color: kActiveGreen,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.star, size: 18, color: kWhite),
-                  ),
-
-                  Container(width: 2, height: 60, color: kLineGrey),
-
-                  Container(
-                    height: 28,
-                    width: 28,
-                    decoration: BoxDecoration(
-                      color: kTripDestIconBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.star,
-                      size: 18,
-                      color: kTripIconMuted,
-                    ),
-                  ),
-                ],
+  Widget _buildOneWayLocationFields() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              height: 18,
+              width: 18,
+              decoration: BoxDecoration(
+                color: kActiveGreen,
+                borderRadius: BorderRadius.circular(4),
               ),
-
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Column(
+              child: const Icon(Icons.star, size: 12, color: kWhite),
+            ),
+            Container(width: 1.5, height: 56, color: kLineGrey),
+            Container(
+              height: 18,
+              width: 18,
+              decoration: BoxDecoration(
+                color: kTripDestIconBg,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(
+                Icons.star,
+                size: 12,
+                color: kTripIconMuted,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: _pickPickupLocation,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// from
-                    GestureDetector(
-                      onTap: _pickPickupLocation,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('From', style: kTripLocationLabelR),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _pickupDisplayLabel,
-                                  style: kTripLocationValueM,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: kTripCreamBg,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.access_time, size: 24),
-                                const SizedBox(width: 10),
-                                Text('Now', style: kTripTimePillM),
-                                SizedBox(width: 6),
-                                Icon(Icons.keyboard_arrow_down),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Divider(color: Colors.grey.shade300),
-
-                    GestureDetector(
-                      onTap: _pickDropoffLocation,
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('To', style: kTripLocationLabelR),
-                          ),
-                          const SizedBox(height: 14),
+                          Text('From', style: kTripLocationLabelR),
+                          const SizedBox(height: 4),
                           Text(
-                            _dropoffLocation?.address ?? 'Enter destination',
-                            style: kTripLocationValueM.copyWith(
-                              color: _dropoffLocation == null
-                                  ? kTripMutedLabel
-                                  : kTextColor,
-                            ),
+                            _pickupDisplayLabel,
+                            style: kTripLocationValueM,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Divider(color: Colors.grey.shade300),
+                    GestureDetector(
+                      onTap: () => _openScheduleSheet(
+                        openOnScheduleTab: !isRideNow,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: kTripCreamBg,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time, size: 15),
+                            const SizedBox(width: 6),
+                            Text(
+                              isRideNow ? 'Now' : 'Later',
+                              style: kTripTimePillM,
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.keyboard_arrow_down, size: 18),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              Divider(color: Colors.grey.shade300),
+              GestureDetector(
+                onTap: _pickDropoffLocation,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('To', style: kTripLocationLabelR),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _dropoffLocation?.address ?? 'Enter destination',
+                      style: kTripLocationValueM.copyWith(
+                        color: _dropoffLocation == null
+                            ? kTripMutedLabel
+                            : kTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Divider(color: Colors.grey.shade300),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -709,10 +704,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
   Widget _buildVehicleCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -722,19 +717,20 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
               Expanded(
                 child: Text('Choose your Vehicle', style: kTripSectionTitleSB),
               ),
-              GestureDetector(
-                onTap: _openAddVehicleSheet,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Change', style: kTripChipCustomM),
-                    Icon(Icons.chevron_right, size: 20, color: kBrandBlue),
-                  ],
+              if (_vehicles.isNotEmpty)
+                GestureDetector(
+                  onTap: _openAddVehicleSheet,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Change', style: kTripChipCustomM),
+                      const Icon(Icons.chevron_right, size: 20, color: kBrandBlue),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           if (_isLoadingVehicles)
             const SizedBox(
               height: 168,
@@ -744,29 +740,35 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             GestureDetector(
               onTap: _openAddVehicleSheet,
               child: Container(
-                height: 120,
+                height: 56,
                 width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: kTripBorder),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Row(
                   children: [
-                    const Icon(Icons.add, size: 28, color: kTripIconMuted),
-                    const SizedBox(height: 8),
-                    Text('Add your vehicle', style: kTripVehicleAddM),
+                    const Icon(Icons.add, size: 20, color: kTextColor),
+                    const SizedBox(width: 12),
+                    Text('Add Your Vehicle', style: kTripVehicleAddM),
+                    const Spacer(),
+                    const Icon(
+                      Icons.directions_car_filled_rounded,
+                      size: 22,
+                      color: kBrandBlue,
+                    ),
                   ],
                 ),
               ),
             )
           else
             SizedBox(
-              height: 168,
+              height: 146,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _vehicles.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 14),
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final vehicle = _vehicles[index];
                   final isSelected = _selectedVehicle?.id == vehicle.id;
@@ -793,14 +795,14 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 132,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        width: 124,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: kWhite,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? kTripGold : kTripBorder,
-            width: isSelected ? 1.5 : 1,
+            width: isSelected ? 1.4 : 1,
           ),
         ),
         child: Column(
@@ -808,10 +810,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
           children: [
             Image.asset(
               'assets/pngs/car_image.png',
-              height: 52,
+              height: 46,
               fit: BoxFit.contain,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               _vehicleTypeLabel(vehicle.vehicleType),
               style: kStyle(kSemiBold, kSize14, color: kTextColor),
@@ -819,7 +821,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               vehicle.vehicleNumber,
               style: kTripDurationPriceB.copyWith(fontSize: kSize13),
@@ -859,89 +861,6 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
   }
 
-  /// ============================================================
-  /// RIDE TIME
-  /// ============================================================
-
-  static const _rideScheduleBg = Color(0xFFDDE6F0);
-
-  Widget _buildRideTimeCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: kTripCtaBlue,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.access_time_rounded,
-                  color: kWhite,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Ride Time', style: kTripSubSectionSB),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Book a ride now or schedule for later',
-                      style: kTripProtectionDescR,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _rideTimeOption(
-                  label: 'Now',
-                  selected: isRideNow,
-                  onTap: () => _mutateTripForm(() {
-                    isRideNow = true;
-                    scheduledRideAt = null;
-                  }),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _rideTimeOption(
-                  label: 'Schedule',
-                  selected: !isRideNow,
-                  onTap: _onScheduleTap,
-                ),
-              ),
-            ],
-          ),
-          if (!isRideNow && scheduledRideAt != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              'Scheduled: ${_scheduleDisplayFormat.format(scheduledRideAt!)}',
-              style: kStyle(kMedium, kSize13, color: kBrandBlue),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Future<void> _openScheduleSheet({bool openOnScheduleTab = false}) async {
     final result = await showScheduleBottomSheet(
       context,
@@ -964,81 +883,67 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     });
   }
 
-  Future<void> _onScheduleTap() async {
-    _mutateTripForm(() => isRideNow = false);
-    await _openScheduleSheet(openOnScheduleTab: true);
-  }
-
-  Widget _rideTimeOption({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 50,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? kTripCtaBlue : _rideScheduleBg,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Text(
-          label,
-          style: kStyle(
-            kSemiBold,
-            kSize16,
-            color: selected ? kWhite : kTripCtaBlue,
-          ),
-        ),
-      ),
-    );
-  }
-
   /// ============================================================
   /// TRIP DETAILS
   /// ============================================================
 
   Widget _buildTripDetailsCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Trip Details', style: kTripSectionTitleSB),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 16),
 
           Text('Trip type', style: kTripSubSectionSB),
 
-          const SizedBox(height: 12),
-
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: kTripSelectedTint,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: kTripGold),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_tripTypeLabel, style: kTripChipDurationSB),
-                const SizedBox(height: 6),
-                Text(
-                  _routeInsightLabel,
-                  style: kTripDurationMetaR.copyWith(color: kMutedText),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _tripTypeChip(
+                  label: 'Short Trip',
+                  selected: isShortTrip,
+                  onTap: () {
+                    _mutateTripForm(() {
+                      isShortTrip = true;
+                      if (selectedHour < 1 || selectedHour > 7) {
+                        selectedHour = 1;
+                      }
+                    }, userAdjustedDuration: true);
+                  },
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _tripTypeChip(
+                  label: 'Long Trip',
+                  selected: !isShortTrip,
+                  onTap: () {
+                    _mutateTripForm(() {
+                      isShortTrip = false;
+                      if (selectedHour != -1 && selectedHour < 8) {
+                        selectedHour = 8;
+                      }
+                    }, userAdjustedDuration: true);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            _routeInsightLabel,
+            style: kTripDurationMetaR.copyWith(color: kMutedText),
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 16),
 
           Text('Trip Duration', style: kTripSubSectionSB),
 
@@ -1057,10 +962,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             ),
           ),
 
-          const SizedBox(height: 26),
+          const SizedBox(height: 14),
 
           SizedBox(
-            height: 92,
+            height: 62,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
@@ -1069,9 +974,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     return GestureDetector(
                       onTap: _showCustomDurationBottomSheet,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: kTripGold),
                           color: kTripSelectedTint,
                         ),
@@ -1090,9 +995,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     return GestureDetector(
                       onTap: _showCustomDurationBottomSheet,
                       child: Container(
-                        width: 74,
+                        width: 48,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: kTripBorder),
                           color: kWhite,
                         ),
@@ -1100,19 +1005,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              height: 24,
-                              width: 24,
+                              height: 20,
+                              width: 20,
                               decoration: const BoxDecoration(
                                 color: kTripCreamBg,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.add,
-                                size: 16,
+                                size: 14,
                                 color: kTripIconMuted,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Text('Custom', style: kTripChipCustomM),
                           ],
                         ),
@@ -1131,9 +1036,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       _showCustomDurationBottomSheet();
                     },
                     child: Container(
-                      width: 74,
+                      width: 48,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: selected ? kTripGold : kTripBorder,
                         ),
@@ -1143,19 +1048,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            height: 24,
-                            width: 24,
+                            height: 20,
+                            width: 20,
                             decoration: const BoxDecoration(
                               color: kTripCreamBg,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.add,
-                              size: 16,
+                              size: 14,
                               color: kTripIconMuted,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text('Custom', style: kTripChipCustomM),
                         ],
                       ),
@@ -1172,9 +1077,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     }, userAdjustedDuration: true);
                   },
                   child: Container(
-                    width: 74,
+                    width: 42,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: selected ? kTripGold : kTripBorder,
                       ),
@@ -1189,14 +1094,14 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                               ? kTripChipHourB
                               : kTripChipHourMutedB,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 2),
                         Text('Hrs', style: kTripChipUnitM),
                       ],
                     ),
                   ),
                 );
               },
-              separatorBuilder: (_, __) => const SizedBox(width: 14),
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemCount: (!isShortTrip && selectedHour == -1) ? 2 : 7,
             ),
           ),
@@ -1383,6 +1288,29 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     );
   }
 
+  Widget _tripTypeChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? kTripSelectedTint : kWhite,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: selected ? kTripGold : kTripBorder),
+        ),
+        child: Text(
+          label,
+          style: selected ? kTripChipDurationSB : kTripSegmentInactiveM,
+        ),
+      ),
+    );
+  }
+
   Widget _overnightOptionCard({
     required String title,
     required String subtitle,
@@ -1443,10 +1371,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
   Widget _buildProtectionCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
@@ -1521,17 +1449,17 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
   Widget _buildPaymentCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Choose Payment Option', style: kTripSectionTitleSB),
 
-          const SizedBox(height: 26),
+          const SizedBox(height: 16),
 
           _paymentTile(
             title: 'Cash on Pay',
@@ -1545,7 +1473,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             },
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 10),
 
           _paymentTile(
             title: 'Pay Online Now',
@@ -1573,10 +1501,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
           if (selectedPaymentIndex == 1) ...[
             const SizedBox(height: 18),
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: kTripSecureBannerBg,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
@@ -1618,9 +1546,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: isSelected ? kTripGold : kTripBorder),
           color: kWhite,
         ),
@@ -1628,19 +1556,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 4),
-              height: 24,
-              width: 24,
+              margin: const EdgeInsets.only(top: 3),
+              height: 18,
+              width: 18,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isSelected ? kTripGold : kTripRadioMuted,
-                  width: isSelected ? 6 : 2,
+                  width: isSelected ? 4 : 1.5,
                 ),
               ),
             ),
 
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
 
             Expanded(
               child: Column(
@@ -1648,7 +1576,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 children: [
                   Text(title, style: kTripPaymentTitleSB),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 4),
 
                   Text(subtitle, style: kTripPaymentSubtitleR),
                 ],
@@ -2270,6 +2198,125 @@ class _CustomStayDurationSheetState extends State<_CustomStayDurationSheet> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TripDirectionToggle extends StatelessWidget {
+  final bool isOneWay;
+  final VoidCallback onOneWayTap;
+  final VoidCallback onRoundTripTap;
+
+  const _TripDirectionToggle({
+    required this.isOneWay,
+    required this.onOneWayTap,
+    required this.onRoundTripTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: kTripCreamBg,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _TripDirectionSegment(
+              label: 'One Way',
+              selected: isOneWay,
+              onTap: onOneWayTap,
+              icon: _OneWayTripIcon(color: isOneWay ? kWhite : kTextColor),
+            ),
+          ),
+          Expanded(
+            child: _TripDirectionSegment(
+              label: 'Round Trip',
+              selected: !isOneWay,
+              onTap: onRoundTripTap,
+              icon: Icon(
+                Icons.sync,
+                size: 16,
+                color: !isOneWay ? kWhite : kTextColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TripDirectionSegment extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget icon;
+
+  const _TripDirectionSegment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: selected ? kTripGold : Colors.transparent,
+          borderRadius: BorderRadius.circular(21),
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            icon,
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: selected ? kTripSegmentActiveM : kTripSegmentInactiveM,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OneWayTripIcon extends StatelessWidget {
+  final Color color;
+
+  const _OneWayTripIcon({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 18,
+      height: 12,
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 1.5,
+            margin: const EdgeInsets.only(right: 1),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+          Icon(Icons.arrow_right, size: 14, color: color),
         ],
       ),
     );
