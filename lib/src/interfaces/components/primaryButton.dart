@@ -85,7 +85,7 @@ class _InteractiveButtonState extends State<_InteractiveButton> {
       curve: Curves.easeOut,
       child: InkWell(
         borderRadius: widget.borderRadius,
-        splashColor: Colors.white.withOpacity(0.15),
+        splashColor: AppColors.white.withValues(alpha: 0.15),
         highlightColor: Colors.transparent,
 
         onTap: isDisabled ? null : widget.onPressed,

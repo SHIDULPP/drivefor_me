@@ -165,7 +165,7 @@ class _SelectRiderBottomSheetState extends State<SelectRiderBottomSheet> {
         height: 78,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFF7F8F2) : kWhite,
+          color: selected ? AppColors.riderSelectedBackground : kWhite,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected ? kTripGold : kTripBorder,

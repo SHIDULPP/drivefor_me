@@ -1,4 +1,5 @@
 import 'package:driveforme_user/src/data/apis/trip_api.dart';
+import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
@@ -65,7 +66,7 @@ class _TripsPageState extends ConsumerState<TripsPage> {
     final topInset = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
-      backgroundColor: kScreenBg,
+      backgroundColor: kTripsScreenBg,
       body: Column(
         children: [
           ColoredBox(
@@ -103,7 +104,7 @@ class _TripsPageState extends ConsumerState<TripsPage> {
     if (_errorMessage != null) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: kScreenPaddingH),
         children: [
           const SizedBox(height: 80),
           Text(
@@ -131,7 +132,12 @@ class _TripsPageState extends ConsumerState<TripsPage> {
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20, 16, 20, _navBarClearance(context)),
+      padding: EdgeInsets.fromLTRB(
+        kScreenPaddingH,
+        16,
+        kScreenPaddingH,
+        _navBarClearance(context),
+      ),
       itemCount: _trips.length,
       separatorBuilder: (_, _) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
@@ -229,7 +235,7 @@ class _TabItem extends StatelessWidget {
             height: 2,
             width: selected ? 52 : 0,
             decoration: BoxDecoration(
-              color: kGoldAccent,
+              color: kTabActiveTan,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -251,7 +257,7 @@ class _OngoingTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusLg),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -397,8 +403,8 @@ class _CancelledTripCard extends StatelessWidget {
     required this.onBookAgain,
   });
 
-  static const _cancelledBg = Color(0xFFFFEBEE);
-  static const _cancelledRed = Color(0xFFE53935);
+  static const _cancelledBg = AppColors.cancelledBackground;
+  static const _cancelledRed = AppColors.errorRedAlt;
 
   @override
   Widget build(BuildContext context) {
@@ -407,7 +413,7 @@ class _CancelledTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusLg),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -537,8 +543,8 @@ class _CompletedTripCard extends StatelessWidget {
 
   const _CompletedTripCard({required this.trip, required this.onViewDetails});
 
-  static const _completedBg = Color(0xFFE8F1FA);
-  static const _completedBlue = Color(0xFF165A91);
+  static const _completedBg = AppColors.completedBackground;
+  static const _completedBlue = AppColors.primaryBlue;
 
   @override
   Widget build(BuildContext context) {
@@ -547,7 +553,7 @@ class _CompletedTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusLg),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -747,8 +753,8 @@ class _UpcomingTripCard extends StatelessWidget {
 
   const _UpcomingTripCard({required this.trip});
 
-  static const _scheduledBg = Color(0xFFFFF4E8);
-  static const _scheduledOrange = Color(0xFFF59E0B);
+  static const _scheduledBg = AppColors.warningBackground;
+  static const _scheduledOrange = AppColors.warningOrange;
 
   @override
   Widget build(BuildContext context) {
@@ -757,7 +763,7 @@ class _UpcomingTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusLg),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -1133,10 +1139,10 @@ class _TrackTripButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: kBrandBlue,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(kPillRadius),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(kPillRadius),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Text('Track Trip', style: kTrackTripSB),

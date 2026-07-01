@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -144,14 +145,16 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                         maxHeight: widget.maxMenuHeight,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.cardBackground,
                         borderRadius: BorderRadius.circular(
                           widget.borderRadius > 0 ? widget.borderRadius : 16,
                         ),
-                        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                        border: Border.all(
+                          color: AppColors.border.withValues(alpha: 0.1),
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
+                            color: AppColors.shadowLight,
                             blurRadius: 24,
                             spreadRadius: 2,
                             offset: const Offset(0, 8),
@@ -165,7 +168,7 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                         separatorBuilder: (context, index) => const Divider(
                           height: 1,
                           thickness: 1,
-                          color: Color(0xFFF3F4F6),
+                          color: AppColors.shimmerBase,
                         ),
                         itemBuilder: (context, index) {
                           final item = widget.items[index];
@@ -173,15 +176,19 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                           return Container(
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.blue.shade50
+                                  ? AppColors.primaryBlueLight
+                                      .withValues(alpha: 0.12)
                                   : Colors.transparent,
                             ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                highlightColor: Colors.blue.withOpacity(0.05),
-                                hoverColor: Colors.blue.withOpacity(0.05),
-                                splashColor: Colors.blue.withOpacity(0.1),
+                                highlightColor: AppColors.primaryBlue
+                                    .withValues(alpha: 0.05),
+                                hoverColor: AppColors.primaryBlue
+                                    .withValues(alpha: 0.05),
+                                splashColor: AppColors.primaryBlue
+                                    .withValues(alpha: 0.1),
                                 onTap: () {
                                   widget.onChanged(item);
                                   _closeDropdown();
@@ -210,8 +217,8 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                                                 ? FontWeight.w500
                                                 : FontWeight.w400,
                                             color: isSelected
-                                                ? Colors.blue.shade700
-                                                : Colors.black87,
+                                                ? AppColors.primaryBlue
+                                                : AppColors.primaryText,
                                           ),
                                         ),
                                       ),
@@ -219,7 +226,7 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                                         Icon(
                                           Icons.check_circle,
                                           size: 18,
-                                          color: Colors.blue.shade600,
+                                          color: AppColors.linkBlue,
                                         ),
                                     ],
                                   ),
@@ -242,7 +249,7 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
 
   @override
   Widget build(BuildContext context) {
-    final hasError = widget.borderColor == Colors.red;
+    final hasError = widget.borderColor == AppColors.errorRed;
 
     return CompositedTransformTarget(
       link: _layerLink,
@@ -252,12 +259,12 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
           height: widget.height,
           padding: const EdgeInsets.symmetric(horizontal: 15),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5FA),
+            color: AppColors.inputBackground,
             borderRadius: BorderRadius.circular(40),
             border: Border.all(
               color: hasError
-                  ? Colors.red
-                  : widget.borderColor ?? const Color(0xFFE8E8EF),
+                  ? AppColors.errorRed
+                  : widget.borderColor ?? AppColors.inputBorder,
               width: hasError ? 1.5 : 1,
             ),
           ),
@@ -281,8 +288,8 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                     style: TextStyle(
                       fontFamily: 'ClashGrotesk',
                       color: widget.value == null
-                          ? const Color(0xFF9C9C9C)
-                          : const Color(0xFF141414),
+                          ? AppColors.disabledText
+                          : AppColors.primaryText,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -293,7 +300,7 @@ class _AnimatedDropdownState<T> extends State<AnimatedDropdown<T>>
                 openUpwards
                     ? Icons.keyboard_arrow_up_rounded
                     : Icons.keyboard_arrow_down_rounded,
-                color: const Color(0xFF111111),
+                color: AppColors.black,
               ),
             ],
           ),

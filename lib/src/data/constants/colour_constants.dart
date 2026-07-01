@@ -1,83 +1,79 @@
+import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
-const kPrimaryColor = Color(0xFF1D5C92); //Indigo- Primary brand · CTAs · Links
-const kSecondaryColor = Color(0xFF6C5FE6); //Indigo light- Hover states · Icons
-const kAccentColor = Color(0xFFFFFFFF);
+export 'app_colors.dart';
 
-// const Color kStrokeColor = Color(0xFF0D2A4D);
-const kStrokeColor = Color(0xFF1E3C72); // thin borders
+// ── Legacy aliases (prefer AppColors in new code) ───────────────────────────
 
-const Color kTertiary = Color(0xFFE8EAED);
-const Color kBorder = Color(0xFFD8DADC);
+const kPrimaryColor = AppColors.primaryBlue;
+const kSecondaryColor = AppColors.linkBlue;
+const kAccentColor = AppColors.white;
+const kStrokeColor = AppColors.stroke;
+const kTertiary = AppColors.tertiarySurface;
+const kBorder = AppColors.border;
+const kBackgroundColor = AppColors.scaffoldBackground;
 
-//background colour
-const Color kBackgroundColor = Color(0xFFF9FBF4);
+const Color kWhite = AppColors.white;
+const Color kGrey = AppColors.grey;
+const Color kTextColor = AppColors.primaryText;
+const Color kThirdTextColor = AppColors.linkBlue;
+const Color kSecondaryTextColor = AppColors.secondaryText;
+const Color kGreyLight = AppColors.greyLight;
+final Color kShimmerBaseColor = AppColors.shimmerBase;
+const Color kGreyDark = AppColors.greyDark;
+const Color kGreyDarker = AppColors.greyDarker;
+const Color kRed = AppColors.errorRed;
+const Color kRedDark = AppColors.errorRedDark;
+const Color kBlack = AppColors.black;
+const Color kBlack54 = AppColors.black54;
+const Color kGreen = AppColors.successGreen;
+const Color kOrange = AppColors.warningOrange;
+const Color kBlue = AppColors.linkBlue;
+const Color kLightGreen = AppColors.lightGreen;
 
-//Common Colors
-const Color kWhite = Color(0xFFFFFFFF);
-const Color kGrey = Color.fromARGB(255, 200, 200, 200);
+const Color kScreenBg = AppColors.scaffoldBackground;
+const Color kProfileScreenBg = AppColors.profileScaffoldBackground;
+const Color kTripsScreenBg = AppColors.tripsScaffoldBackground;
+const Color kCreateTripScreenBg = AppColors.createTripScaffoldBackground;
+const Color kBrandBlue = AppColors.primaryBlue;
+const Color kGold = AppColors.accentOrange;
+const Color kGoldAccent = AppColors.accentGold;
+const Color kActiveGreen = AppColors.statusBadgeGreen;
+const Color kActiveGreenBg = AppColors.statusBadgeGreenBackground;
+const Color kDropBlue = AppColors.primaryBlue;
+const Color kChipGreyBg = AppColors.chipGreyBackground;
+const Color kTabActiveTan = AppColors.tabActiveTan;
+const Color kTripPriceBlue = AppColors.tripPriceBlue;
+const Color kSegmentActiveBrown = AppColors.segmentActiveBrown;
+const Color kSegmentTrackCream = AppColors.segmentTrackCream;
+const Color kNotificationCircleBg = AppColors.notificationCircleBackground;
+const Color kNavigationInactive = AppColors.navigationInactive;
+const Color kSearchFieldBg = AppColors.searchFieldBackground;
+const Color kDecorText = AppColors.decorWatermark;
+const Color kLineGrey = AppColors.lineGrey;
+const Color kMutedText = AppColors.mutedText;
+const Color kCardBorder = AppColors.cardBorder;
+const Color kChevronGrey = AppColors.chevronGrey;
 
-const Color kTextColor = Color(0xFF141414);
+const Color kTripGold = AppColors.tripGold;
+const Color kTripCreamBg = AppColors.tripCreamBackground;
+const Color kTripSelectedTint = AppColors.tripSelectedTint;
+const Color kTripBorder = AppColors.tripBorder;
+const Color kTripMutedLabel = AppColors.disabledText;
+const Color kTripBodyMuted = AppColors.tertiaryText;
+const Color kTripIconMuted = AppColors.iconMuted;
+const Color kTripRadioMuted = AppColors.radioMuted;
+const Color kTripDestIconBg = AppColors.destinationIconBackground;
+const Color kTripCtaBlue = AppColors.primaryBlue;
+const Color kTripPickerMuted = AppColors.pickerMuted;
+const Color kTripCloseBtnBg = AppColors.tripCloseButtonBackground;
+const Color kTripSecureBannerBg = AppColors.tripSecureBannerBackground;
+const Color kTripDarkText = AppColors.tripDarkText;
+const Color kTripStayCounter = AppColors.primaryBlueDark;
 
-const Color kThirdTextColor = Color(0xFF0A39C4);
-const kSecondaryTextColor = Color(0xFF5A5E60); // light cyan for subtitles
-
-const Color kGreyLight = Color(0xFFCCCCCC);
-final Color kShimmerBaseColor = Colors.grey[100]!;
-const Color kGreyDark = Color.fromARGB(255, 118, 121, 124);
-const Color kGreyDarker = Color(0xFF585858);
-const Color kRed = Color(0xFFE52022);
-const Color kRedDark = Color(0xFFC9300E);
-const Color kBlack = Color.fromARGB(255, 5, 5, 5);
-const Color kBlack54 = Color(0xff8a000000);
-const Color kGreen = Color.fromARGB(255, 76, 175, 80);
-const Color kOrange = Color(0xFFFF6900);
-const Color kBlue = Color(0xFF2B74E1);
-const Color kLightGreen = Color.fromARGB(255, 192, 252, 194);
-
-// ── Main app screens (home, trips, nav) ───────────────────────────────────────
-
-/// Default scaffold / page background (#D9D9D9).
-const Color kScreenBg = Color(0xFFD9D9D9);
-const Color kBrandBlue = kPrimaryColor;
-const Color kGold = Color(0xFFB77728);
-const Color kGoldAccent = Color(0xFFC58A38);
-
-const Color kActiveGreen = Color(0xFF17A34A);
-const Color kActiveGreenBg = Color(0xFFE4F3E7);
-const Color kDropBlue = Color(0xFF0B5EA8);
-
-const Color kChipGreyBg = Color(0xFFF3F4EE);
-const Color kSearchFieldBg = Color(0xFFF4F5EF);
-const Color kDecorText = Color.fromARGB(255, 181, 180, 180);
-const Color kLineGrey = Color(0xFFD8D8DE);
-const Color kMutedText = Color(0xFF888888);
-const Color kCardBorder = Color(0xFFE4E4EA);
-const Color kChevronGrey = Color(0xFF8E8E93);
-
-// ── Trip booking (create trip, booking confirmed) ─────────────────────────────
-
-const Color kTripGold = Color(0xFFC18131);
-const Color kTripCreamBg = Color(0xFFF5F5EF);
-const Color kTripSelectedTint = Color(0xFFFFFDF9);
-const Color kTripBorder = Color(0xFFE2E2EC);
-const Color kTripMutedLabel = Color(0xFFA0A0A0);
-const Color kTripBodyMuted = Color(0xFF6F6F6F);
-const Color kTripIconMuted = Color(0xFFBDBDC7);
-const Color kTripRadioMuted = Color(0xFFAFAFB8);
-const Color kTripDestIconBg = Color(0xFFE7E7EF);
-const Color kTripCtaBlue = Color(0xFF165A91);
-const Color kTripPickerMuted = Color(0xFFC6C6CD);
-const Color kTripCloseBtnBg = Color(0xFFE2EAED);
-const Color kTripSecureBannerBg = Color(0xFFE6F3EA);
-const Color kTripDarkText = Color(0xFF222222);
-const Color kTripStayCounter = Color(0xFF0C242A);
-
-// ── SOS emergency ─────────────────────────────────────────────────────────────
-
-const Color kSosRed = Color(0xFFE32626);
-const Color kSosRedDark = Color(0xFF9B1F1F);
-const Color kSosCardBg = Color(0xFFF9E6E6);
-const Color kSosScreenBg = Color(0xFFF7F9F2);
-const Color kSosRefCardBg = Color(0xFFFCE8E8);
-const Color kSosSupportIconBg = Color(0xFFE8F0F8);
+const Color kSosRed = AppColors.sosRed;
+const Color kSosRedDark = AppColors.sosRedDark;
+const Color kSosCardBg = AppColors.sosCardBackground;
+const Color kSosScreenBg = AppColors.sosScreenBackground;
+const Color kSosRefCardBg = AppColors.sosRefCardBackground;
+const Color kSosSupportIconBg = AppColors.sosSupportIconBackground;

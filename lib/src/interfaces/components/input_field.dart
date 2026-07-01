@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -100,9 +101,9 @@ class InputField extends StatelessWidget {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Colors.black,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
+              primary: AppColors.primaryBlue,
+              onPrimary: AppColors.onPrimaryText,
+              onSurface: AppColors.primaryText,
             ),
           ),
           child: child!,
@@ -162,13 +163,13 @@ class InputField extends StatelessWidget {
       },
       decoration: InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFF5F5FA),
+        fillColor: AppColors.inputBackground,
 
         hintText: hint,
 
         hintStyle: const TextStyle(
           fontFamily: 'ClashGrotesk',
-          color: Color(0xFF9C9C9C),
+          color: AppColors.disabledText,
           fontSize: 16,
           fontWeight: FontWeight.w400,
         ),
@@ -186,35 +187,35 @@ class InputField extends StatelessWidget {
                 child: const Icon(
                   Icons.calendar_today_outlined,
                   size: 22,
-                  color: Color(0xFF111111),
+                  color: AppColors.primaryText,
                 ),
               )
             : type == CustomFieldType.document
             ? const Icon(
                 Icons.cloud_upload_outlined,
                 size: 22,
-                color: Color(0xFF111111),
+                color: AppColors.primaryText,
               )
             : null,
 
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Color(0xFFE8E8EF), width: 1),
+          borderSide: const BorderSide(color: AppColors.inputBorder, width: 1),
         ),
 
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Color(0xFFE8E8EF), width: 1),
+          borderSide: const BorderSide(color: AppColors.inputBorder, width: 1),
         ),
 
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.errorRed, width: 1.5),
         ),
 
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(40),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.errorRed, width: 1.5),
         ),
       ),
     );

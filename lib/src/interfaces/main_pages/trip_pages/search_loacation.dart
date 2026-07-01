@@ -243,7 +243,7 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                                   style: kStyle(
                                     kSemiBold,
                                     16,
-                                    color: const Color(0xFF39463D),
+                                    color: AppColors.locationPinGreen,
                                   ),
                                 ),
                               ),
@@ -348,13 +348,13 @@ class _LocationTile extends StatelessWidget {
                   height: 42,
                   width: 42,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFF5F5F7),
+                    color: AppColors.searchFieldAltBackground,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.location_on,
                     size: 28,
-                    color: Color(0xFF121223),
+                    color: AppColors.searchFieldAltText,
                   ),
                 ),
                 const SizedBox(width: 22),
@@ -367,7 +367,7 @@ class _LocationTile extends StatelessWidget {
                         style: kStyle(
                           kSemiBold,
                           16,
-                          color: const Color(0xFF39463D),
+                          color: AppColors.locationPinGreen,
                         ),
                       ),
                       if (subtitle.isNotEmpty) ...[
@@ -377,7 +377,7 @@ class _LocationTile extends StatelessWidget {
                           style: kStyle(
                             kRegular,
                             14,
-                            color: const Color(0xFF39463D),
+                            color: AppColors.locationPinGreen,
                           ),
                         ),
                       ],

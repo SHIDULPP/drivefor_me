@@ -173,7 +173,7 @@ class CompletedTripDetailsPage extends StatelessWidget {
                   child: _BottomActionButton(
                     label: 'Book again',
                     filled: true,
-                    fillColor: const Color(0xFFDDE6F0),
+                    fillColor: AppColors.fillBlueGrey,
                     textColor: kTripCtaBlue,
                     onPressed: () {
                       NavigationService().pushNamed('create_trip');
@@ -337,8 +337,8 @@ class _CompletedTripHeader extends StatelessWidget {
 }
 
 class _CompletedBadge extends StatelessWidget {
-  static const _completedBg = Color(0xFFE8F1FA);
-  static const _completedBlue = Color(0xFF165A91);
+  static const _completedBg = AppColors.completedBackground;
+  static const _completedBlue = kBrandBlue;
 
   const _CompletedBadge();
 
@@ -573,7 +573,7 @@ class _CompletedDriverCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Material(
-            color: const Color(0xFFE8ECF4),
+            color: AppColors.detailDivider,
             borderRadius: BorderRadius.circular(24),
             child: InkWell(
               onTap: onRateRide,
@@ -608,7 +608,7 @@ class _CompletedDriverCard extends StatelessWidget {
       } else {
         icon = Icons.star_outline_rounded;
       }
-      return Icon(icon, size: 14, color: const Color(0xFFE8B923));
+      return Icon(icon, size: 14, color: AppColors.ratingGold);
     });
   }
 }

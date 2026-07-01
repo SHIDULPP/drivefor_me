@@ -241,7 +241,7 @@ class _TripTypePill extends StatelessWidget {
       decoration: BoxDecoration(
         color: kTripCreamBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE8E8E2)),
+        border: Border.all(color: AppColors.tripSummaryBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -261,7 +261,7 @@ class _DestinationBlock extends StatelessWidget {
 
   const _DestinationBlock({required this.name, required this.address});
 
-  static const _locationBrown = Color(0xFFB77728);
+  static const _locationBrown = AppColors.locationBrown;
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +316,7 @@ class _FareBreakdownCard extends StatelessWidget {
     required this.totalAmount,
   });
 
-  static const _cardBg = Color(0xFFF6F7FB);
+  static const _cardBg = AppColors.tripSummaryCardBackground;
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +402,7 @@ class _FareRow extends StatelessWidget {
     this.labelBold = false,
   });
 
-  static const _dueBrown = Color(0xFFB77728);
+  static const _dueBrown = AppColors.locationBrown;
 
   @override
   Widget build(BuildContext context) {
@@ -461,7 +461,7 @@ class _DashedDivider extends StatelessWidget {
             return Container(
               width: dashWidth,
               height: 1,
-              color: const Color(0xFFD5D8E0),
+              color: AppColors.tripSummaryMutedBorder,
             );
           }),
         );

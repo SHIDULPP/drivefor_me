@@ -157,7 +157,7 @@ class _TripMapViewState extends State<TripMapView> {
       Polyline(
         polylineId: const PolylineId('trip_route'),
         points: _routePoints,
-        color: const Color(0xFF165A91),
+        color: kBrandBlue,
         width: 5,
       ),
     };

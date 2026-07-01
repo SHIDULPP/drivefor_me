@@ -381,7 +381,7 @@ class _WaitingDriverSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.shadowLight,
             blurRadius: 24,
             offset: Offset(0, -4),
           ),

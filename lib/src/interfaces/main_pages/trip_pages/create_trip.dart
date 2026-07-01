@@ -8,6 +8,7 @@ import 'package:driveforme_user/src/data/providers/current_location_provider.dar
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/models/trip_price_estimate_model.dart';
+import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
@@ -339,10 +340,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kScreenBg,
+      backgroundColor: kCreateTripScreenBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: kScreenPaddingH),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -356,9 +357,16 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     child: Container(
                       height: 40,
                       width: 40,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: kWhite,
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.shadowLight,
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: const Icon(Icons.arrow_back_ios_new, size: 16),
                     ),
@@ -376,8 +384,16 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: kTripCreamBg,
-                      borderRadius: BorderRadius.circular(14),
+                      color: kWhite,
+                      borderRadius: BorderRadius.circular(kCardRadiusSm),
+                      border: Border.all(color: kCardBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadowLight,
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: GestureDetector(
                       onTap: () => showSelectRiderBottomSheet(context),
@@ -431,7 +447,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 color: kWhite,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColors.shadowLight,
                     blurRadius: 10,
                     offset: Offset(0, -2),
                   ),
@@ -488,7 +504,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
       ),
       child: Column(
         children: [
@@ -667,7 +683,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              Divider(color: Colors.grey.shade300),
+                    Divider(color: kLineGrey),
               GestureDetector(
                 onTap: _pickDropoffLocation,
                 child: Column(
@@ -690,7 +706,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              Divider(color: Colors.grey.shade300),
+                    Divider(color: kLineGrey),
             ],
           ),
         ),
@@ -707,7 +723,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -892,7 +908,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1154,7 +1170,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                         return GestureDetector(
                           onTap: _showCustomStayDurationBottomSheet,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: kScreenPaddingH),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(color: kTripGold),
@@ -1410,7 +1426,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       height: 18,
                       width: 18,
                       decoration: const BoxDecoration(
-                        color: Colors.lightBlue,
+                        color: AppColors.linkBlue,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -1452,7 +1468,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2155,7 +2171,7 @@ class _CustomStayDurationSheetState extends State<_CustomStayDurationSheet> {
                   width: 52,
                   decoration: BoxDecoration(
                     color: kScreenBg,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(kCardRadiusMd),
                   ),
                   child: const Icon(Icons.remove, size: 28, color: kTextColor),
                 ),
@@ -2175,7 +2191,7 @@ class _CustomStayDurationSheetState extends State<_CustomStayDurationSheet> {
                   width: 52,
                   decoration: BoxDecoration(
                     color: kScreenBg,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(kCardRadiusMd),
                   ),
                   child: const Icon(Icons.add, size: 28, color: kTextColor),
                 ),
@@ -2221,7 +2237,7 @@ class _TripDirectionToggle extends StatelessWidget {
       height: 48,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: kTripCreamBg,
+        color: kSegmentTrackCream,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -2274,7 +2290,7 @@ class _TripDirectionSegment extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
         decoration: BoxDecoration(
-          color: selected ? kTripGold : Colors.transparent,
+          color: selected ? kSegmentActiveBrown : Colors.transparent,
           borderRadius: BorderRadius.circular(21),
         ),
         alignment: Alignment.center,

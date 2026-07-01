@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/current_location_provider.dart';
@@ -277,7 +278,7 @@ class _BookingCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFFFFE8C8).withValues(alpha: 0.55),
+                        AppColors.cardGlowCream.withValues(alpha: 0.55),
                         kWhite.withValues(alpha: 0),
                       ],
                     ),
@@ -324,7 +325,7 @@ class _BookingCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: kWhite,
                           borderRadius: BorderRadius.circular(50),
-                          border: Border.all(color: kGoldAccent, width: 1),
+                          border: Border.all(color: AppColors.inputBorder, width: 1),
                         ),
                         child: Row(
                           children: [
@@ -604,12 +605,12 @@ class _NotificationBellButton extends StatelessWidget {
             Container(
               height: 44,
               width: 44,
-              decoration: const BoxDecoration(
-                color: kBrandBlue,
+              decoration: BoxDecoration(
+                color: kNotificationCircleBg,
                 shape: BoxShape.circle,
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
-                    color: Color(0x1A000000),
+                    color: AppColors.shadowLight,
                     blurRadius: 8,
                     offset: Offset(0, 2),
                   ),

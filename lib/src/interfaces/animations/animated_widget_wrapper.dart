@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:flutter/material.dart';
 import 'animation_types.dart';
 import 'animation_utils.dart';
@@ -152,9 +153,9 @@ class _AnimatedWidgetWrapperState extends State<AnimatedWidgetWrapper>
             return LinearGradient(
               begin: Alignment(-1 - animationValue * 2, 0),
               end: Alignment(1 + animationValue * 2, 0),
-              colors: const [
+              colors: [
                 Colors.transparent,
-                Colors.white30,
+                AppColors.white.withValues(alpha: 0.3),
                 Colors.transparent,
               ],
             ).createShader(bounds);

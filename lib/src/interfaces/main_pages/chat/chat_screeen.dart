@@ -33,8 +33,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     "Where are you ?",
   ];
 
-  static const _chipBg = Color(0xFFF2F3F7);
-  static const _inputBorder = Color(0xFFE2E2EC);
+  static const _chipBg = AppColors.chatChipBackground;
+  static const _inputBorder = AppColors.tripBorder;
   static const _pollInterval = Duration(seconds: 5);
 
   final TextEditingController _messageController = TextEditingController();
@@ -297,7 +297,7 @@ class _MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.sizeOf(context).width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isMine ? kBrandBlue : const Color(0xFFF2F3F7),
+          color: isMine ? kBrandBlue : AppColors.chatBubbleOther,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
@@ -386,7 +386,7 @@ class _QuickReplyChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFF2F3F7),
+      color: AppColors.chatChipBackground,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,

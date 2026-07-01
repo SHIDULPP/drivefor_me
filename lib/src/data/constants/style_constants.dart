@@ -48,6 +48,14 @@ const double kSize20 = 20;
 const double kSize24 = 24;
 const double kSize26 = 26;
 
+// ── Layout tokens (Figma 390pt frame) ─────────────────────────────────────────
+
+const double kCardRadiusLg = 24;
+const double kCardRadiusMd = 20;
+const double kCardRadiusSm = 16;
+const double kPillRadius = 30;
+const double kScreenPaddingH = 16;
+
 // ================= BASE STYLE =================
 
 TextStyle kStyle(

@@ -29,8 +29,8 @@ class DriverFoundPage extends ConsumerStatefulWidget {
 }
 
 class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
-  static const _otpBorderColor = Color(0xFFC5A358);
-  static const _policyTimerBlue = Color(0xFF165A91);
+  static const _otpBorderColor = AppColors.selectedChipGold;
+  static const _policyTimerBlue = kBrandBlue;
   static const _pollInterval = Duration(seconds: 3);
 
   TripModel? _trip;
@@ -464,7 +464,7 @@ class _DriverFoundSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.shadowLight,
             blurRadius: 24,
             offset: Offset(0, -4),
           ),
@@ -685,7 +685,7 @@ class _DriverInfoCard extends StatelessWidget {
       } else {
         icon = Icons.star_outline_rounded;
       }
-      return Icon(icon, size: 14, color: const Color(0xFFE8B923));
+      return Icon(icon, size: 14, color: AppColors.ratingGold);
     });
   }
 }

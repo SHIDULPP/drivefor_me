@@ -134,14 +134,14 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                                 borderSide: const BorderSide(
-                                  color: Colors.red,
+                                  color: kRed,
                                   width: 1.5,
                                 ),
                               ),
                               focusedErrorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                                 borderSide: const BorderSide(
-                                  color: Colors.red,
+                                  color: kRed,
                                   width: 2.0,
                                 ),
                               ),

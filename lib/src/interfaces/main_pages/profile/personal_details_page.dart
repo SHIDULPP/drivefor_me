@@ -17,7 +17,7 @@ class PersonalDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _PersonalDetailsPageState extends ConsumerState<PersonalDetailsPage> {
-  static const _avatarColor = Color(0xFFC18131);
+  static const _avatarColor = AppColors.tripGold;
 
   bool _isEditing = false;
   bool _fieldsInitialized = false;

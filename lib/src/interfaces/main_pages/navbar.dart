@@ -1,3 +1,4 @@
+import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/providers/nav_provider.dart';
@@ -237,7 +238,7 @@ class _ActiveCircle extends StatelessWidget {
         color: kBrandBlue,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: AppColors.shadowLight,
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -327,7 +328,7 @@ class _NotchBarPainter extends CustomPainter {
 
     path.close();
 
-    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.08), 12, false);
+    canvas.drawShadow(path, AppColors.shadowMedium, 12, false);
 
     canvas.drawPath(path, paint);
   }

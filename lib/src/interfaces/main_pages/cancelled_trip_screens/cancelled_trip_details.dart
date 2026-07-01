@@ -136,7 +136,7 @@ class CancelledTripDetailsPage extends StatelessWidget {
                   child: _BottomActionButton(
                     label: 'Book again',
                     filled: true,
-                    fillColor: const Color(0xFFDDE6F0),
+                    fillColor: AppColors.fillBlueGrey,
                     textColor: kTripCtaBlue,
                     onPressed: () {
                       NavigationService().pushNamed('create_trip');
@@ -245,8 +245,8 @@ class _CancelledTripHeader extends StatelessWidget {
 }
 
 class _CancelledBadge extends StatelessWidget {
-  static const _cancelledBg = Color(0xFFFFEBEE);
-  static const _cancelledRed = Color(0xFFE53935);
+  static const _cancelledBg = AppColors.cancelledBackground;
+  static const _cancelledRed = AppColors.errorRedAlt;
 
   const _CancelledBadge();
 
@@ -491,7 +491,7 @@ class _CancelledDriverCard extends StatelessWidget {
       } else {
         icon = Icons.star_outline_rounded;
       }
-      return Icon(icon, size: 14, color: const Color(0xFFE8B923));
+      return Icon(icon, size: 14, color: AppColors.ratingGold);
     });
   }
 }

@@ -122,7 +122,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               gradient: RadialGradient(
                 center: Alignment.center,
                 radius: 1.0,
-                colors: [Color(0xFFFFFFFF), Color(0xFFF8F9FA)],
+                colors: [AppColors.white, AppColors.splashGradientEnd],
               ),
             ),
             child: Center(
@@ -159,8 +159,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                     if (_entranceController.value > 0.5)
                                       Shimmer.fromColors(
                                         baseColor: Colors.transparent,
-                                        highlightColor: Colors.white
-                                            .withOpacity(0.8),
+                                        highlightColor: AppColors.white
+                                            .withValues(alpha: 0.8),
                                         period: const Duration(
                                           milliseconds: 1500,
                                         ),
@@ -171,7 +171,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                           child: Image.asset(
                                             'assets/pngs/drive_forme_logo.png',
                                             fit: BoxFit.contain,
-                                            color: Colors.white.withAlpha(200),
+                                            color: AppColors.white
+                                                .withValues(alpha: 200 / 255),
                                             colorBlendMode: BlendMode.srcIn,
                                           ),
                                         ),

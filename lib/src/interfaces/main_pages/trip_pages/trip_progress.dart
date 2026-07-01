@@ -60,7 +60,7 @@ class TripProgressPage extends ConsumerStatefulWidget {
 }
 
 class _TripProgressPageState extends ConsumerState<TripProgressPage> {
-  static const _policyTimerBlue = Color(0xFF165A91);
+  static const _policyTimerBlue = kBrandBlue;
   static const _pollInterval = Duration(seconds: 4);
 
   Duration _cancelRemaining = const Duration(minutes: 58, seconds: 32);
@@ -352,7 +352,7 @@ class _EmergencyButton extends StatelessWidget {
         border: Border.all(color: kRed, width: 1.1),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x14000000),
+            color: AppColors.shadowMedium,
             blurRadius: 6,
             offset: Offset(0, 2),
           ),
@@ -428,7 +428,7 @@ class _TripProgressSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.shadowLight,
             blurRadius: 24,
             offset: Offset(0, -4),
           ),
@@ -646,7 +646,7 @@ class _DriverProgressCard extends StatelessWidget {
       } else {
         icon = Icons.star_outline_rounded;
       }
-      return Icon(icon, size: 16, color: const Color(0xFFE8B923));
+      return Icon(icon, size: 16, color: AppColors.ratingGold);
     });
   }
 }
@@ -706,7 +706,7 @@ class _JourneyProgress extends StatelessWidget {
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 3),
                         height: 2.4,
-                        color: isDone ? activeColor : const Color(0xFFE1E6EE),
+                        color: isDone ? activeColor : AppColors.progressTrack,
                       ),
                     );
                   }),
@@ -720,10 +720,10 @@ class _JourneyProgress extends StatelessWidget {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: isDone ? kWhite : const Color(0xFFF2F5FA),
+                      color: isDone ? kWhite : AppColors.progressInactive,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDone ? activeColor : const Color(0xFFDDE4F0),
+                        color: isDone ? activeColor : AppColors.progressBorder,
                         width: 2.5,
                       ),
                     ),
@@ -766,16 +766,16 @@ class _TimeLimitReachedBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9F2),
+        color: AppColors.progressWarningBackground,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE6EADD)),
+        border: Border.all(color: AppColors.progressWarningBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.error, color: Color(0xFFCC7600), size: 16),
+              const Icon(Icons.error, color: AppColors.warningAlertOrange, size: 16),
               const SizedBox(width: 8),
               Text(
                 'Time Limit Reached',
@@ -889,7 +889,7 @@ class _TripSummaryCard extends StatelessWidget {
                         '(Updating...)',
                         style: kDriverFoundMetaR.copyWith(
                           fontSize: 11.5,
-                          color: const Color(0xFFCD9C3A),
+                          color: AppColors.tripHighlightGold,
                         ),
                       ),
                   ],

@@ -240,7 +240,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                                   items: const ['Male', 'Female', 'Other'],
                                   itemLabel: (value) => value,
                                   borderColor: state.hasError
-                                      ? Colors.red
+                                      ? kRed
                                       : null,
                                   onChanged: (v) {
                                     state.didChange(v);
@@ -258,7 +258,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                                     child: Text(
                                       state.errorText!,
                                       style: const TextStyle(
-                                        color: Colors.red,
+                                        color: kRed,
                                         fontSize: 12,
                                       ),
                                     ),

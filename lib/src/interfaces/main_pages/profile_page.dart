@@ -18,11 +18,16 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: kScreenBg,
+      backgroundColor: kProfileScreenBg,
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 12, 20, _navBarClearance(context)),
+          padding: EdgeInsets.fromLTRB(
+            kScreenPaddingH,
+            12,
+            kScreenPaddingH,
+            _navBarClearance(context),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -45,10 +50,10 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-BoxDecoration _profileCardDecoration() {
+BoxDecoration _profileCardDecoration({double radius = kCardRadiusMd}) {
   return BoxDecoration(
     color: kWhite,
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: BorderRadius.circular(radius),
     boxShadow: [
       BoxShadow(
         color: kBlack.withValues(alpha: 0.05),
@@ -58,6 +63,12 @@ BoxDecoration _profileCardDecoration() {
     ],
   );
 }
+
+BoxDecoration _profileHeaderDecoration() =>
+    _profileCardDecoration(radius: kCardRadiusLg);
+
+BoxDecoration _profileQuickActionDecoration() =>
+    _profileCardDecoration(radius: kCardRadiusSm);
 
 class _ProfileHeaderCard extends ConsumerWidget {
   const _ProfileHeaderCard();
@@ -93,7 +104,7 @@ class _ProfileHeaderCard extends ConsumerWidget {
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: _profileCardDecoration(),
+      decoration: _profileHeaderDecoration(),
       child: Row(
         children: [
           const CircleAvatar(
@@ -251,9 +262,9 @@ class _QuickActionTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(kCardRadiusSm),
         child: Ink(
-          decoration: _profileCardDecoration(),
+          decoration: _profileQuickActionDecoration(),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             child: Column(

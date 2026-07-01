@@ -344,9 +344,9 @@ class _ScheduledTripHeader extends StatelessWidget {
 }
 
 class _ScheduledBadge extends StatelessWidget {
-  static const _scheduledBg = Color(0xFFFFF8E8);
-  static const _scheduledBorder = Color(0xFFF59E0B);
-  static const _scheduledText = Color(0xFFE67E22);
+  static const _scheduledBg = AppColors.scheduledBackground;
+  static const _scheduledBorder = AppColors.warningOrange;
+  static const _scheduledText = AppColors.scheduledTextOrange;
 
   @override
   Widget build(BuildContext context) {
@@ -659,7 +659,7 @@ class _ScheduledDriverCard extends StatelessWidget {
       } else {
         icon = Icons.star_outline_rounded;
       }
-      return Icon(icon, size: 14, color: const Color(0xFFE8B923));
+      return Icon(icon, size: 14, color: AppColors.ratingGold);
     });
   }
 }

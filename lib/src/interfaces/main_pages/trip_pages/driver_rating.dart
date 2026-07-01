@@ -30,9 +30,9 @@ class DriverRatingPage extends ConsumerStatefulWidget {
 }
 
 class _DriverRatingPageState extends ConsumerState<DriverRatingPage> {
-  static const _chipSelectedBorder = Color(0xFFC5A358);
-  static const _commentFieldBg = Color(0xFFF4F5F8);
-  static const _smileyBlue = Color(0xFF2B74E1);
+  static const _chipSelectedBorder = AppColors.selectedChipGold;
+  static const _commentFieldBg = AppColors.commentFieldBackground;
+  static const _smileyBlue = AppColors.linkBlue;
 
   static const _feedbackTags = [
     'Excellent Service',
@@ -297,7 +297,7 @@ class _DriverProfileCard extends StatelessWidget {
       } else {
         icon = Icons.star_outline_rounded;
       }
-      return Icon(icon, size: 14, color: const Color(0xFFE8B923));
+      return Icon(icon, size: 14, color: AppColors.ratingGold);
     });
   }
 }
@@ -332,7 +332,7 @@ class _RatingStars extends StatelessWidget {
 
   const _RatingStars({required this.rating, required this.onRatingChanged});
 
-  static const _starActiveColor = Color(0xFFFFB400);
+  static const _starActiveColor = AppColors.starGold;
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +350,7 @@ class _RatingStars extends StatelessWidget {
             child: Icon(
               isFilled ? Icons.star_rounded : Icons.star_outline_rounded,
               size: 40,
-              color: isFilled ? _starActiveColor : const Color(0xFFD8D8DE),
+              color: isFilled ? _starActiveColor : AppColors.divider,
             ),
           ),
         );
