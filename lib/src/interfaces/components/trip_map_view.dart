@@ -3,12 +3,22 @@ import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/services/directions_service.dart';
 import 'package:driveforme_user/src/data/services/location_service.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+enum TripMapMode {
+  /// Route from pickup → dropoff (default).
+  fullRoute,
+
+  /// Route from driver → destination.
+  driverToDestination,
+}
 
 class TripMapView extends StatefulWidget {
   final TripLocation? pickup;
   final TripLocation? dropoff;
   final TripLocation? driverLocation;
+  final TripMapMode mode;
   final bool showDropoff;
   final bool showRoute;
 
@@ -17,6 +27,7 @@ class TripMapView extends StatefulWidget {
     this.pickup,
     this.dropoff,
     this.driverLocation,
+    this.mode = TripMapMode.fullRoute,
     this.showDropoff = true,
     this.showRoute = false,
   });
@@ -27,6 +38,9 @@ class TripMapView extends StatefulWidget {
 
 class _TripMapViewState extends State<TripMapView> {
   static const _locationService = LocationService();
+  static const _routeRefreshMinInterval = Duration(seconds: 30);
+  static const _routeRefreshMinDistanceMeters = 100.0;
+
   final DirectionsService _directionsService = DirectionsService();
 
   GoogleMapController? _mapController;
@@ -36,26 +50,59 @@ class _TripMapViewState extends State<TripMapView> {
   List<LatLng> _routePoints = const [];
   bool _isResolving = true;
   int _resolveGeneration = 0;
+  DateTime? _lastRouteFetchAt;
+  LatLng? _lastRouteOrigin;
 
   @override
   void initState() {
     super.initState();
-    _resolveMapData();
+    _resolveMapData(forceRouteRefresh: true);
   }
 
   @override
   void didUpdateWidget(covariant TripMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.pickup != widget.pickup ||
+    final driverChanged = oldWidget.driverLocation != widget.driverLocation;
+    final otherChanged = oldWidget.pickup != widget.pickup ||
         oldWidget.dropoff != widget.dropoff ||
-        oldWidget.driverLocation != widget.driverLocation ||
+        oldWidget.mode != widget.mode ||
         oldWidget.showDropoff != widget.showDropoff ||
-        oldWidget.showRoute != widget.showRoute) {
-      _resolveMapData();
+        oldWidget.showRoute != widget.showRoute;
+
+    if (otherChanged) {
+      _resolveMapData(forceRouteRefresh: true);
+      return;
+    }
+
+    if (driverChanged) {
+      _resolveMapData(
+        forceRouteRefresh: _shouldRefreshRoute(widget.driverLocation),
+      );
     }
   }
 
-  Future<void> _resolveMapData() async {
+  bool _shouldRefreshRoute(TripLocation? driver) {
+    if (!widget.showRoute) return false;
+    final now = DateTime.now();
+    if (_lastRouteFetchAt == null) return true;
+    if (now.difference(_lastRouteFetchAt!) >= _routeRefreshMinInterval) {
+      return true;
+    }
+
+    final driverPoint = driver?.latLng ?? _resolvedDriver?.latLng;
+    final lastOrigin = _lastRouteOrigin;
+    if (driverPoint == null || lastOrigin == null) return false;
+
+    final moved = Geolocator.distanceBetween(
+      driverPoint.latitude,
+      driverPoint.longitude,
+      lastOrigin.latitude,
+      lastOrigin.longitude,
+    );
+    return moved >= _routeRefreshMinDistanceMeters;
+  }
+
+  Future<void> _resolveMapData({required bool forceRouteRefresh}) async {
     final generation = ++_resolveGeneration;
 
     if (mounted) {
@@ -77,18 +124,18 @@ class _TripMapViewState extends State<TripMapView> {
       resolvedDriver = await _locationService.resolveLocation(driver);
     }
 
-    var routePoints = <LatLng>[];
-    final pickupPoint = resolvedPickup.latLng;
-    final dropoffPoint = resolvedDropoff?.latLng;
-    if (widget.showRoute &&
-        pickupPoint != null &&
-        dropoffPoint != null &&
-        (pickupPoint.latitude != dropoffPoint.latitude ||
-            pickupPoint.longitude != dropoffPoint.longitude)) {
-      routePoints = await _directionsService.routeBetween(
-        pickupPoint,
-        dropoffPoint,
+    var routePoints = _routePoints;
+    if (widget.showRoute && forceRouteRefresh) {
+      routePoints = await _resolveRoute(
+        resolvedPickup: resolvedPickup,
+        resolvedDropoff: resolvedDropoff,
+        resolvedDriver: resolvedDriver,
       );
+      _lastRouteFetchAt = DateTime.now();
+      _lastRouteOrigin = resolvedDriver?.latLng ??
+          (widget.mode == TripMapMode.fullRoute
+              ? resolvedPickup.latLng
+              : resolvedDriver?.latLng);
     }
 
     if (!mounted || generation != _resolveGeneration) return;
@@ -97,11 +144,42 @@ class _TripMapViewState extends State<TripMapView> {
       _resolvedPickup = resolvedPickup;
       _resolvedDropoff = resolvedDropoff;
       _resolvedDriver = resolvedDriver;
-      _routePoints = routePoints;
+      if (forceRouteRefresh) {
+        _routePoints = routePoints;
+      }
       _isResolving = false;
     });
 
     _fitCamera();
+  }
+
+  Future<List<LatLng>> _resolveRoute({
+    required TripLocation resolvedPickup,
+    required TripLocation? resolvedDropoff,
+    required TripLocation? resolvedDriver,
+  }) async {
+    final driver = resolvedDriver?.latLng;
+    final pickup = resolvedPickup.latLng;
+    final dropoff = resolvedDropoff?.latLng;
+
+    switch (widget.mode) {
+      case TripMapMode.driverToDestination:
+        if (driver != null && dropoff != null) {
+          return _directionsService.routeBetween(driver, dropoff);
+        }
+        if (driver != null && pickup != null) {
+          return _directionsService.routeBetween(driver, pickup);
+        }
+        return const [];
+      case TripMapMode.fullRoute:
+        if (pickup != null &&
+            dropoff != null &&
+            (pickup.latitude != dropoff.latitude ||
+                pickup.longitude != dropoff.longitude)) {
+          return _directionsService.routeBetween(pickup, dropoff);
+        }
+        return const [];
+    }
   }
 
   Set<Marker> _buildMarkers() {
@@ -241,6 +319,7 @@ class _TripMapViewState extends State<TripMapView> {
   void dispose() {
     _resolveGeneration++;
     _mapController = null;
+    _directionsService.dispose();
     super.dispose();
   }
 

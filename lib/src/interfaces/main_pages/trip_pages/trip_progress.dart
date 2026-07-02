@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/route_summary_model.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/utils/live_route_helper.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
 import 'package:driveforme_user/src/interfaces/components/trip_map_view.dart';
@@ -61,13 +63,15 @@ class TripProgressPage extends ConsumerStatefulWidget {
 
 class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   static const _policyTimerBlue = kBrandBlue;
-  static const _pollInterval = Duration(seconds: 4);
+  static const _pollInterval = Duration(seconds: 3);
 
   Duration _cancelRemaining = const Duration(minutes: 58, seconds: 32);
   Timer? _cancelTimer;
   Timer? _pollTimer;
   bool _navigatedAway = false;
   TripModel? _trip;
+  final LiveRouteHelper _liveRouteHelper = LiveRouteHelper();
+  RouteSummary? _liveRouteSummary;
 
   String get _tripTitle => _trip?.tripTitle ?? widget.tripTitle;
 
@@ -119,6 +123,16 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
 
   TripLocation? get _driverLocation => _trip?.driverLocation;
 
+  String? get _driverPhotoUrl => _trip?.driverPhotoUrl;
+
+  String get _liveDistanceLabel =>
+      _liveRouteSummary?.distanceLabel ?? _distance;
+
+  String get _liveEtaLabel =>
+      _liveRouteSummary != null
+          ? '${_liveRouteSummary!.durationLabel} remaining'
+          : 'Updating...';
+
   @override
   void initState() {
     super.initState();
@@ -140,6 +154,20 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
     if (!mounted || trip == null) return;
     setState(() => _trip = trip);
+    await _refreshLiveRoute();
+  }
+
+  Future<void> _refreshLiveRoute() async {
+    final driver = _driverLocation;
+    final destination = _dropoffLocation;
+    if (driver == null || destination == null) return;
+
+    final summary = await _liveRouteHelper.fetchIfNeeded(
+      origin: driver,
+      destination: destination,
+    );
+    if (!mounted || summary == null) return;
+    setState(() => _liveRouteSummary = summary);
   }
 
   void _startPolling() {
@@ -156,6 +184,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     if (trip == null) return;
 
     setState(() => _trip = trip);
+    await _refreshLiveRoute();
 
     if (trip.isCancelled) {
       _navigatedAway = true;
@@ -197,6 +226,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   void dispose() {
     _cancelTimer?.cancel();
     _pollTimer?.cancel();
+    _liveRouteHelper.dispose();
     super.dispose();
   }
 
@@ -214,8 +244,6 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
 
   @override
   Widget build(BuildContext context) {
-    final mapHeight = MediaQuery.sizeOf(context).height * 0.29;
-
     return Scaffold(
       backgroundColor: kScreenBg,
       body: Column(
@@ -225,9 +253,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
             tripId: _tripId,
             onBack: () => Navigator.of(context).maybePop(),
           ),
-          SizedBox(
-            height: mapHeight,
-            width: double.infinity,
+          Expanded(
+            flex: 3,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -235,7 +262,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
                   driverLocation: _driverLocation,
-                  showRoute: _trip?.isOneWay ?? true,
+                  mode: TripMapMode.driverToDestination,
+                  showRoute: true,
                 ),
                 Positioned(
                   right: 14,
@@ -246,6 +274,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
             ),
           ),
           Expanded(
+            flex: 2,
             child: _TripProgressSheet(
               headingTo: _headingTo,
               driverId: _driverId,
@@ -253,14 +282,16 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
               driverName: _driverName,
               driverRating: _driverRating,
               driverTrips: _driverTrips,
+              driverPhotoUrl: _driverPhotoUrl,
               vehicleTypes: _vehicleTypes,
               completedStops: widget.completedStops,
               showTimeLimitReached: widget.showTimeLimitReached,
               pickup: _pickup,
               dropoff: _dropoff,
               price: _price,
-              distance: _distance,
+              distance: _liveDistanceLabel,
               duration: _duration,
+              etaLabel: _liveEtaLabel,
               timerLabel: _cancelTimerLabel,
               policyTimerBlue: _policyTimerBlue,
             ),
@@ -387,6 +418,7 @@ class _TripProgressSheet extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
   final int completedStops;
   final bool showTimeLimitReached;
@@ -395,6 +427,7 @@ class _TripProgressSheet extends StatelessWidget {
   final String price;
   final String distance;
   final String duration;
+  final String etaLabel;
   final String timerLabel;
   final Color policyTimerBlue;
 
@@ -405,6 +438,7 @@ class _TripProgressSheet extends StatelessWidget {
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
+    this.driverPhotoUrl,
     required this.vehicleTypes,
     required this.completedStops,
     required this.showTimeLimitReached,
@@ -413,6 +447,7 @@ class _TripProgressSheet extends StatelessWidget {
     required this.price,
     required this.distance,
     required this.duration,
+    required this.etaLabel,
     required this.timerLabel,
     required this.policyTimerBlue,
   });
@@ -457,15 +492,22 @@ class _TripProgressSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+            _LiveTrackingRow(
+              distance: distance,
+              etaLabel: etaLabel,
+            ),
+            const SizedBox(height: 12),
             _DriverProgressCard(
               driverName: driverName,
               driverId: driverId,
               tripMongoId: tripMongoId,
               driverRating: driverRating,
               driverTrips: driverTrips,
+              driverPhotoUrl: driverPhotoUrl,
               vehicleTypes: vehicleTypes,
               completedStops: completedStops,
               showTimeLimitReached: showTimeLimitReached,
+              etaLabel: etaLabel,
             ),
             const SizedBox(height: 12),
             _TripSummaryCard(
@@ -518,15 +560,76 @@ class _TripProgressSheet extends StatelessWidget {
   }
 }
 
+class _LiveTrackingRow extends StatelessWidget {
+  final String distance;
+  final String etaLabel;
+
+  const _LiveTrackingRow({
+    required this.distance,
+    required this.etaLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: kActiveGreenBg.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kCardBorder),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Distance remaining',
+                  style: kDriverFoundMetaR.copyWith(fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  distance,
+                  style: kDriverFoundNameSB.copyWith(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'Estimated arrival',
+                  style: kDriverFoundMetaR.copyWith(fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  etaLabel,
+                  textAlign: TextAlign.right,
+                  style: kDriverFoundNameSB.copyWith(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DriverProgressCard extends StatelessWidget {
   final String driverName;
   final String driverId;
   final String tripMongoId;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
   final int completedStops;
   final bool showTimeLimitReached;
+  final String etaLabel;
 
   const _DriverProgressCard({
     required this.driverName,
@@ -534,9 +637,11 @@ class _DriverProgressCard extends StatelessWidget {
     required this.tripMongoId,
     required this.driverRating,
     required this.driverTrips,
+    this.driverPhotoUrl,
     required this.vehicleTypes,
     required this.completedStops,
     required this.showTimeLimitReached,
+    required this.etaLabel,
   });
 
   @override
@@ -554,22 +659,15 @@ class _DriverProgressCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  'https://i.pravatar.cc/128?u=ajith_kumar_trip_progress',
-                  width: 78,
-                  height: 78,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    width: 78,
-                    height: 78,
-                    color: kChipGreyBg,
-                    child: const Icon(
-                      Icons.person,
-                      color: kMutedText,
-                      size: 36,
-                    ),
-                  ),
-                ),
+                child: driverPhotoUrl != null && driverPhotoUrl!.isNotEmpty
+                    ? Image.network(
+                        driverPhotoUrl!,
+                        width: 78,
+                        height: 78,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _driverAvatarFallback(),
+                      )
+                    : _driverAvatarFallback(),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -627,8 +725,21 @@ class _DriverProgressCard extends StatelessWidget {
           if (showTimeLimitReached)
             const _TimeLimitReachedBanner()
           else
-            const _EtaRow(),
+            _EtaRow(etaLabel: etaLabel),
         ],
+      ),
+    );
+  }
+
+  Widget _driverAvatarFallback() {
+    return Container(
+      width: 78,
+      height: 78,
+      color: kChipGreyBg,
+      child: const Icon(
+        Icons.person,
+        color: kMutedText,
+        size: 36,
       ),
     );
   }
@@ -798,7 +909,9 @@ class _TimeLimitReachedBanner extends StatelessWidget {
 }
 
 class _EtaRow extends StatelessWidget {
-  const _EtaRow();
+  final String etaLabel;
+
+  const _EtaRow({required this.etaLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -807,7 +920,7 @@ class _EtaRow extends StatelessWidget {
         const Divider(height: 1, color: kCardBorder),
         const SizedBox(height: 10),
         Text(
-          'ETA: 25 minutes remaining',
+          'ETA: $etaLabel',
           style: kDriverFoundMetaR.copyWith(fontSize: 13.5, color: kGreyDark),
         ),
       ],

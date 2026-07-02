@@ -14,4 +14,6 @@ class RouteSummary {
         'estimatedDurationMinutes': durationMinutes,
         'estimatedDurationLabel': durationLabel,
       };
+
+  String get distanceLabel => '${distanceKm.toStringAsFixed(1)} km';
 }

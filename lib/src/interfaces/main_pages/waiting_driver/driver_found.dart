@@ -5,7 +5,6 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
@@ -103,6 +102,11 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
     if (!mounted || trip == null) return;
     setState(() => _trip = trip);
+
+    if (await navigateIfTripLeftDriverFoundStage(ref: ref, trip: trip)) {
+      _navigatedToProgress = true;
+      _pollTimer?.cancel();
+    }
   }
 
   Future<void> _loadStartOtp() async {
@@ -189,23 +193,10 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
     setState(() => _trip = trip);
 
-    if (trip.isInProgress) {
-      _goToTripProgress(trip);
+    if (await navigateIfTripLeftDriverFoundStage(ref: ref, trip: trip)) {
+      _navigatedToProgress = true;
+      _pollTimer?.cancel();
     }
-  }
-
-  void _goToTripProgress([TripModel? trip]) {
-    if (_navigatedToProgress || !mounted) return;
-    final activeTrip = trip ?? _trip;
-    if (activeTrip == null) return;
-
-    _navigatedToProgress = true;
-    _pollTimer?.cancel();
-
-    NavigationService().pushNamed(
-      'trip_progress',
-      arguments: activeTrip.toProgressArguments(),
-    );
   }
 
   Future<void> _handleCancel() async {
