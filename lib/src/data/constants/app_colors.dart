@@ -12,6 +12,7 @@ abstract final class AppColors {
 
   // ── Backgrounds ─────────────────────────────────────────────────────────────
   static const scaffoldBackground = Color(0xFFF5F7FA);
+  static const loginScreenBackground = Color(0xFFF9FBF4);
   static const profileScaffoldBackground = Color(0xFFF9FAF9);
   static const tripsScaffoldBackground = Color(0xFFF8FAFC);
   static const createTripScaffoldBackground = Color(0xFFF5F6FA);

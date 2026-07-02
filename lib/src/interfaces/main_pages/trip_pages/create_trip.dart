@@ -360,49 +360,52 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       decoration: BoxDecoration(
                         color: kWhite,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.shadowLight,
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        border: Border.all(color: kCardBorder, width: 1),
                       ),
                       child: const Icon(Icons.arrow_back_ios_new, size: 16),
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
 
                   Expanded(
-                    child: Text('Where to go?', style: kTripPageTitleSB),
+                    child: Text(
+                      'Where to go?',
+                      style: kTripPageTitleSB,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
 
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kWhite,
-                      borderRadius: BorderRadius.circular(kCardRadiusSm),
-                      border: Border.all(color: kCardBorder),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadowLight,
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(width: 8),
+
+                  Flexible(
                     child: GestureDetector(
                       onTap: () => showSelectRiderBottomSheet(context),
-                      child: Row(
-                        children: [
-                          Text('For: My Self', style: kTripForPillM),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.keyboard_arrow_down, size: 18),
-                        ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: kTripCreamBg,
+                          borderRadius: BorderRadius.circular(kPillRadius),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'For: My Self',
+                                style: kTripForPillM,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.keyboard_arrow_down, size: 18),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -505,6 +508,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       decoration: BoxDecoration(
         color: kWhite,
         borderRadius: BorderRadius.circular(kCardRadiusMd),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -682,18 +692,14 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-                    Divider(color: kLineGrey),
+              const Divider(height: 24, thickness: 1, color: kLineGrey),
               GestureDetector(
                 onTap: _pickDropoffLocation,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('To', style: kTripLocationLabelR),
-                    ),
-                    const SizedBox(height: 8),
+                    Text('To', style: kTripLocationLabelR),
+                    const SizedBox(height: 4),
                     Text(
                       _dropoffLocation?.address ?? 'Enter destination',
                       style: kTripLocationValueM.copyWith(
@@ -701,12 +707,12 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                             ? kTripMutedLabel
                             : kTextColor,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-                    Divider(color: kLineGrey),
             ],
           ),
         ),
@@ -724,6 +730,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       decoration: BoxDecoration(
         color: kWhite,
         borderRadius: BorderRadius.circular(kCardRadiusMd),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -761,11 +774,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: kTripBorder),
+                  border: Border.all(color: kTripGold, width: 1.2),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.add, size: 20, color: kTextColor),
+                    Container(
+                      height: 28,
+                      width: 28,
+                      decoration: BoxDecoration(
+                        color: kChipGreyBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add, size: 18, color: kTextColor),
+                    ),
                     const SizedBox(width: 12),
                     Text('Add Your Vehicle', style: kTripVehicleAddM),
                     const Spacer(),
@@ -909,6 +930,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       decoration: BoxDecoration(
         color: kWhite,
         borderRadius: BorderRadius.circular(kCardRadiusMd),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1390,7 +1418,14 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1469,6 +1504,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       decoration: BoxDecoration(
         color: kWhite,
         borderRadius: BorderRadius.circular(kCardRadiusMd),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2294,17 +2336,22 @@ class _TripDirectionSegment extends StatelessWidget {
           borderRadius: BorderRadius.circular(21),
         ),
         alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: selected ? kTripSegmentActiveM : kTripSegmentInactiveM,
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon,
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: selected ? kTripSegmentActiveM : kTripSegmentInactiveM,
+                maxLines: 1,
+              ),
+            ],
+          ),
         ),
       ),
     );

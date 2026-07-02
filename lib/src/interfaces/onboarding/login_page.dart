@@ -58,7 +58,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
-      backgroundColor: kScreenBg,
+      backgroundColor: kLoginScreenBg,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 20),
@@ -85,7 +85,16 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               anim.AnimationType.fadeSlideInFromBottom,
                           duration: anim.AnimationDuration.normal,
                           delayMilliseconds: 200,
-                          child: IntlPhoneField(
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              inputDecorationTheme: const InputDecorationTheme(
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                              ),
+                            ),
+                            child: IntlPhoneField(
                             focusNode: _phoneFocusNode,
                             validator: (phone) {
                               if (!_showPhoneError) {
@@ -100,37 +109,20 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               }
                               return null;
                             },
-                            style: kSubHeadingR.copyWith(
-                              fontSize: 25,
-                              color: kGreyDark,
-                            ),
+                            style: kLoginPhoneFieldR,
                             controller: _mobileController,
                             disableLengthCheck: true,
                             showCountryFlag: false,
                             cursorColor: kBlack,
                             decoration: InputDecoration(
-                              // filled: true,
-                              // fillColor: kBackgroundColor,
+                              filled: true,
+                              fillColor: kLoginScreenBg,
                               hintText: 'Mobile Number',
-                              hintStyle: kSubHeadingR.copyWith(
-                                fontSize: 25,
-                                color: kGreyDark,
-                              ),
-                              // border: OutlineInputBorder(
-                              //   borderRadius: BorderRadius.circular(8.0),
-                              //   borderSide: BorderSide(color: kBorder),
-                              // ),
-                              // enabledBorder: OutlineInputBorder(
-                              //   borderRadius: BorderRadius.circular(8.0),
-                              //   borderSide: BorderSide(color: kBorder),
-                              // ),
-                              // focusedBorder: OutlineInputBorder(
-                              //   borderRadius: BorderRadius.circular(8.0),
-                              //   borderSide: const BorderSide(
-                              //     color: kPrimaryColor,
-                              //     width: 2.0,
-                              //   ),
-                              // ),
+                              hintStyle: kLoginPhoneFieldR,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                                 borderSide: const BorderSide(
@@ -162,21 +154,11 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                                 name: 'PhoneNumberScreen',
                               );
                             },
-                            // flagsButtonPadding: const EdgeInsets.only(
-                            //   left: 10,
-                            //   right: 10.0,
-                            // ),
                             showDropdownIcon: false,
-                            // dropdownIcon: const Icon(
-                            //   Icons.arrow_drop_down_outlined,
-                            //   color: kTextColor,
-                            // ),
-                            // dropdownIconPosition: IconPosition.trailing,
-                            dropdownTextStyle: const TextStyle(
+                            dropdownTextStyle: kCaption14R.copyWith(
                               color: kTextColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w400,
                             ),
+                          ),
                           ),
                         ),
                       ],
@@ -400,7 +382,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: kScreenBg,
+      backgroundColor: kWhite,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,23 +411,14 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       delayMilliseconds: 100,
                       child: RichText(
                         text: TextSpan(
-                          style: const TextStyle(
-                            fontFamily: 'ClashGrotesk',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: kSecondaryTextColor,
-                            height: 1.5,
-                          ),
+                          style: kLoginSubtitleR,
                           children: [
                             const TextSpan(
                               text: 'We have sent a 6 digit OTP to ',
                             ),
                             TextSpan(
                               text: _maskedPhone(),
-                              style: const TextStyle(
-                                color: kPrimaryColor,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: kLoginSubtitleAccentSB,
                             ),
                             const TextSpan(
                               text: ' number and you can use to login',
@@ -478,11 +451,10 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                             obscureText: false,
                             keyboardType: TextInputType.number,
                             animationType: AnimationType.scale,
-                            textStyle: TextStyle(
-                              fontFamily: 'ClashGrotesk',
+                            textStyle: kStyle(
+                              kMedium,
+                              fontSize,
                               color: kTextColor,
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.w500,
                             ),
                             pinTheme: PinTheme(
                               shape: PinCodeFieldShape.underline,
@@ -517,38 +489,25 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(
+                          SizedBox(
                             width: double.infinity,
                             child: Text(
                               "Didi'nt get SMS?",
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'ClashGrotesk',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: kSecondaryTextColor,
-                              ),
+                              style: kLoginResendPromptM,
                             ),
                           ),
                           const SizedBox(height: 6),
                           if (_isButtonDisabled)
                             RichText(
                               text: TextSpan(
-                                style: const TextStyle(
-                                  fontFamily: 'ClashGrotesk',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: kSecondaryTextColor,
-                                ),
+                                style: kLoginResendPromptM,
                                 children: [
                                   const TextSpan(text: 'Get a new OTP in '),
                                   TextSpan(
                                     text:
                                         '00:${_start.toString().padLeft(2, '0')}',
-                                    style: const TextStyle(
-                                      color: kPrimaryColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: kLoginResendTimerSB,
                                   ),
                                 ],
                               ),
@@ -556,14 +515,9 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                           else
                             GestureDetector(
                               onTap: _resendOtp,
-                              child: const Text(
+                              child: Text(
                                 'Resend OTP',
-                                style: TextStyle(
-                                  fontFamily: 'ClashGrotesk',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: kPrimaryColor,
-                                ),
+                                style: kLoginResendActionSB,
                               ),
                             ),
                         ],
@@ -583,7 +537,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                 delayMilliseconds: 400,
                 child: primaryButton(
                   label: 'Verify OTP',
-                  buttonHeight: 56,
+                  buttonHeight: MediaQuery.of(context).size.height * 0.065,
                   fontSize: 16,
                   onPressed: isLoading ? null : _verifyOtp,
                   isLoading: isLoading,

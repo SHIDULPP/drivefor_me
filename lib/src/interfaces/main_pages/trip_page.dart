@@ -257,7 +257,7 @@ class _OngoingTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(kCardRadiusLg),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -361,7 +361,7 @@ class _OngoingTripCard extends StatelessWidget {
             const SizedBox(height: 14),
           ],
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.calendar_month_outlined,
@@ -375,16 +375,19 @@ class _OngoingTripCard extends StatelessWidget {
                   style: kCaption12R.copyWith(height: 1.35),
                 ),
               ),
-              const SizedBox(width: 10),
-              _TrackTripButton(
-                onPressed: () {
-                  NavigationService().pushNamed(
-                    'trip_progress',
-                    arguments: trip.toProgressArguments(),
-                  );
-                },
-              ),
             ],
+          ),
+          const SizedBox(height: 14),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _TrackTripButton(
+              onPressed: () {
+                NavigationService().pushNamed(
+                  'trip_progress',
+                  arguments: trip.toProgressArguments(),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -413,7 +416,7 @@ class _CancelledTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(kCardRadiusLg),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -553,7 +556,7 @@ class _CompletedTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(kCardRadiusLg),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),
@@ -763,7 +766,7 @@ class _UpcomingTripCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kWhite,
-        borderRadius: BorderRadius.circular(kCardRadiusLg),
+        borderRadius: BorderRadius.circular(kCardRadiusMd),
         boxShadow: [
           BoxShadow(
             color: kBlack.withValues(alpha: 0.06),

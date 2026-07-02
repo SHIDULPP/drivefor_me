@@ -325,7 +325,7 @@ class _BookingCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: kWhite,
                           borderRadius: BorderRadius.circular(50),
-                          border: Border.all(color: AppColors.inputBorder, width: 1),
+                          border: Border.all(color: kGoldAccent, width: 1.2),
                         ),
                         child: Row(
                           children: [
@@ -608,13 +608,6 @@ class _NotificationBellButton extends StatelessWidget {
               decoration: BoxDecoration(
                 color: kNotificationCircleBg,
                 shape: BoxShape.circle,
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColors.shadowLight,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
               ),
               alignment: Alignment.center,
               child: Image.asset(

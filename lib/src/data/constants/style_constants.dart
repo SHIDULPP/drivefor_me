@@ -262,6 +262,21 @@ final kTripStaySheetTitleSB =
 final kTripStayCounterB =
     kStyle(kSemiBold, kSize28, color: kTripStayCounter, height: 1.1);
 
+// ── Login (phone + OTP) ───────────────────────────────────────────────────────
+
+final kLoginSubtitleR =
+    kStyle(kMedium, kSize14, color: kSecondaryTextColor, height: 1.5);
+final kLoginSubtitleAccentSB =
+    kStyle(kSemiBold, kSize14, color: kPrimaryColor, height: 1.5);
+final kLoginPhoneFieldR =
+    kStyle(kRegular, 25, color: kGreyDark);
+final kLoginResendPromptM =
+    kStyle(kMedium, kSize14, color: kSecondaryTextColor);
+final kLoginResendTimerSB =
+    kStyle(kSemiBold, kSize14, color: kPrimaryColor);
+final kLoginResendActionSB =
+    kStyle(kSemiBold, kSize14, color: kPrimaryColor);
+
 // ── Booking confirmed ─────────────────────────────────────────────────────────
 
 final kBookingConfirmedTitleSB =

@@ -12,6 +12,7 @@ const kStrokeColor = AppColors.stroke;
 const kTertiary = AppColors.tertiarySurface;
 const kBorder = AppColors.border;
 const kBackgroundColor = AppColors.scaffoldBackground;
+const kLoginScreenBg = AppColors.loginScreenBackground;
 
 const Color kWhite = AppColors.white;
 const Color kGrey = AppColors.grey;

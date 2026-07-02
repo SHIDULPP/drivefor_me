@@ -230,17 +230,13 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
   @override
   Widget build(BuildContext context) {
-    final mapHeight = MediaQuery.sizeOf(context).height * 0.26;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final mapHeight = screenHeight * 0.34;
 
     return Scaffold(
       backgroundColor: kScreenBg,
       body: Column(
         children: [
-          _DriverFoundHeader(
-            tripTitle: _tripTitle,
-            tripId: _tripId,
-            onBack: () => Navigator.of(context).maybePop(),
-          ),
           SizedBox(
             height: mapHeight,
             width: double.infinity,
@@ -252,6 +248,17 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
                   dropoff: _dropoffLocation,
                   driverLocation: _driverLocation,
                   showRoute: _trip?.isOneWay ?? true,
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: _DriverFoundHeader(
+                    tripTitle: _tripTitle,
+                    tripId: _tripId,
+                    onBack: () => Navigator.of(context).maybePop(),
+                    transparent: true,
+                  ),
                 ),
                 Positioned(
                   right: 20,
@@ -301,11 +308,13 @@ class _DriverFoundHeader extends StatelessWidget {
   final String tripTitle;
   final String tripId;
   final VoidCallback onBack;
+  final bool transparent;
 
   const _DriverFoundHeader({
     required this.tripTitle,
     required this.tripId,
     required this.onBack,
+    this.transparent = false,
   });
 
   @override
@@ -313,9 +322,9 @@ class _DriverFoundHeader extends StatelessWidget {
     final topInset = MediaQuery.paddingOf(context).top;
 
     return ColoredBox(
-      color: kWhite,
+      color: transparent ? Colors.transparent : kWhite,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(8, topInset + 4, 12, 12),
+        padding: EdgeInsets.fromLTRB(4, topInset + 4, 8, 12),
         child: Row(
           children: [
             IconButton(

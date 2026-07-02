@@ -22,30 +22,54 @@ class ProfilePage extends ConsumerWidget {
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            kScreenPaddingH,
-            12,
-            kScreenPaddingH,
-            _navBarClearance(context),
-          ),
+          padding: EdgeInsets.only(bottom: _navBarClearance(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _ProfileHeaderCard(),
-              const SizedBox(height: 12),
-              const _QuickActionsRow(),
-              const SizedBox(height: 12),
-              const _MainMenuCard(),
-              const SizedBox(height: 12),
-              const _PartnerMenuCard(),
-              const SizedBox(height: 12),
-              const _AccountMenuCard(),
-              const SizedBox(height: 16),
+              const _ProfileHeaderSection(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: kScreenPaddingH),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: const [
+                    SizedBox(height: 12),
+                    _QuickActionsRow(),
+                    SizedBox(height: 12),
+                    _MainMenuCard(),
+                    SizedBox(height: 12),
+                    _PartnerMenuCard(),
+                    SizedBox(height: 12),
+                    _AccountMenuCard(),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ),
               Center(child: Text('v4.625.100005', style: kVersionR)),
+              const SizedBox(height: 8),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ProfileHeaderSection extends ConsumerWidget {
+  const _ProfileHeaderSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(kScreenPaddingH, 12, kScreenPaddingH, 16),
+      decoration: const BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(kCardRadiusLg),
+          bottomRight: Radius.circular(kCardRadiusLg),
+        ),
+      ),
+      child: const _ProfileHeaderCard(),
     );
   }
 }
@@ -63,9 +87,6 @@ BoxDecoration _profileCardDecoration({double radius = kCardRadiusMd}) {
     ],
   );
 }
-
-BoxDecoration _profileHeaderDecoration() =>
-    _profileCardDecoration(radius: kCardRadiusLg);
 
 BoxDecoration _profileQuickActionDecoration() =>
     _profileCardDecoration(radius: kCardRadiusSm);
@@ -103,8 +124,7 @@ class _ProfileHeaderCard extends ConsumerWidget {
     VoidCallback? onRetry,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: _profileHeaderDecoration(),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
         children: [
           const CircleAvatar(
