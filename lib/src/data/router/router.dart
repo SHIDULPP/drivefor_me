@@ -1,4 +1,5 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
+import 'package:driveforme_user/src/interfaces/components/location_permission_gate.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/cancelled_trip_screens/cancelled_trip_details.dart';
@@ -145,7 +146,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionDuration = const Duration(milliseconds: 400);
       break;
     case 'navbar':
-      page = const NavBar();
+      page = const LocationPermissionGate(child: NavBar());
       transitionToUse = TransitionType.fade;
       transitionDuration = const Duration(milliseconds: 400);
       break;
