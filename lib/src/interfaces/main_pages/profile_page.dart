@@ -311,10 +311,7 @@ class _QuickActionTile extends StatelessWidget {
 }
 
 void _openHelp() {
-  NavigationService().pushNamed(
-    'raise_ticket',
-    arguments: {'tripId': 'General support', 'category': 'General Support'},
-  );
+  NavigationService().pushNamed('support_call');
 }
 
 class _MainMenuCard extends ConsumerWidget {

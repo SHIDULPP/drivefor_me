@@ -28,6 +28,7 @@ import 'package:driveforme_user/src/interfaces/main_pages/profile/my_vehicles_pa
 import 'package:driveforme_user/src/interfaces/main_pages/profile/notifications_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile/personal_details_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile/refer_earn.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/support_call_page.dart';
 import 'package:flutter/material.dart';
 //router file
 
@@ -325,6 +326,11 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       break;
     case 'notifications':
       page = const NotificationsPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'support_call':
+      page = const SupportCallPage();
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;

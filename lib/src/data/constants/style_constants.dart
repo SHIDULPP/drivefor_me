@@ -454,3 +454,12 @@ final kWalletTxCreditSB =
     kStyle(kSemiBold, kSize15, color: kWalletCreditGreen, height: 1.1);
 final kWalletTxDebitSB =
     kStyle(kSemiBold, kSize15, color: kWalletDebitRed, height: 1.1);
+
+// ── Support Call ──────────────────────────────────────────────────────────────
+
+final kSupportCallTitleSB =
+    kStyle(kSemiBold, kSize20, color: kTextColor, height: 1.25);
+final kSupportCallSubtitleR =
+    kStyle(kRegular, kSize14, color: kMutedText, height: 1.45);
+final kSupportCallFooterR =
+    kStyle(kRegular, kSize12, color: kMutedText, height: 1.3);
