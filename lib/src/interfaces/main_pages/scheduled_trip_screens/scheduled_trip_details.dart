@@ -3,16 +3,18 @@ import 'dart:async';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class ScheduledTripDetailsPage extends StatefulWidget {
+class ScheduledTripDetailsPage extends ConsumerStatefulWidget {
   final String tripTitle;
   final String tripId;
+  final String? tripMongoId;
   final DateTime scheduledAt;
   final String pickup;
   final String dropoff;
@@ -21,39 +23,46 @@ class ScheduledTripDetailsPage extends StatefulWidget {
   final String vehicleType;
   final String tripFare;
   final String paymentTypeLabel;
-  final String driverName;
+  final bool hasDriver;
+  final String? driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
+  final bool isLongTrip;
   final TripCompletedPaymentType paymentType;
   final bool forcePickupTime;
 
   const ScheduledTripDetailsPage({
     super.key,
-    this.tripTitle = 'One Way Trip',
-    this.tripId = '# ID2562',
+    required this.tripTitle,
+    required this.tripId,
+    this.tripMongoId,
     required this.scheduledAt,
-    this.pickup = 'Edappally, Lulu Mall',
-    this.dropoff = 'Infopark, Kakkanad',
-    this.distance = '12 km',
-    this.duration = '2 hrs',
-    this.vehicleType = 'Manual',
-    this.tripFare = '₹235',
-    this.paymentTypeLabel = 'Online(Prepaid)',
-    this.driverName = 'Ajith Kumar',
-    this.driverRating = 4.8,
-    this.driverTrips = 120,
-    this.vehicleTypes = 'Manual + Auto',
-    this.paymentType = TripCompletedPaymentType.online,
+    required this.pickup,
+    required this.dropoff,
+    required this.distance,
+    required this.duration,
+    required this.vehicleType,
+    required this.tripFare,
+    required this.paymentTypeLabel,
+    this.hasDriver = false,
+    this.driverName,
+    this.driverRating = 5.0,
+    this.driverTrips = 0,
+    this.driverPhotoUrl,
+    required this.vehicleTypes,
+    this.isLongTrip = false,
+    required this.paymentType,
     this.forcePickupTime = false,
   });
 
   @override
-  State<ScheduledTripDetailsPage> createState() =>
+  ConsumerState<ScheduledTripDetailsPage> createState() =>
       _ScheduledTripDetailsPageState();
 }
 
-class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
+class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsPage> {
   static final _dateFormat = DateFormat('MMMM d, hh:mm a');
 
   Timer? _countdownTimer;
@@ -118,6 +127,20 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
     ).push(MaterialPageRoute(builder: (context) => DriverFoundPage()));
   }
 
+  Future<void> _handleCancel() async {
+    if (widget.tripMongoId == null || widget.tripMongoId!.isEmpty) {
+      Navigator.of(context).maybePop();
+      return;
+    }
+    final trip = await cancelTripWithDialog(
+      context: context,
+      ref: ref,
+      tripMongoId: widget.tripMongoId!,
+    );
+    if (!mounted || trip == null) return;
+    await navigateAfterTripCancelled(trip.toCancelledDetailsArguments());
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
@@ -156,7 +179,7 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                       children: [
                         _ScheduledBadge(),
                         const SizedBox(width: 8),
-                        _ShortTripBadge(),
+                        _TripTypeBadge(isLongTrip: widget.isLongTrip),
                       ],
                     ),
                     const SizedBox(height: 14),
@@ -185,18 +208,16 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                       dropoff: widget.dropoff,
                     ),
                     const SizedBox(height: 16),
-                    _ScheduledDriverCard(
-                      driverName: widget.driverName,
-                      driverRating: widget.driverRating,
-                      driverTrips: widget.driverTrips,
-                      vehicleTypes: widget.vehicleTypes,
-                      onChat: () {
-                        NavigationService().pushNamed(
-                          'chat_screen',
-                          arguments: {'participantName': widget.driverName},
-                        );
-                      },
-                    ),
+                    if (widget.hasDriver && widget.driverName != null)
+                      _ScheduledDriverCard(
+                        driverName: widget.driverName!,
+                        driverRating: widget.driverRating,
+                        driverTrips: widget.driverTrips,
+                        driverPhotoUrl: widget.driverPhotoUrl,
+                        vehicleTypes: widget.vehicleTypes,
+                      )
+                    else
+                      _DriverPendingCard(vehicleTypes: widget.vehicleTypes),
                     if (showCountdown) ...[
                       const SizedBox(height: 14),
                       Row(
@@ -218,6 +239,8 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                     _PaymentDetailsCard(
                       tripFare: widget.tripFare,
                       paymentType: widget.paymentTypeLabel,
+                      isPrepaid: widget.paymentType ==
+                          TripCompletedPaymentType.online,
                     ),
                   ],
                 ),
@@ -242,7 +265,7 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                       Expanded(
                         child: primaryButton(
                           label: 'Cancel Trip',
-                          onPressed: () => Navigator.of(context).maybePop(),
+                          onPressed: _handleCancel,
                           buttonColor: kWhite,
                           sideColor: kRed,
                           labelColor: kRed,
@@ -264,7 +287,7 @@ class _ScheduledTripDetailsPageState extends State<ScheduledTripDetailsPage> {
                   )
                 : primaryButton(
                     label: 'Cancel Ride',
-                    onPressed: () => Navigator.of(context).maybePop(),
+                    onPressed: _handleCancel,
                     buttonColor: kWhite,
                     sideColor: kRed,
                     labelColor: kRed,
@@ -384,7 +407,11 @@ class _ScheduledBadge extends StatelessWidget {
   }
 }
 
-class _ShortTripBadge extends StatelessWidget {
+class _TripTypeBadge extends StatelessWidget {
+  final bool isLongTrip;
+
+  const _TripTypeBadge({required this.isLongTrip});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -397,13 +424,13 @@ class _ShortTripBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.arrow_forward_rounded,
+            isLongTrip ? Icons.calendar_month_outlined : Icons.arrow_forward_rounded,
             size: 14,
             color: kBlack.withValues(alpha: 0.65),
           ),
           const SizedBox(width: 4),
           Text(
-            'SHORT TRIP',
+            isLongTrip ? 'LONG TRIP' : 'SHORT TRIP',
             style: kStyle(
               kSemiBold,
               kSize11,
@@ -554,19 +581,68 @@ class _RouteStop extends StatelessWidget {
   }
 }
 
+class _DriverPendingCard extends StatelessWidget {
+  final String vehicleTypes;
+
+  const _DriverPendingCard({required this.vehicleTypes});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: kTripCreamBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kCardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: kChipGreyBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.person_outline, color: kMutedText, size: 32),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Driver pending', style: kDriverFoundNameSB),
+                const SizedBox(height: 4),
+                Text(
+                  'A driver will be assigned before your pickup time.',
+                  style: kDriverFoundMetaR,
+                ),
+                if (vehicleTypes.isNotEmpty && vehicleTypes != '—') ...[
+                  const SizedBox(height: 2),
+                  Text(vehicleTypes, style: kDriverFoundMetaR),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ScheduledDriverCard extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
-  final VoidCallback onChat;
 
   const _ScheduledDriverCard({
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
+    this.driverPhotoUrl,
     required this.vehicleTypes,
-    required this.onChat,
   });
 
   @override
@@ -582,18 +658,16 @@ class _ScheduledDriverCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              'https://i.pravatar.cc/128?u=ajith_kumar_driver',
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 56,
-                height: 56,
-                color: kChipGreyBg,
-                child: const Icon(Icons.person, color: kMutedText, size: 32),
-              ),
-            ),
+            child: driverPhotoUrl != null && driverPhotoUrl!.isNotEmpty
+                ? Image.network(
+                    driverPhotoUrl!,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _driverPlaceholder(),
+                  )
+                : _driverPlaceholder(),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -630,9 +704,10 @@ class _ScheduledDriverCard extends StatelessWidget {
             color: kActiveGreen,
             icon: Icons.chat_bubble_outline_rounded,
             onTap: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (context) => ChatScreen()));
+              NavigationService().pushNamed(
+                'chat_screen',
+                arguments: {'participantName': driverName},
+              );
             },
           ),
           const SizedBox(width: 8),
@@ -661,6 +736,15 @@ class _ScheduledDriverCard extends StatelessWidget {
       }
       return Icon(icon, size: 14, color: AppColors.ratingGold);
     });
+  }
+
+  Widget _driverPlaceholder() {
+    return Container(
+      width: 56,
+      height: 56,
+      color: kChipGreyBg,
+      child: const Icon(Icons.person, color: kMutedText, size: 32),
+    );
   }
 }
 
@@ -696,10 +780,12 @@ class _DriverActionButton extends StatelessWidget {
 class _PaymentDetailsCard extends StatelessWidget {
   final String tripFare;
   final String paymentType;
+  final bool isPrepaid;
 
   const _PaymentDetailsCard({
     required this.tripFare,
     required this.paymentType,
+    this.isPrepaid = false,
   });
 
   @override
@@ -737,24 +823,26 @@ class _PaymentDetailsCard extends StatelessWidget {
           _PaymentRow(label: 'Trip Fare', value: tripFare),
           const SizedBox(height: 10),
           _PaymentRow(label: 'Payment Type', value: paymentType),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Text('Payment Status', style: kScheduledTripPaymentLabelR),
-              const Spacer(),
-              Container(
-                width: 18,
-                height: 18,
-                decoration: const BoxDecoration(
-                  color: kActiveGreen,
-                  shape: BoxShape.circle,
+          if (isPrepaid) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Text('Payment Status', style: kScheduledTripPaymentLabelR),
+                const Spacer(),
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: kActiveGreen,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, size: 12, color: kWhite),
                 ),
-                child: const Icon(Icons.check, size: 12, color: kWhite),
-              ),
-              const SizedBox(width: 6),
-              Text('Paid', style: kScheduledTripPaidSB),
-            ],
-          ),
+                const SizedBox(width: 6),
+                Text('Paid', style: kScheduledTripPaidSB),
+              ],
+            ),
+          ],
         ],
       ),
     );

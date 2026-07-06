@@ -162,33 +162,42 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       break;
     case 'scheduled_trip_details':
       final detailsArgs = settings?.arguments as Map?;
-      final detailsScheduledRaw = detailsArgs?['scheduledAt'];
-      final detailsScheduledAt = detailsScheduledRaw is DateTime
-          ? detailsScheduledRaw
-          : DateTime.now().add(const Duration(hours: 12, minutes: 20));
+      final detailsMap = detailsArgs == null
+          ? const <String, dynamic>{}
+          : Map<String, dynamic>.from(detailsArgs);
+      final detailsScheduledAt = _routeDateTime(
+        detailsMap['scheduledAt'],
+        fallback: DateTime.now().add(const Duration(hours: 1)),
+      );
+      final hasDriver = detailsMap['hasDriver'] == true;
       page = ScheduledTripDetailsPage(
-        tripTitle: detailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
-        tripId: detailsArgs?['tripId'] as String? ?? '# ID2562',
+        tripTitle: detailsMap['tripTitle'] as String? ?? 'One Way Trip',
+        tripId: detailsMap['tripId'] as String? ?? '—',
+        tripMongoId: detailsMap['tripMongoId'] as String?,
         scheduledAt: detailsScheduledAt,
-        pickup: detailsArgs?['pickup'] as String? ?? 'Edappally, Lulu Mall',
-        dropoff: detailsArgs?['dropoff'] as String? ?? 'Infopark, Kakkanad',
-        distance: detailsArgs?['distance'] as String? ?? '12 km',
-        duration: detailsArgs?['duration'] as String? ?? '2 hrs',
-        vehicleType: detailsArgs?['vehicleType'] as String? ?? 'Manual',
-        tripFare: detailsArgs?['tripFare'] as String? ?? '₹235',
+        pickup: detailsMap['pickup'] as String? ?? '—',
+        dropoff: detailsMap['dropoff'] as String? ?? '—',
+        distance: detailsMap['distance'] as String? ?? '—',
+        duration: detailsMap['duration'] as String? ?? '—',
+        vehicleType: detailsMap['vehicleType'] as String? ?? '—',
+        tripFare: detailsMap['tripFare'] as String? ?? '—',
         paymentTypeLabel:
-            detailsArgs?['paymentTypeLabel'] as String? ?? 'Online(Prepaid)',
-        driverName: detailsArgs?['driverName'] as String? ?? 'Ajith Kumar',
-        driverRating: (detailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
-        driverTrips: detailsArgs?['driverTrips'] as int? ?? 120,
-        vehicleTypes:
-            detailsArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
+            detailsMap['paymentTypeLabel'] as String? ?? 'Cash',
+        hasDriver: hasDriver,
+        driverName: hasDriver
+            ? detailsMap['driverName'] as String? ?? 'Driver'
+            : null,
+        driverRating: (detailsMap['driverRating'] as num?)?.toDouble() ?? 5.0,
+        driverTrips: detailsMap['driverTrips'] as int? ?? 0,
+        driverPhotoUrl: detailsMap['driverPhotoUrl'] as String?,
+        vehicleTypes: detailsMap['vehicleTypes'] as String? ?? '—',
+        isLongTrip: detailsMap['isLongTrip'] == true,
         paymentType: parseTripCompletedPaymentType(
-          detailsArgs?['paymentType'] ??
-              detailsArgs?['isOnlinePayment'] ??
-              detailsArgs?['isOnline'],
+          detailsMap['paymentType'] ??
+              detailsMap['isOnlinePayment'] ??
+              detailsMap['isOnline'],
         ),
-        forcePickupTime: detailsArgs?['forcePickupTime'] == true,
+        forcePickupTime: detailsMap['forcePickupTime'] == true,
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -319,20 +328,16 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       break;
     case 'trip_scheduled':
       final scheduledArgs = settings?.arguments as Map?;
-      final scheduledAtRaw = scheduledArgs?['scheduledAt'];
-      final scheduledAt = scheduledAtRaw is DateTime
-          ? scheduledAtRaw
-          : DateTime.now().add(const Duration(hours: 1));
+      final scheduledMap = scheduledArgs == null
+          ? const <String, dynamic>{}
+          : Map<String, dynamic>.from(scheduledArgs);
+      final scheduledAt = _routeDateTime(
+        scheduledMap['scheduledAt'],
+        fallback: DateTime.now().add(const Duration(hours: 1)),
+      );
       page = TripScheduledPage(
         scheduledAt: scheduledAt,
-        tripId: scheduledArgs?['tripId'] as String? ?? '#ID2562',
-        pickup: scheduledArgs?['pickup'] as String? ?? 'Edappally, Lulu mall',
-        dropoff: scheduledArgs?['dropoff'] as String? ?? 'Infopark',
-        paymentType: parseTripCompletedPaymentType(
-          scheduledArgs?['paymentType'] ??
-              scheduledArgs?['isOnlinePayment'] ??
-              scheduledArgs?['isOnline'],
-        ),
+        bookingArgs: scheduledMap,
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -542,4 +547,12 @@ extension NavigatorTransitionHelpers on NavigatorState {
       createRoute(page, transition: transition, duration: duration),
     );
   }
+}
+
+DateTime _routeDateTime(dynamic value, {required DateTime fallback}) {
+  if (value is DateTime) return value.toLocal();
+  if (value is String) {
+    return DateTime.tryParse(value)?.toLocal() ?? fallback;
+  }
+  return fallback;
 }

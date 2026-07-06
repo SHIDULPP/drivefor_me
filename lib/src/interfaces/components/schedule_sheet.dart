@@ -1,7 +1,5 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_scheduled.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -391,14 +389,10 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
         'Schedule at ${_buttonScheduleFormat.format(_scheduledDateTime)}';
 
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) =>
-                TripScheduledPage(scheduledAt: _scheduledDateTime),
-          ),
-        );
-      },
+      onTap: () => Navigator.pop(
+        context,
+        ScheduleSheetResult.scheduled(_scheduledDateTime),
+      ),
       child: Container(
         height: 56,
         alignment: Alignment.center,

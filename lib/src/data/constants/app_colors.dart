@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 /// Figma design-system colors for DriveFORme (user app).
 /// Single source of truth — do not hardcode colors in widgets.
 abstract final class AppColors {
-  // ── Brand blues ─────────────────────────────────────────────────────────────
+  // ── Brand blues ────────────────────────────────────────────────────────────
   static const primaryBlue = Color(0xFF154C8A);
   static const primaryBlueDark = Color(0xFF0F3D6B);
   static const primaryBlueLight = Color(0xFF3A66A1);
   static const secondaryBlue = Color(0xFF165A91);
   static const linkBlue = Color(0xFF2B74E1);
 
-  // ── Backgrounds ─────────────────────────────────────────────────────────────
+  // ── Backgrounds ────────────────────────────────────────────────────────────
   static const scaffoldBackground = Color(0xFFF5F7FA);
   static const loginScreenBackground = Color(0xFFF9FBF4);
   static const profileScaffoldBackground = Color(0xFFF9FAF9);

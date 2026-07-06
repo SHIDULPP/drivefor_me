@@ -3,17 +3,13 @@ class SosLocation {
   final double? latitude;
   final double? longitude;
 
-  const SosLocation({
-    required this.address,
-    this.latitude,
-    this.longitude,
-  });
+  const SosLocation({required this.address, this.latitude, this.longitude});
 
   Map<String, dynamic> toJson() => {
-        'address': address,
-        if (latitude != null) 'latitude': latitude,
-        if (longitude != null) 'longitude': longitude,
-      };
+    'address': address,
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+  };
 
   factory SosLocation.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const SosLocation(address: '');
@@ -58,13 +54,12 @@ class SosModel {
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       sosType: json['sosType']?.toString() ?? '',
       location: SosLocation.fromJson(
-        locationRaw is Map
-            ? Map<String, dynamic>.from(locationRaw)
-            : null,
+        locationRaw is Map ? Map<String, dynamic>.from(locationRaw) : null,
       ),
       tripId: json['tripId']?.toString(),
       status: json['status']?.toString() ?? '',
-      referenceNumber: json['sosId']?.toString() ??
+      referenceNumber:
+          json['sosId']?.toString() ??
           json['referenceNumber']?.toString() ??
           json['reference']?.toString() ??
           '',
@@ -75,7 +70,7 @@ class SosModel {
 
   static DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
-    if (value is DateTime) return value;
-    return DateTime.tryParse(value.toString());
+    if (value is DateTime) return value.toLocal();
+    return DateTime.tryParse(value.toString())?.toLocal();
   }
 }

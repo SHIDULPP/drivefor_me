@@ -2,25 +2,18 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 class TripScheduledPage extends ConsumerWidget {
   final DateTime scheduledAt;
-  final String tripId;
-  final String pickup;
-  final String dropoff;
-  final TripCompletedPaymentType paymentType;
+  final Map<String, dynamic> bookingArgs;
 
   const TripScheduledPage({
     super.key,
     required this.scheduledAt,
-    this.tripId = '#ID2562',
-    this.pickup = 'Edappally, Lulu mall',
-    this.dropoff = 'Infopark',
-    this.paymentType = TripCompletedPaymentType.offline,
+    this.bookingArgs = const {},
   });
 
   static final _scheduledDateTimeFormat = DateFormat('d MMMM • hh:mm a');
@@ -29,19 +22,12 @@ class TripScheduledPage extends ConsumerWidget {
     NavigationService().pushNamedAndRemoveUntil('navbar');
   }
 
-  void _viewBooking(BuildContext context, WidgetRef ref) {
+  void _viewBooking() {
     NavigationService().pushNamed(
       'scheduled_trip_details',
       arguments: {
+        ...bookingArgs,
         'scheduledAt': scheduledAt,
-        'tripId': tripId,
-        'pickup': pickup,
-        'dropoff': dropoff,
-        'paymentType':
-            paymentType == TripCompletedPaymentType.online ? 'online' : 'offline',
-        'paymentTypeLabel': paymentType == TripCompletedPaymentType.online
-            ? 'Online(Prepaid)'
-            : 'Cash',
       },
     );
   }
@@ -98,7 +84,7 @@ class TripScheduledPage extends ConsumerWidget {
               const Spacer(flex: 3),
               primaryButton(
                 label: 'View Booking',
-                onPressed: () => _viewBooking(context, ref),
+                onPressed: _viewBooking,
                 buttonHeight: 56,
                 fontSize: 16,
                 buttonColor: kTripCtaBlue,

@@ -27,40 +27,42 @@ class TripApi {
   }
 
   Future<ApiResponse<List<TripModel>>> listUpcomingTrips() async {
-    const statuses = ['pending_assignment', 'driver_assigned', 'scheduled'];
-    final responses = await Future.wait(
-      statuses.map((status) => _listTrips(status: status)),
+    final response = await _listTrips(
+      queryParams: {
+        'statuses': 'pending_assignment,driver_assigned,scheduled',
+      },
     );
 
-    for (final response in responses) {
-      if (!response.success) {
-        return ApiResponse.error(
-          response.message ?? 'Failed to load upcoming trips.',
-          response.statusCode,
-        );
-      }
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to load upcoming trips.',
+        response.statusCode,
+      );
     }
 
-    final trips =
-        responses
-            .expand((response) => response.data ?? const <TripModel>[])
-            .toList()
-          ..sort((a, b) {
-            final aDate = a.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bDate = b.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            return aDate.compareTo(bDate);
-          });
+    final trips = List<TripModel>.from(response.data ?? const [])
+      ..sort((a, b) {
+        final aDate = a.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate = b.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return aDate.compareTo(bDate);
+      });
 
-    return ApiResponse.success(trips, responses.first.statusCode);
+    return ApiResponse.success(trips, response.statusCode);
   }
 
   Future<ApiResponse<List<TripModel>>> _listTrips({
-    required String status,
+    String? status,
+    Map<String, String>? queryParams,
   }) async {
+    final params = <String, String>{
+      if (status != null) 'status': status,
+      ...?queryParams,
+    };
+
     final response = await _api.get(
       '/trips',
       requireAuth: true,
-      queryParams: {'status': status},
+      queryParams: params.isEmpty ? null : params,
     );
 
     if (!response.success) {

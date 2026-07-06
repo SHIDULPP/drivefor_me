@@ -411,6 +411,7 @@ class TripModel {
 
   Map<String, dynamic> toScheduledDetailsArguments() {
     return {
+      'tripMongoId': id,
       'tripTitle': tripTitle,
       'tripId': displayTripId,
       'scheduledAt': pickupAt ?? DateTime.now(),
@@ -421,11 +422,17 @@ class TripModel {
       'vehicleType': _titleCase(vehicleType),
       'tripFare': displayPrice,
       'paymentTypeLabel': paymentTypeLabel,
-      'driverName': driverName ?? 'Driver pending',
-      'driverRating': driverRating ?? 5.0,
-      'driverTrips': driverTrips ?? 0,
-      'vehicleTypes': vehicleTypesLabel,
       'paymentType': paymentTypeKey,
+      'hasDriver': hasDriver,
+      'isLongTrip': isLongTrip,
+      if (hasDriver) ...{
+        'driverName': driverName!,
+        'driverRating': driverRating ?? 5.0,
+        'driverTrips': driverTrips ?? 0,
+        if (driverPhotoUrl != null && driverPhotoUrl!.isNotEmpty)
+          'driverPhotoUrl': driverPhotoUrl,
+      },
+      'vehicleTypes': vehicleTypesLabel,
     };
   }
 
@@ -532,8 +539,8 @@ class TripModel {
 
   static DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
-    if (value is DateTime) return value;
-    return DateTime.tryParse(value.toString());
+    if (value is DateTime) return value.toLocal();
+    return DateTime.tryParse(value.toString())?.toLocal();
   }
 
   static double? _toDouble(dynamic value) {

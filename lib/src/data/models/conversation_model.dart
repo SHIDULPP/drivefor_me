@@ -60,7 +60,7 @@ class ConversationModel {
 class ChatMessageModelParse {
   static DateTime? parseDate(dynamic value) {
     if (value == null) return null;
-    if (value is DateTime) return value;
-    return DateTime.tryParse(value.toString());
+    if (value is DateTime) return value.toLocal();
+    return DateTime.tryParse(value.toString())?.toLocal();
   }
 }

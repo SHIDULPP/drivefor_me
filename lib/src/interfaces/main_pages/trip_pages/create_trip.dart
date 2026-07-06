@@ -1765,10 +1765,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     if (!isRideNow && scheduledRideAt != null) {
       NavigationService().pushNamed(
         'trip_scheduled',
-        arguments: {
-          ...trip.toWaitingDriverArguments(),
-          'scheduledAt': scheduledRideAt,
-        },
+        arguments: _buildScheduledConfirmationArgs(
+          trip: trip,
+          scheduledAt: scheduledRideAt!,
+        ),
       );
       return;
     }
@@ -1777,6 +1777,33 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'booking_confirmed',
       arguments: trip.toWaitingDriverArguments(),
     );
+  }
+
+  Map<String, dynamic> _buildScheduledConfirmationArgs({
+    required TripModel trip,
+    required DateTime scheduledAt,
+  }) {
+    final args = trip.toScheduledDetailsArguments();
+    args['scheduledAt'] = trip.pickupAt ?? scheduledAt;
+
+    if (!trip.pickupLocation.hasAddress && _pickupLocation.hasAddress) {
+      args['pickup'] = _pickupLocation.address;
+    }
+    if ((trip.dropoffAddress == null || trip.dropoffAddress!.isEmpty) &&
+        _dropoffLocation != null &&
+        _dropoffLocation!.hasAddress) {
+      args['dropoff'] = _dropoffLocation!.address;
+    }
+
+    return args;
+  }
+
+  String _formatTimezoneOffset(DateTime dateTime) {
+    final offset = dateTime.timeZoneOffset;
+    final hours = offset.inHours.abs().toString().padLeft(2, '0');
+    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+    final sign = offset.isNegative ? '-' : '+';
+    return '$sign$hours:$minutes';
   }
 
   ApiResponse<Map<String, dynamic>> _buildTripPayload(String userId) {
@@ -1822,6 +1849,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'durationUnit': duration.data!['durationUnit'],
       'vehicleId': _selectedVehicle!.id,
       'assignmentType': 'auto_assign',
+      'source': 'user_app',
       'tripProtection': {
         'enabled': isTripProtectionEnabled,
         'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
@@ -1836,7 +1864,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     if (!isRideNow && scheduledRideAt != null) {
       payload['pickupDate'] = _apiDateFormat.format(scheduledRideAt!);
-      payload['pickupTime'] = _apiTimeFormat.format(scheduledRideAt!);
+      payload['pickupTime'] =
+          '${_apiTimeFormat.format(scheduledRideAt!)}:00${_formatTimezoneOffset(scheduledRideAt!)}';
     }
 
     return ApiResponse.success(payload);
