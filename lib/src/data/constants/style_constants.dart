@@ -55,6 +55,7 @@ const double kCardRadiusMd = 20;
 const double kCardRadiusSm = 16;
 const double kPillRadius = 30;
 const double kScreenPaddingH = 16;
+const double kReferEarnPaddingH = 20;
 
 // ================= BASE STYLE =================
 
@@ -406,3 +407,24 @@ final kDriverRatingCommentR =
     kStyle(kRegular, kSize15, color: kTextColor, height: 1.2);
 final kDriverRatingCommentHintR =
     kStyle(kRegular, kSize15, color: kTripMutedLabel, height: 1.2);
+
+// ── Refer & Earn (wallet) ─────────────────────────────────────────────────────
+
+final kReferEarnAppBarSB =
+    kStyle(kSemiBold, kSize18, color: kTextColor, height: 1.15);
+final kReferBannerTitleSB =
+    kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.15);
+final kReferBannerTitleAccentSB =
+    kStyle(kSemiBold, kSize22, color: kBlue, height: 1.15);
+final kReferBannerSubtitleR =
+    kStyle(kRegular, kSize13, color: kMutedText, height: 1.45);
+final kReferCodeLabelR = kStyle(kRegular, kSize13, color: kMutedText);
+final kReferCodeValueM = kStyle(
+  kMedium,
+  kSize18,
+  color: kTextColor,
+  letterSpacing: 7,
+  height: 1.0,
+);
+final kReferInviteButtonM =
+    kStyle(kMedium, kSize16, color: kWhite, height: 1.1);

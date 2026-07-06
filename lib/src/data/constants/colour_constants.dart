@@ -78,3 +78,9 @@ const Color kSosCardBg = AppColors.sosCardBackground;
 const Color kSosScreenBg = AppColors.sosScreenBackground;
 const Color kSosRefCardBg = AppColors.sosRefCardBackground;
 const Color kSosSupportIconBg = AppColors.sosSupportIconBackground;
+
+const Color kReferBackBtnBg = AppColors.referBackButtonBackground;
+const Color kReferBannerBg = AppColors.referBannerBackground;
+const Color kReferBannerBorder = AppColors.referBannerBorder;
+const Color kReferCodeFieldBg = AppColors.referCodeFieldBackground;
+const Color kReferDashedBorder = AppColors.referDashedBorder;

@@ -135,4 +135,11 @@ abstract final class AppColors {
   static const progressInactive = Color(0xFFF2F5FA);
   static const progressBorder = Color(0xFFDDE4F0);
   static const fillBlueGrey = Color(0xFFDDE6F0);
+
+  // ── Refer & Earn (wallet) ───────────────────────────────────────────────────
+  static const referBackButtonBackground = Color(0xFFF5F5F5);
+  static const referBannerBackground = Color(0xFFFFF9F2);
+  static const referBannerBorder = Color(0xFFC5A059);
+  static const referCodeFieldBackground = Color(0xFFFFFBF5);
+  static const referDashedBorder = Color(0xFFC5A059);
 }
