@@ -31,6 +31,7 @@ const double kHeading = 36;
 const double kSubHeading = 18;
 const double kBody = 32;
 const double kSize30 = 30;
+const double kSize32 = 32;
 const double kSize28 = 28;
 const double kSize11 = 11;
 const double kSize12 = 12;
@@ -428,3 +429,28 @@ final kReferCodeValueM = kStyle(
 );
 final kReferInviteButtonM =
     kStyle(kMedium, kSize16, color: kWhite, height: 1.1);
+
+// ── Wallet ────────────────────────────────────────────────────────────────────
+
+final kWalletAppBarSB =
+    kStyle(kSemiBold, kSize18, color: kTextColor, height: 1.15);
+final kWalletBalanceLabelR =
+    kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
+final kWalletBalanceAmountSB = kStyle(
+  kSemiBold,
+  kSize32,
+  color: kWalletBalanceGold,
+  height: 1.05,
+);
+final kWalletSectionTitleSB =
+    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
+final kWalletDateHeaderR =
+    kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
+final kWalletTxTitleSB =
+    kStyle(kSemiBold, kSize15, color: kTextColor, height: 1.2);
+final kWalletTxSubtitleR =
+    kStyle(kRegular, kSize12, color: kMutedText, height: 1.25);
+final kWalletTxCreditSB =
+    kStyle(kSemiBold, kSize15, color: kWalletCreditGreen, height: 1.1);
+final kWalletTxDebitSB =
+    kStyle(kSemiBold, kSize15, color: kWalletDebitRed, height: 1.1);

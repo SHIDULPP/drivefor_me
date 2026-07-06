@@ -54,6 +54,30 @@ class WalletTransaction {
     if (createdAt == null) return '—';
     return DateFormat('d MMM yyyy, hh:mm a').format(createdAt!);
   }
+
+  String get walletListDate {
+    if (createdAt == null) return '—';
+    return DateFormat('EEE d, MMM h.mm a').format(createdAt!);
+  }
+
+  String get walletCreditAmount => '+ ₹${amount.abs().toStringAsFixed(0)}';
+
+  String get walletDebitAmount => '- ₹${amount.abs().toStringAsFixed(0)}';
+
+  bool get isReferralTransaction {
+    final value = '${category.toLowerCase()} ${description.toLowerCase()}';
+    return value.contains('referral') || value.contains('refer');
+  }
+
+  bool get isRideTransaction {
+    final value = '${category.toLowerCase()} ${description.toLowerCase()}';
+    return value.contains('ride') ||
+        value.contains('trip') ||
+        value.contains('drive');
+  }
+
+  String get displayTitle =>
+      description.isEmpty ? category : description;
 }
 
 class WalletSummary {
@@ -109,4 +133,6 @@ class WalletModel {
   }
 
   String get displayBalance => '₹ ${walletBalance.toStringAsFixed(0)}';
+
+  String get displayBalanceDetailed => '₹${walletBalance.toStringAsFixed(3)}';
 }

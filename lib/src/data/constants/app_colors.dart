@@ -142,4 +142,13 @@ abstract final class AppColors {
   static const referBannerBorder = Color(0xFFC5A059);
   static const referCodeFieldBackground = Color(0xFFFFFBF5);
   static const referDashedBorder = Color(0xFFC5A059);
+
+  // ── Wallet ──────────────────────────────────────────────────────────────────
+  static const walletBalanceGold = Color(0xFFA67C41);
+  static const walletCardBackgroundStart = Color(0xFFFFFDF9);
+  static const walletCardBackgroundEnd = Color(0xFFFFF6EA);
+  static const walletCardBorder = Color(0xFFC5A059);
+  static const walletDateHeaderBackground = Color(0xFFF5F3EF);
+  static const walletCreditGreen = Color(0xFF2E7D32);
+  static const walletDebitRed = Color(0xFFD32F2F);
 }

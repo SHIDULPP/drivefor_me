@@ -1,268 +1,211 @@
-import 'package:driveforme_user/src/data/apis/wallet_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/models/wallet_model.dart';
 import 'package:driveforme_user/src/data/providers/wallet_provider.dart';
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+enum _WalletTxFilter { all, credit, debit }
+
+class _WalletDayGroup {
+  final DateTime date;
+  final List<WalletTransaction> transactions;
+
+  const _WalletDayGroup({required this.date, required this.transactions});
+
+  double get dayNetTotal => transactions.fold<double>(
+        0,
+        (sum, tx) => sum + (tx.isCredit ? tx.amount : -tx.amount),
+      );
+
+  String get headerDate => DateFormat('EEE, d MMM').format(date);
+
+  String get headerAmount {
+    final prefix = dayNetTotal >= 0 ? '' : '-';
+    return '$prefix₹${dayNetTotal.abs().toStringAsFixed(3)}';
+  }
+}
 
 class WalletPage extends ConsumerStatefulWidget {
-  final bool showReferralSection;
-
-  const WalletPage({super.key, this.showReferralSection = true});
+  const WalletPage({super.key});
 
   @override
   ConsumerState<WalletPage> createState() => _WalletPageState();
 }
 
 class _WalletPageState extends ConsumerState<WalletPage> {
-  final _referralController = TextEditingController();
-  bool _isApplyingReferral = false;
+  _WalletTxFilter _filter = _WalletTxFilter.all;
 
-  @override
-  void dispose() {
-    _referralController.dispose();
-    super.dispose();
+  List<WalletTransaction> _filteredTransactions(List<WalletTransaction> items) {
+    switch (_filter) {
+      case _WalletTxFilter.credit:
+        return items.where((tx) => tx.isCredit).toList();
+      case _WalletTxFilter.debit:
+        return items.where((tx) => !tx.isCredit).toList();
+      case _WalletTxFilter.all:
+        return items;
+    }
   }
 
-  Future<void> _applyReferral() async {
-    final code = _referralController.text.trim();
-    if (code.isEmpty) return;
+  List<_WalletDayGroup> _groupByDay(List<WalletTransaction> transactions) {
+    final sorted = [...transactions]
+      ..sort((a, b) {
+        final ad = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bd = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bd.compareTo(ad);
+      });
 
-    setState(() => _isApplyingReferral = true);
-    final response = await ref.read(walletApiProvider).applyReferral(code);
-    if (!mounted) return;
-    setState(() => _isApplyingReferral = false);
-
-    if (!response.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message ?? 'Failed to apply code.')),
-      );
-      return;
+    final grouped = <DateTime, List<WalletTransaction>>{};
+    for (final tx in sorted) {
+      final createdAt = tx.createdAt;
+      if (createdAt == null) continue;
+      final key = DateTime(createdAt.year, createdAt.month, createdAt.day);
+      grouped.putIfAbsent(key, () => []).add(tx);
     }
 
-    ref.invalidate(walletProvider);
-    _referralController.clear();
-    if (mounted) Navigator.of(context).maybePop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Referral code applied successfully.')),
-    );
+    return grouped.entries
+        .map(
+          (entry) => _WalletDayGroup(
+            date: entry.key,
+            transactions: entry.value,
+          ),
+        )
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  void _copyReferralCode(String code) {
-    if (code.isEmpty) return;
-    Clipboard.setData(ClipboardData(text: code));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Referral code copied.')));
-  }
-
-  void _shareReferralCode(String code) {
-    if (code.isEmpty) return;
-    final message =
-        'Join DriveFORme! Use my referral code $code and earn ₹100 for every successful vehicle owner referral.';
-    Clipboard.setData(ClipboardData(text: message));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Invite message copied. Share with friends!'),
-      ),
-    );
-  }
-
-  void _showReferralHelp() {
-    showModalBottomSheet<void>(
+  Future<void> _showFilterSheet() async {
+    final selected = await showModalBottomSheet<_WalletTxFilter>(
       context: context,
-      isScrollControlled: true,
       backgroundColor: kWhite,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.fromLTRB(
-            kReferEarnPaddingH,
-            20,
-            kReferEarnPaddingH,
-            MediaQuery.paddingOf(context).bottom + 20,
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('How it works', style: kReferEarnAppBarSB),
-              const SizedBox(height: 10),
-              Text(
-                'Earn ₹100 for every successful vehicle owner referral. '
-                'Share your referral code with friends. When they sign up and '
-                'complete their first trip, you earn the reward.',
-                style: kReferBannerSubtitleR,
+              Text('Filter transactions', style: kWalletSectionTitleSB),
+              const SizedBox(height: 12),
+              _FilterOption(
+                label: 'All transactions',
+                selected: _filter == _WalletTxFilter.all,
+                onTap: () => Navigator.pop(context, _WalletTxFilter.all),
               ),
-              const SizedBox(height: 20),
-              Text('Have a referral code?', style: kReferCodeLabelR),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _referralController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  hintText: 'Enter referral code',
-                  hintStyle: kCaption13R,
-                  filled: true,
-                  fillColor: kReferCodeFieldBg,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: kReferBannerBorder),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: kReferBannerBorder),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: kBrandBlue, width: 1.5),
-                  ),
-                ),
+              _FilterOption(
+                label: 'Credits only',
+                selected: _filter == _WalletTxFilter.credit,
+                onTap: () => Navigator.pop(context, _WalletTxFilter.credit),
               ),
-              const SizedBox(height: 14),
-              primaryButton(
-                label: _isApplyingReferral ? 'Applying...' : 'Apply Code',
-                onPressed: _isApplyingReferral ? null : _applyReferral,
-                buttonColor: kBrandBlue,
-                buttonHeight: 48,
+              _FilterOption(
+                label: 'Debits only',
+                selected: _filter == _WalletTxFilter.debit,
+                onTap: () => Navigator.pop(context, _WalletTxFilter.debit),
               ),
             ],
           ),
         );
       },
     );
-  }
 
-  String _formatReferralCode(String code) {
-    if (code.isEmpty) return '—';
-    return code.toUpperCase().split('').join(' ');
+    if (selected != null) setState(() => _filter = selected);
   }
 
   @override
   Widget build(BuildContext context) {
     final walletAsync = ref.watch(walletProvider);
-    final isReferMode = widget.showReferralSection;
 
     return Scaffold(
-      backgroundColor: isReferMode ? kWhite : kScreenBg,
-      appBar: isReferMode
-          ? _ReferEarnAppBar(onHelp: _showReferralHelp)
-          : AppBar(
-              backgroundColor: kWhite,
-              surfaceTintColor: kWhite,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: false,
-              titleSpacing: 0,
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Center(
-                  child: _RoundIconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ),
-              ),
-              title: Text('Wallet', style: kReferEarnAppBarSB),
+      backgroundColor: kWhite,
+      appBar: AppBar(
+        backgroundColor: kWhite,
+        surfaceTintColor: kWhite,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleSpacing: 4,
+        leadingWidth: 60,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: kReferEarnPaddingH - 8),
+          child: Center(
+            child: _RoundIconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
             ),
+          ),
+        ),
+        title: Text('Wallet', style: kWalletAppBarSB),
+      ),
       body: walletAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('$error', textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => ref.invalidate(walletProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-        data: (wallet) => isReferMode
-            ? _ReferEarnBody(
-                wallet: wallet,
-                formattedCode: _formatReferralCode(wallet.referralCode),
-                onRefresh: () async => ref.invalidate(walletProvider),
-                onCopy: () => _copyReferralCode(wallet.referralCode),
-                onShare: () => _shareReferralCode(wallet.referralCode),
-                onInvite: () => _shareReferralCode(wallet.referralCode),
-              )
-            : RefreshIndicator(
-                onRefresh: () async => ref.invalidate(walletProvider),
-                child: ListView(
-                  padding: const EdgeInsets.all(kScreenPaddingH),
-                  children: [
-                    _WalletBalanceCard(balance: wallet.displayBalance),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Transactions',
-                      style: kStyle(kSemiBold, kSize16, color: kTextColor),
-                    ),
-                    const SizedBox(height: 10),
-                    if (wallet.transactions.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text(
-                          'No transactions yet.',
-                          textAlign: TextAlign.center,
-                          style: kStyle(kRegular, kSize14, color: kMutedText),
-                        ),
-                      )
-                    else
-                      ...wallet.transactions.map(
-                        (tx) => _TransactionTile(transaction: tx),
-                      ),
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$error',
+                  textAlign: TextAlign.center,
+                  style: kStyle(kRegular, kSize14, color: kMutedText),
                 ),
-              ),
-      ),
-    );
-  }
-}
-
-class _ReferEarnAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback onHelp;
-
-  const _ReferEarnAppBar({required this.onHelp});
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: kWhite,
-      surfaceTintColor: kWhite,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: false,
-      titleSpacing: 4,
-      leadingWidth: 60,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: kReferEarnPaddingH - 8),
-        child: Center(
-          child: _RoundIconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => ref.invalidate(walletProvider),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
+        data: (wallet) {
+          final filtered = _filteredTransactions(wallet.transactions);
+          final groups = _groupByDay(filtered);
+
+          return RefreshIndicator(
+            onRefresh: () async => ref.invalidate(walletProvider),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                kReferEarnPaddingH,
+                8,
+                kReferEarnPaddingH,
+                24,
+              ),
+              children: [
+                _BalanceCard(balance: wallet.displayBalanceDetailed),
+                const SizedBox(height: 24),
+                _TransactionsHeader(onFilterTap: _showFilterSheet),
+                const SizedBox(height: 12),
+                if (groups.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Text(
+                      'No transactions yet.',
+                      textAlign: TextAlign.center,
+                      style: kStyle(kRegular, kSize14, color: kMutedText),
+                    ),
+                  )
+                else
+                  ...groups.expand(
+                    (group) => [
+                      _DateHeader(
+                        dateLabel: group.headerDate,
+                        amountLabel: group.headerAmount,
+                      ),
+                      ...group.transactions.map(
+                        (tx) => _TransactionRow(transaction: tx),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+              ],
+            ),
+          );
+        },
       ),
-      title: Text('Refer & Earn', style: kReferEarnAppBarSB),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: kReferEarnPaddingH),
-          child: Center(child: _HelpOutlineButton(onTap: onHelp)),
-        ),
-      ],
     );
   }
 }
@@ -283,37 +226,10 @@ class _RoundIconButton extends StatelessWidget {
         child: const SizedBox(
           width: 40,
           height: 40,
-          child: Icon(Icons.chevron_left_rounded, size: 26, color: kTextColor),
-        ),
-      ),
-    );
-  }
-}
-
-class _HelpOutlineButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _HelpOutlineButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: kBrandBlue, width: 1.5),
-          ),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.question_mark_rounded,
-            size: 16,
-            color: kBrandBlue,
+          child: Icon(
+            Icons.chevron_left_rounded,
+            size: 26,
+            color: kTextColor,
           ),
         ),
       ),
@@ -321,61 +237,74 @@ class _HelpOutlineButton extends StatelessWidget {
   }
 }
 
-class _ReferEarnBody extends StatelessWidget {
-  final WalletModel wallet;
-  final String formattedCode;
-  final Future<void> Function() onRefresh;
-  final VoidCallback onCopy;
-  final VoidCallback onShare;
-  final VoidCallback onInvite;
+class _BalanceCard extends StatelessWidget {
+  final String balance;
 
-  const _ReferEarnBody({
-    required this.wallet,
-    required this.formattedCode,
-    required this.onRefresh,
-    required this.onCopy,
-    required this.onShare,
-    required this.onInvite,
-  });
+  const _BalanceCard({required this.balance});
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-
-    return Column(
-      children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: onRefresh,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                kReferEarnPaddingH,
-                12,
-                kReferEarnPaddingH,
-                16,
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(kCardRadiusSm),
+        border: Border.all(color: kWalletCardBorder),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kWalletCardBgStart, kWalletCardBgEnd],
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 18, 12, 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _InviteEarnBanner(),
-                const SizedBox(height: 16),
-                _ReferralCodeCard(
-                  formattedCode: formattedCode,
-                  hasCode: wallet.referralCode.isNotEmpty,
-                  onCopy: onCopy,
-                  onShare: onShare,
-                ),
+                Text('Available Balance', style: kWalletBalanceLabelR),
+                const SizedBox(height: 8),
+                Text(balance, style: kWalletBalanceAmountSB),
               ],
             ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            kReferEarnPaddingH,
-            0,
-            kReferEarnPaddingH,
-            bottomInset > 0 ? bottomInset + 12 : 24,
+          Image.asset(
+            'assets/pngs/wallet_image.png',
+            width: 96,
+            height: 88,
+            fit: BoxFit.contain,
           ),
-          child: _InviteButton(
-            onPressed: wallet.referralCode.isEmpty ? null : onInvite,
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionsHeader extends StatelessWidget {
+  final VoidCallback onFilterTap;
+
+  const _TransactionsHeader({required this.onFilterTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Text('All Transactions', style: kWalletSectionTitleSB)),
+        Material(
+          color: kReferBackBtnBg,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: onFilterTap,
+            customBorder: const CircleBorder(),
+            child: const SizedBox(
+              width: 36,
+              height: 36,
+              child: Icon(
+                Icons.tune_rounded,
+                size: 20,
+                color: kTextColor,
+              ),
+            ),
           ),
         ),
       ],
@@ -383,352 +312,129 @@ class _ReferEarnBody extends StatelessWidget {
   }
 }
 
-class _InviteButton extends StatelessWidget {
-  final VoidCallback? onPressed;
+class _DateHeader extends StatelessWidget {
+  final String dateLabel;
+  final String amountLabel;
 
-  const _InviteButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: Material(
-        color: enabled ? kBrandBlue : kBrandBlue.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(kPillRadius),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(kPillRadius),
-          child: Center(child: Text('Invite', style: kReferInviteButtonM)),
-        ),
-      ),
-    );
-  }
-}
-
-class _InviteEarnBanner extends StatelessWidget {
-  const _InviteEarnBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: kReferBannerBg,
-        borderRadius: BorderRadius.circular(kCardRadiusSm),
-        border: Border.all(color: kReferBannerBorder, width: 1),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 18, 4, 18),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      style: kReferBannerTitleSB,
-                      children: [
-                        const TextSpan(text: 'Invite & '),
-                        TextSpan(
-                          text: 'Earn',
-                          style: kReferBannerTitleAccentSB,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Earn ₹100 for every successful vehicle owner referral',
-                    style: kReferBannerSubtitleR,
-                  ),
-                ],
-              ),
-            ),
-            Image.asset(
-              'assets/pngs/referandearnimg.png',
-              width: 118,
-              height: 104,
-              fit: BoxFit.contain,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReferralCodeCard extends StatelessWidget {
-  final String formattedCode;
-  final bool hasCode;
-  final VoidCallback onCopy;
-  final VoidCallback onShare;
-
-  const _ReferralCodeCard({
-    required this.formattedCode,
-    required this.hasCode,
-    required this.onCopy,
-    required this.onShare,
+  const _DateHeader({
+    required this.dateLabel,
+    required this.amountLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(kCardRadiusSm),
-        boxShadow: [
-          BoxShadow(
-            color: kBlack.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Referral Code', style: kReferCodeLabelR),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _DashedCodeField(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 13, 10, 13),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              formattedCode,
-                              style: kReferCodeValueM,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: hasCode ? onCopy : null,
-                            borderRadius: BorderRadius.circular(6),
-                            child: Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: Icon(
-                                Icons.copy_all_rounded,
-                                size: 20,
-                                color: hasCode
-                                    ? kReferDashedBorder
-                                    : kReferDashedBorder.withValues(
-                                        alpha: 0.35,
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: hasCode ? onShare : null,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.send_rounded,
-                      size: 26,
-                      color: hasCode
-                          ? kBrandBlue
-                          : kBrandBlue.withValues(alpha: 0.35),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DashedCodeField extends StatelessWidget {
-  final Widget child;
-
-  const _DashedCodeField({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      foregroundPainter: _DashedBorderPainter(
-        color: kReferDashedBorder,
-        radius: kPillRadius,
-        strokeWidth: 1.4,
-        dashWidth: 6,
-        dashGap: 4,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: kReferCodeFieldBg,
-          borderRadius: BorderRadius.circular(kPillRadius),
-        ),
-        child: child,
-      ),
-    );
-  }
-}
-
-class _DashedBorderPainter extends CustomPainter {
-  final Color color;
-  final double radius;
-  final double strokeWidth;
-  final double dashWidth;
-  final double dashGap;
-
-  const _DashedBorderPainter({
-    required this.color,
-    required this.radius,
-    required this.strokeWidth,
-    required this.dashWidth,
-    required this.dashGap,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        strokeWidth / 2,
-        strokeWidth / 2,
-        size.width - strokeWidth,
-        size.height - strokeWidth,
-      ),
-      Radius.circular(radius),
-    );
-
-    final path = Path()..addRRect(rect);
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final next = distance + dashWidth;
-        final extractPath = metric.extractPath(
-          distance,
-          next > metric.length ? metric.length : next,
-        );
-        canvas.drawPath(extractPath, paint);
-        distance += dashWidth + dashGap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) {
-    return oldDelegate.color != color ||
-        oldDelegate.radius != radius ||
-        oldDelegate.strokeWidth != strokeWidth;
-  }
-}
-
-class _WalletBalanceCard extends StatelessWidget {
-  final String balance;
-
-  const _WalletBalanceCard({required this.balance});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: kBrandBlue,
-        borderRadius: BorderRadius.circular(kCardRadiusSm),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Available Balance',
-            style: kStyle(kRegular, kSize14, color: kWhite),
-          ),
-          const SizedBox(height: 8),
-          Text(balance, style: kStyle(kBold, kSize34, color: kWhite)),
-        ],
-      ),
-    );
-  }
-}
-
-class _TransactionTile extends StatelessWidget {
-  final WalletTransaction transaction;
-
-  const _TransactionTile({required this.transaction});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kCardBorder),
+        color: kWalletDateHeaderBg,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
+          Expanded(child: Text(dateLabel, style: kWalletDateHeaderR)),
+          Text(amountLabel, style: kWalletDateHeaderR),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionRow extends StatelessWidget {
+  final WalletTransaction transaction;
+
+  const _TransactionRow({required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _TransactionIcon(transaction: transaction),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  transaction.description.isEmpty
-                      ? transaction.category
-                      : transaction.description,
-                  style: kStyle(kSemiBold, kSize14, color: kTextColor),
-                ),
+                Text(transaction.displayTitle, style: kWalletTxTitleSB),
                 const SizedBox(height: 4),
-                Text(
-                  '${transaction.category} • ${transaction.displayDate}',
-                  style: kStyle(kRegular, kSize12, color: kMutedText),
-                ),
+                Text(transaction.walletListDate, style: kWalletTxSubtitleR),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                transaction.displayAmount,
-                style: kStyle(
-                  kSemiBold,
-                  kSize14,
-                  color: transaction.isCredit ? kActiveGreen : kRed,
-                ),
-              ),
-              Text(
-                'Bal ₹${transaction.balanceAfter.toStringAsFixed(0)}',
-                style: kStyle(kRegular, kSize11, color: kMutedText),
-              ),
-            ],
+          const SizedBox(width: 8),
+          Text(
+            transaction.isCredit
+                ? transaction.walletCreditAmount
+                : transaction.walletDebitAmount,
+            style: transaction.isCredit ? kWalletTxCreditSB : kWalletTxDebitSB,
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TransactionIcon extends StatelessWidget {
+  final WalletTransaction transaction;
+
+  const _TransactionIcon({required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    if (transaction.isReferralTransaction) {
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: const BoxDecoration(
+          color: kActiveGreen,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.swap_horiz_rounded,
+          color: kWhite,
+          size: 22,
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Icon(
+        transaction.isRideTransaction
+            ? Icons.directions_car_outlined
+            : Icons.receipt_long_outlined,
+        color: kTextColor,
+        size: 26,
+      ),
+    );
+  }
+}
+
+class _FilterOption extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(label, style: kWalletTxTitleSB),
+      trailing: selected
+          ? const Icon(Icons.check_rounded, color: kBrandBlue, size: 22)
+          : null,
+      onTap: onTap,
     );
   }
 }

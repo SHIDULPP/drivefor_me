@@ -84,3 +84,11 @@ const Color kReferBannerBg = AppColors.referBannerBackground;
 const Color kReferBannerBorder = AppColors.referBannerBorder;
 const Color kReferCodeFieldBg = AppColors.referCodeFieldBackground;
 const Color kReferDashedBorder = AppColors.referDashedBorder;
+
+const Color kWalletBalanceGold = AppColors.walletBalanceGold;
+const Color kWalletCardBgStart = AppColors.walletCardBackgroundStart;
+const Color kWalletCardBgEnd = AppColors.walletCardBackgroundEnd;
+const Color kWalletCardBorder = AppColors.walletCardBorder;
+const Color kWalletDateHeaderBg = AppColors.walletDateHeaderBackground;
+const Color kWalletCreditGreen = AppColors.walletCreditGreen;
+const Color kWalletDebitRed = AppColors.walletDebitRed;

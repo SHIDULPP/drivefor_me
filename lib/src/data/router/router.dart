@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/interfaces/components/location_permission_gate.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/navbar.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/wallet_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/booking_confirmed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/cancelled_trip_screens/cancelled_trip_details.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/completed_trip_screens/completed_trip_details.dart';
@@ -26,7 +27,7 @@ import 'package:driveforme_user/src/interfaces/main_pages/chat/chat_screeen.dart
 import 'package:driveforme_user/src/interfaces/main_pages/profile/my_vehicles_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile/notifications_page.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/profile/personal_details_page.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/profile/wallet_page.dart';
+import 'package:driveforme_user/src/interfaces/main_pages/profile/refer_earn.dart';
 import 'package:flutter/material.dart';
 //router file
 
@@ -111,7 +112,7 @@ RouteTransitionsBuilder _transitionsBuilderFor(TransitionType? type) {
 
 Route<dynamic> generateRoute(RouteSettings? settings) {
   Widget? page;
-  TransitionType? transitionToUse;
+  TransitionType transitionToUse = TransitionType.slideFromBottom;
   Duration transitionDuration = const Duration(milliseconds: 300);
 
   if (settings?.arguments != null && settings!.arguments is Map) {
@@ -181,8 +182,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         duration: detailsMap['duration'] as String? ?? '—',
         vehicleType: detailsMap['vehicleType'] as String? ?? '—',
         tripFare: detailsMap['tripFare'] as String? ?? '—',
-        paymentTypeLabel:
-            detailsMap['paymentTypeLabel'] as String? ?? 'Cash',
+        paymentTypeLabel: detailsMap['paymentTypeLabel'] as String? ?? 'Cash',
         hasDriver: hasDriver,
         driverName: hasDriver
             ? detailsMap['driverName'] as String? ?? 'Driver'
@@ -289,10 +289,12 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       transitionDuration = const Duration(milliseconds: 400);
       break;
     case 'wallet':
-      final walletArgs = settings?.arguments as Map?;
-      page = WalletPage(
-        showReferralSection: walletArgs?['showReferral'] != false,
-      );
+      page = const WalletPage();
+      transitionToUse = TransitionType.slideFromRight;
+      transitionDuration = const Duration(milliseconds: 400);
+      break;
+    case 'refer_earn':
+      page = const ReferEarnPage();
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
       break;
@@ -525,9 +527,6 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
           body: Center(child: Text('No path for ${settings?.name}')),
         ),
       );
-  }
-  if (transitionToUse == null) {
-    return MaterialPageRoute(settings: settings, builder: (_) => page!);
   }
   return createRoute(
     page,

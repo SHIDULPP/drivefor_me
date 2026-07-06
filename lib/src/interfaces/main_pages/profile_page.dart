@@ -246,10 +246,7 @@ class _QuickActionsRow extends StatelessWidget {
           child: _QuickActionTile(
             label: 'Refer & Earn',
             imagePath: 'assets/pngs/refferandearn_image.png',
-            onTap: () => NavigationService().pushNamed(
-              'wallet',
-              arguments: {'showReferral': true},
-            ),
+            onTap: () => NavigationService().pushNamed('refer_earn'),
           ),
         ),
         const SizedBox(width: 10),
