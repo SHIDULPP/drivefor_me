@@ -178,10 +178,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       _isLoadingRoute = false;
       if (!_hasUserAdjustedDuration) {
         _applyTripPlan(
-          _tripPlanService.suggestFromRoute(
-            route: summary,
-            isOneWay: isOneWay,
-          ),
+          _tripPlanService.suggestFromRoute(route: summary, isOneWay: isOneWay),
         );
       }
     });
@@ -201,7 +198,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     isOvernightStay = null;
 
     if (plan.isShortTrip) {
-      selectedHour = plan.durationValue.clamp(1, TripPlanService.shortTripMaxHours);
+      selectedHour = plan.durationValue.clamp(
+        1,
+        TripPlanService.shortTripMaxHours,
+      );
       return;
     }
 
@@ -249,29 +249,31 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
 
     final settings = await ref.read(pricingSettingsProvider.future);
 
-    final estimate = ref.read(tripFareServiceProvider).estimate(
-      payload: {
-        'tripType': isShortTrip ? 'short_trip' : 'long_trip',
-        'tripDirection': isOneWay ? 'one_way' : 'round_trip',
-        'durationValue': duration.data!['durationValue'],
-        'durationUnit': duration.data!['durationUnit'],
-        'pickupLocation': _pickupLocation.toJson(),
-        if (_dropoffLocation != null)
-          'dropoffLocation': _dropoffLocation!.toJson(),
-        if (_routeSummary != null) 'routeSummary': _routeSummary!.toJson(),
-        'tripProtection': {
-          'enabled': isTripProtectionEnabled,
-          'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
-        },
-        'overnightStay': overnight.data,
-        'rideTime': isRideNow ? 'now' : 'scheduled',
-        if (!isRideNow && scheduledRideAt != null) ...{
-          'pickupTime': _apiTimeFormat.format(scheduledRideAt!),
-          'pickupDate': _apiDateFormat.format(scheduledRideAt!),
-        },
-      },
-      settings: settings,
-    );
+    final estimate = ref
+        .read(tripFareServiceProvider)
+        .estimate(
+          payload: {
+            'tripType': isShortTrip ? 'short_trip' : 'long_trip',
+            'tripDirection': isOneWay ? 'one_way' : 'round_trip',
+            'durationValue': duration.data!['durationValue'],
+            'durationUnit': duration.data!['durationUnit'],
+            'pickupLocation': _pickupLocation.toJson(),
+            if (_dropoffLocation != null)
+              'dropoffLocation': _dropoffLocation!.toJson(),
+            if (_routeSummary != null) 'routeSummary': _routeSummary!.toJson(),
+            'tripProtection': {
+              'enabled': isTripProtectionEnabled,
+              'fee': isTripProtectionEnabled ? _tripProtectionFee : 0,
+            },
+            'overnightStay': overnight.data,
+            'rideTime': isRideNow ? 'now' : 'scheduled',
+            if (!isRideNow && scheduledRideAt != null) ...{
+              'pickupTime': _apiTimeFormat.format(scheduledRideAt!),
+              'pickupDate': _apiDateFormat.format(scheduledRideAt!),
+            },
+          },
+          settings: settings,
+        );
 
     if (!mounted || requestId != _estimateRequestId) return;
     setState(() {
@@ -467,10 +469,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                           selectedPaymentIndex == null ? 'Estimated' : 'Total',
                           style: kTripTotalLabelR,
                         ),
-                        Text(
-                          _estimatedTotalLabel,
-                          style: kTripTotalPriceB,
-                        ),
+                        Text(_estimatedTotalLabel, style: kTripTotalPriceB),
                       ],
                     ),
                     const SizedBox(width: 20),
@@ -595,10 +594,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
               children: [
                 const Icon(Icons.access_time, size: 15),
                 const SizedBox(width: 6),
-                Text(
-                  isRideNow ? 'Now' : 'Later',
-                  style: kTripTimePillM,
-                ),
+                Text(isRideNow ? 'Now' : 'Later', style: kTripTimePillM),
                 const SizedBox(width: 2),
                 const Icon(Icons.keyboard_arrow_down, size: 18),
               ],
@@ -632,17 +628,14 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 color: kTripDestIconBg,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Icon(
-                Icons.star,
-                size: 12,
-                color: kTripIconMuted,
-              ),
+              child: const Icon(Icons.star, size: 12, color: kTripIconMuted),
             ),
           ],
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
                 onTap: _pickPickupLocation,
@@ -655,17 +648,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                         children: [
                           Text('From', style: kTripLocationLabelR),
                           const SizedBox(height: 4),
-                          Text(
-                            _pickupDisplayLabel,
-                            style: kTripLocationValueM,
-                          ),
+                          Text(_pickupDisplayLabel, style: kTripLocationValueM),
                         ],
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _openScheduleSheet(
-                        openOnScheduleTab: !isRideNow,
-                      ),
+                      onTap: () =>
+                          _openScheduleSheet(openOnScheduleTab: !isRideNow),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -753,7 +742,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Change', style: kTripChipCustomM),
-                      const Icon(Icons.chevron_right, size: 20, color: kBrandBlue),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: kBrandBlue,
+                      ),
                     ],
                   ),
                 ),
@@ -997,7 +990,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             text: TextSpan(
               style: kTripDurationMetaR.copyWith(color: kTextColor),
               children: [
-                TextSpan(text: '$_durationPriceLabel ', style: kTripDurationPriceB),
+                TextSpan(
+                  text: '$_durationPriceLabel ',
+                  style: kTripDurationPriceB,
+                ),
                 TextSpan(
                   text: 'Based on $_durationUsageLabel usage',
                   style: kTripDurationMetaR,
@@ -1198,7 +1194,9 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                         return GestureDetector(
                           onTap: _showCustomStayDurationBottomSheet,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: kScreenPaddingH),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: kScreenPaddingH,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(color: kTripGold),
@@ -1731,8 +1729,11 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     if (!mounted) return;
 
     final refreshedPayloadResult = _buildTripPayload(userResponse.data!.userId);
-    if (!refreshedPayloadResult.success || refreshedPayloadResult.data == null) {
-      _showError(refreshedPayloadResult.message ?? 'Please review trip details.');
+    if (!refreshedPayloadResult.success ||
+        refreshedPayloadResult.data == null) {
+      _showError(
+        refreshedPayloadResult.message ?? 'Please review trip details.',
+      );
       return;
     }
 
@@ -1858,7 +1859,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       if (_priceEstimate != null)
         'priceEstimate': _priceEstimate!.toPriceEstimatePayload()
       else
-        'priceEstimate': {'currency': 'INR', 'includesWaitingTime': isShortTrip},
+        'priceEstimate': {
+          'currency': 'INR',
+          'includesWaitingTime': isShortTrip,
+        },
       'overnightStay': overnight.data,
     };
 

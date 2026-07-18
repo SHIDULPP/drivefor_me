@@ -78,8 +78,9 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
     setState(() {
       _predictions = predictions;
       _isSearching = false;
-      _searchError =
-          predictions.isEmpty ? 'No places found. Try another search.' : null;
+      _searchError = predictions.isEmpty
+          ? 'No places found. Try another search.'
+          : null;
     });
   }
 
@@ -195,15 +196,18 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                               child: TextField(
                                 controller: _searchController,
                                 autofocus: true,
-                                style: kStyle(kRegular, 16, color: kTextColor),
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
                                   hintText: 'Search for a place',
-                                  hintStyle: kStyle(
-                                    kLight,
-                                    16,
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'ClashGrotesk',
+                                    fontWeight: FontWeight.w300,
+                                    fontSize: 16,
                                     color: kMutedText,
                                   ),
-                                  border: InputBorder.none,
                                 ),
                               ),
                             ),
@@ -297,8 +301,9 @@ class _SearchLocationPageState extends State<SearchLocationPage> {
                               },
                             )
                           : Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 38),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 38,
+                              ),
                               child: Align(
                                 alignment: Alignment.topLeft,
                                 child: Text(
