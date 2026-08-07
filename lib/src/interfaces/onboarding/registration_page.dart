@@ -306,13 +306,28 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontFamily: 'ClashGrotesk',
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: kTextColor,
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(
+              fontFamily: 'ClashGrotesk',
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: kTextColor,
+            ),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(
+              fontFamily: 'ClashGrotesk',
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: kRed,
+            ),
+          ),
+        ],
       ),
     );
   }
