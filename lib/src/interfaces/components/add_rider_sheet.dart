@@ -28,9 +28,7 @@ class AddRiderBottomSheet extends ConsumerStatefulWidget {
 class _AddRiderBottomSheetState extends ConsumerState<AddRiderBottomSheet> {
   final TextEditingController nameController = TextEditingController();
 
-  final TextEditingController mobileController = TextEditingController(
-    text: '6282359916',
-  );
+  final TextEditingController mobileController = TextEditingController();
 
   @override
   void dispose() {
