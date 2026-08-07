@@ -1,7 +1,10 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/rider_model.dart';
+import 'package:driveforme_user/src/data/providers/riders_provider.dart';
 import 'package:driveforme_user/src/interfaces/components/add_rider_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> showSelectRiderBottomSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -14,18 +17,38 @@ Future<void> showSelectRiderBottomSheet(BuildContext context) {
   );
 }
 
-class SelectRiderBottomSheet extends StatefulWidget {
+class SelectRiderBottomSheet extends ConsumerStatefulWidget {
   const SelectRiderBottomSheet({super.key});
 
   @override
-  State<SelectRiderBottomSheet> createState() => _SelectRiderBottomSheetState();
+  ConsumerState<SelectRiderBottomSheet> createState() =>
+      _SelectRiderBottomSheetState();
 }
 
-class _SelectRiderBottomSheetState extends State<SelectRiderBottomSheet> {
+class _SelectRiderBottomSheetState
+    extends ConsumerState<SelectRiderBottomSheet> {
+  /// 0 = Myself; 1..n map to [ridersProvider] entries.
   int selectedIndex = 0;
+
+  void _deleteRider(List<RiderModel> riders, int listIndex) {
+    final rider = riders[listIndex];
+    final tileIndex = listIndex + 1;
+
+    ref.read(ridersProvider.notifier).removeRider(rider.id);
+
+    setState(() {
+      if (selectedIndex == tileIndex) {
+        selectedIndex = 0;
+      } else if (selectedIndex > tileIndex) {
+        selectedIndex -= 1;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final riders = ref.watch(ridersProvider);
+
     return Container(
       height: MediaQuery.of(context).size.height * .50,
       decoration: const BoxDecoration(
@@ -76,6 +99,16 @@ class _SelectRiderBottomSheetState extends State<SelectRiderBottomSheet> {
                     title: 'Myself',
                     selected: selectedIndex == 0,
                   ),
+                  for (var i = 0; i < riders.length; i++) ...[
+                    const SizedBox(height: 16),
+                    _riderTile(
+                      index: i + 1,
+                      title: riders[i].name,
+                      selected: selectedIndex == i + 1,
+                      showDelete: true,
+                      onDelete: () => _deleteRider(riders, i),
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   /// ================= ADD RIDER =================
@@ -151,6 +184,7 @@ class _SelectRiderBottomSheetState extends State<SelectRiderBottomSheet> {
     required String title,
     required bool selected,
     bool showDelete = false,
+    VoidCallback? onDelete,
   }) {
     return GestureDetector(
       onTap: () => setState(() => selectedIndex = index),
@@ -180,7 +214,15 @@ class _SelectRiderBottomSheetState extends State<SelectRiderBottomSheet> {
             Expanded(
               child: Text(title, style: kStyle(kMedium, 16, color: kTextColor)),
             ),
-            if (showDelete) const Icon(Icons.delete, color: kRed, size: 28),
+            if (showDelete)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onDelete,
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.delete, color: kRed, size: 28),
+                ),
+              ),
           ],
         ),
       ),

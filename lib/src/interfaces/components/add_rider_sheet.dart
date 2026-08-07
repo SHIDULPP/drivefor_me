@@ -1,8 +1,10 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/riders_provider.dart';
 import 'package:driveforme_user/src/interfaces/components/input_field.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> showAddRiderBottomSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -15,14 +17,15 @@ Future<void> showAddRiderBottomSheet(BuildContext context) {
   );
 }
 
-class AddRiderBottomSheet extends StatefulWidget {
+class AddRiderBottomSheet extends ConsumerStatefulWidget {
   const AddRiderBottomSheet({super.key});
 
   @override
-  State<AddRiderBottomSheet> createState() => _AddRiderBottomSheetState();
+  ConsumerState<AddRiderBottomSheet> createState() =>
+      _AddRiderBottomSheetState();
 }
 
-class _AddRiderBottomSheetState extends State<AddRiderBottomSheet> {
+class _AddRiderBottomSheetState extends ConsumerState<AddRiderBottomSheet> {
   final TextEditingController nameController = TextEditingController(
     text: 'Anandhu',
   );
@@ -36,6 +39,14 @@ class _AddRiderBottomSheetState extends State<AddRiderBottomSheet> {
     nameController.dispose();
     mobileController.dispose();
     super.dispose();
+  }
+
+  void _confirmRider() {
+    ref.read(ridersProvider.notifier).addRider(
+          name: nameController.text,
+          mobileNumber: mobileController.text,
+        );
+    Navigator.pop(context);
   }
 
   @override
@@ -121,10 +132,7 @@ class _AddRiderBottomSheetState extends State<AddRiderBottomSheet> {
               buttonHeight: 64,
               buttonColor: kBrandBlue,
               fontSize: 16,
-              onPressed: () {
-                // Handle add rider
-                Navigator.pop(context);
-              },
+              onPressed: _confirmRider,
             ),
           ),
 
