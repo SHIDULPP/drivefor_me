@@ -5,9 +5,13 @@ import 'package:driveforme_user/src/data/providers/current_location_provider.dar
 import 'package:driveforme_user/src/data/providers/user_provider.dart';
 import 'package:driveforme_user/src/data/providers/notification_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+const _kHomeSupportPhoneDisplay = '+91 75929 33933';
+const _kHomeSupportPhoneDial = '+917592933933';
 
 /// Nav bar body clearance: bar (64) + floating lift (32) + safe padding.
 double _navBarClearance(BuildContext context) =>
@@ -461,64 +465,74 @@ class _PhoneStrip extends StatelessWidget {
     final iconSize = metrics.iconSize;
     final borderWidth = metrics.borderWidth;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        metrics.padLeft,
-        metrics.padTop,
-        metrics.padRight,
-        metrics.padBottom,
-      ),
-      decoration: BoxDecoration(
-        color: kWhite,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => launchPhoneCall(_kHomeSupportPhoneDial),
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(metrics.pillRadius),
           bottomRight: Radius.circular(metrics.pillRadius),
         ),
-        border: Border(
-          top: BorderSide(color: kGoldAccent, width: borderWidth),
-          right: BorderSide(color: kGoldAccent, width: borderWidth),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            height: iconSize,
-            width: iconSize,
-            decoration: const BoxDecoration(
-              color: kGoldAccent,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.call, color: kWhite, size: iconSize * 0.5),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(
+            metrics.padLeft,
+            metrics.padTop,
+            metrics.padRight,
+            metrics.padBottom,
           ),
-          SizedBox(width: metrics.iconGap),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          decoration: BoxDecoration(
+            color: kWhite,
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(metrics.pillRadius),
+              bottomRight: Radius.circular(metrics.pillRadius),
+            ),
+            border: Border(
+              top: BorderSide(color: kGoldAccent, width: borderWidth),
+              right: BorderSide(color: kGoldAccent, width: borderWidth),
+            ),
+          ),
+          child: Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                '+91 75929 33933',
-                style: kPhoneNumberB,
-                textHeightBehavior: const TextHeightBehavior(
-                  applyHeightToFirstAscent: false,
-                  applyHeightToLastDescent: false,
+              Container(
+                height: iconSize,
+                width: iconSize,
+                decoration: const BoxDecoration(
+                  color: kGoldAccent,
+                  shape: BoxShape.circle,
                 ),
+                child: Icon(Icons.call, color: kWhite, size: iconSize * 0.5),
               ),
-              SizedBox(height: metrics.labelGap),
-              Text(
-                '24/7 Support',
-                style: kPhoneSupportR.copyWith(
-                  color: kBlack.withValues(alpha: 0.5),
-                ),
-                textHeightBehavior: const TextHeightBehavior(
-                  applyHeightToFirstAscent: false,
-                  applyHeightToLastDescent: false,
-                ),
+              SizedBox(width: metrics.iconGap),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _kHomeSupportPhoneDisplay,
+                    style: kPhoneNumberB,
+                    textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false,
+                    ),
+                  ),
+                  SizedBox(height: metrics.labelGap),
+                  Text(
+                    '24/7 Support',
+                    style: kPhoneSupportR.copyWith(
+                      color: kBlack.withValues(alpha: 0.5),
+                    ),
+                    textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
