@@ -102,13 +102,12 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                                   return null;
                                 }
                                 if (phone == null || phone.number.isEmpty) {
-                                  return 'mobileNumberRequired';
+                                  return 'Mobile number is required';
                                 }
-                                // Validate that it contains only digits
                                 if (!RegExp(
                                   r'^[0-9]+$',
                                 ).hasMatch(phone.number)) {
-                                  return 'mobileNumberDigitsOnly';
+                                  return 'Mobile number must contain only digits';
                                 }
                                 return null;
                               },
@@ -126,6 +125,11 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                                 fillColor: kLoginScreenBg,
                                 hintText: 'Mobile Number',
                                 hintStyle: kLoginPhoneFieldR,
+                                errorStyle: kStyle(
+                                  kRegular,
+                                  kSize12,
+                                  color: kRed,
+                                ),
                                 border: InputBorder.none,
                                 enabledBorder: InputBorder.none,
                                 focusedBorder: InputBorder.none,
