@@ -77,13 +77,6 @@ class _SelectRiderBottomSheetState extends State<SelectRiderBottomSheet> {
                     selected: selectedIndex == 0,
                   ),
                   const SizedBox(height: 16),
-                  _riderTile(
-                    index: 1,
-                    title: 'Anandhu',
-                    selected: selectedIndex == 1,
-                    showDelete: true,
-                  ),
-                  const SizedBox(height: 16),
 
                   /// ================= ADD RIDER =================
                   GestureDetector(
