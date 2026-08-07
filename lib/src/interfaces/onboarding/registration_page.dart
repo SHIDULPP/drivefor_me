@@ -81,16 +81,16 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       ref.invalidate(userProvider);
       NavigationService().pushNamedAndRemoveUntil('navbar');
     } on FormatException {
-      _showMessage('Please enter date of birth as DD-MM-YYYY');
+      _showMessage('Please enter date of birth as DD/MM/YYYY');
     } finally {
       ref.read(loadingProvider.notifier).stopLoading();
     }
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -161,8 +161,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                           textInputAction: TextInputAction.next,
                           onFieldSubmitted: (_) =>
                               FocusScope.of(context).requestFocus(_emailFocus),
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty)
+                          validator: (v) => (v == null || v.trim().isEmpty)
                               ? 'Full name is required'
                               : null,
                         ),
@@ -206,10 +205,9 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                         delayMilliseconds: 250,
                         child: InputField(
                           type: CustomFieldType.date,
-                          hint: 'DD-MM-YYYY',
+                          hint: 'DD/MM/YYYY',
                           controller: _dobController,
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty)
+                          validator: (v) => (v == null || v.trim().isEmpty)
                               ? 'Date of birth is required'
                               : null,
                         ),
@@ -239,9 +237,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                                   value: selectedGender,
                                   items: const ['Male', 'Female', 'Other'],
                                   itemLabel: (value) => value,
-                                  borderColor: state.hasError
-                                      ? kRed
-                                      : null,
+                                  borderColor: state.hasError ? kRed : null,
                                   onChanged: (v) {
                                     state.didChange(v);
                                     setState(() {

@@ -187,7 +187,7 @@ class _PersonalDetailsPageState extends ConsumerState<PersonalDetailsPage> {
                           label: 'Date of Birth',
                           child: InputField(
                             type: CustomFieldType.date,
-                            hint: 'DD-MM-YYYY',
+                            hint: 'DD/MM/YYYY',
                             controller: _dobController,
                           ),
                         ),
