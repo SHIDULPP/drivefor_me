@@ -155,9 +155,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               );
                             },
                             showDropdownIcon: false,
-                            dropdownTextStyle: kCaption14R.copyWith(
-                              color: kTextColor,
-                            ),
+                            dropdownTextStyle: kLoginPhoneFieldR,
                           ),
                           ),
                         ),

@@ -15,9 +15,9 @@ class _WalletDayGroup {
   const _WalletDayGroup({required this.date, required this.transactions});
 
   double get dayNetTotal => transactions.fold<double>(
-        0,
-        (sum, tx) => sum + (tx.isCredit ? tx.amount : -tx.amount),
-      );
+    0,
+    (sum, tx) => sum + (tx.isCredit ? tx.amount : -tx.amount),
+  );
 
   String get headerDate => DateFormat('EEE, d MMM').format(date);
 
@@ -66,10 +66,8 @@ class _WalletPageState extends ConsumerState<WalletPage> {
 
     return grouped.entries
         .map(
-          (entry) => _WalletDayGroup(
-            date: entry.key,
-            transactions: entry.value,
-          ),
+          (entry) =>
+              _WalletDayGroup(date: entry.key, transactions: entry.value),
         )
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
@@ -226,11 +224,7 @@ class _RoundIconButton extends StatelessWidget {
         child: const SizedBox(
           width: 40,
           height: 40,
-          child: Icon(
-            Icons.chevron_left_rounded,
-            size: 26,
-            color: kTextColor,
-          ),
+          child: Icon(Icons.chevron_left_rounded, size: 26, color: kTextColor),
         ),
       ),
     );
@@ -299,11 +293,7 @@ class _TransactionsHeader extends StatelessWidget {
             child: const SizedBox(
               width: 36,
               height: 36,
-              child: Icon(
-                Icons.tune_rounded,
-                size: 20,
-                color: kTextColor,
-              ),
+              child: Icon(Icons.tune_rounded, size: 20, color: kTextColor),
             ),
           ),
         ),
@@ -316,10 +306,7 @@ class _DateHeader extends StatelessWidget {
   final String dateLabel;
   final String amountLabel;
 
-  const _DateHeader({
-    required this.dateLabel,
-    required this.amountLabel,
-  });
+  const _DateHeader({required this.dateLabel, required this.amountLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -393,11 +380,7 @@ class _TransactionIcon extends StatelessWidget {
           color: kActiveGreen,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.swap_horiz_rounded,
-          color: kWhite,
-          size: 22,
-        ),
+        child: const Icon(Icons.swap_horiz_rounded, color: kWhite, size: 22),
       );
     }
 
