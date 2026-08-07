@@ -160,6 +160,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               initialCountryCode: 'IN',
                               onChanged: (phone) {
                                 _fullPhoneNumber = phone.completeNumber;
+                                setState(() {});
                                 log(
                                   'Phone number changed: ${phone.completeNumber}',
                                   name: 'PhoneNumberScreen',
@@ -190,7 +191,11 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                           width: double.infinity,
                           child: primaryButton(
                             label: 'Get OTP',
-                            onPressed: isLoading ? null : _requestOtp,
+                            onPressed:
+                                (isLoading ||
+                                    _mobileController.text.trim().length != 10)
+                                ? null
+                                : _requestOtp,
                             isLoading: isLoading,
                           ),
                         ),
@@ -212,6 +217,11 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     final digits = _mobileController.text.trim();
     if (digits.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(digits)) {
       _showMessage('Please enter a valid mobile number');
+      return;
+    }
+
+    if (digits.length != 10) {
+      _showMessage('Mobile number must be exactly 10 digits');
       return;
     }
 
