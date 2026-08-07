@@ -14,6 +14,7 @@ import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -95,68 +96,74 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               ),
                             ),
                             child: IntlPhoneField(
-                            focusNode: _phoneFocusNode,
-                            validator: (phone) {
-                              if (!_showPhoneError) {
+                              focusNode: _phoneFocusNode,
+                              validator: (phone) {
+                                if (!_showPhoneError) {
+                                  return null;
+                                }
+                                if (phone == null || phone.number.isEmpty) {
+                                  return 'mobileNumberRequired';
+                                }
+                                // Validate that it contains only digits
+                                if (!RegExp(
+                                  r'^[0-9]+$',
+                                ).hasMatch(phone.number)) {
+                                  return 'mobileNumberDigitsOnly';
+                                }
                                 return null;
-                              }
-                              if (phone == null || phone.number.isEmpty) {
-                                return 'mobileNumberRequired';
-                              }
-                              // Validate that it contains only digits
-                              if (!RegExp(r'^[0-9]+$').hasMatch(phone.number)) {
-                                return 'mobileNumberDigitsOnly';
-                              }
-                              return null;
-                            },
-                            style: kLoginPhoneFieldR,
-                            controller: _mobileController,
-                            disableLengthCheck: true,
-                            showCountryFlag: false,
-                            cursorColor: kBlack,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: kLoginScreenBg,
-                              hintText: 'Mobile Number',
-                              hintStyle: kLoginPhoneFieldR,
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: const BorderSide(
-                                  color: kRed,
-                                  width: 1.5,
+                              },
+                              style: kLoginPhoneFieldR,
+                              controller: _mobileController,
+                              disableLengthCheck: true,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(10),
+                              ],
+                              showCountryFlag: false,
+                              cursorColor: kBlack,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: kLoginScreenBg,
+                                hintText: 'Mobile Number',
+                                hintStyle: kLoginPhoneFieldR,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderSide: const BorderSide(
+                                    color: kRed,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderSide: const BorderSide(
+                                    color: kRed,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 10.0,
                                 ),
                               ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: const BorderSide(
-                                  color: kRed,
-                                  width: 2.0,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 16.0,
-                                horizontal: 10.0,
-                              ),
+                              onCountryChanged: (value) {
+                                ref.read(countryCodeProvider.notifier).state =
+                                    value.dialCode;
+                              },
+                              initialCountryCode: 'IN',
+                              onChanged: (phone) {
+                                _fullPhoneNumber = phone.completeNumber;
+                                log(
+                                  'Phone number changed: ${phone.completeNumber}',
+                                  name: 'PhoneNumberScreen',
+                                );
+                              },
+                              showDropdownIcon: false,
+                              dropdownTextStyle: kLoginPhoneFieldR,
                             ),
-                            onCountryChanged: (value) {
-                              ref.read(countryCodeProvider.notifier).state =
-                                  value.dialCode;
-                            },
-                            initialCountryCode: 'IN',
-                            onChanged: (phone) {
-                              _fullPhoneNumber = phone.completeNumber;
-                              log(
-                                'Phone number changed: ${phone.completeNumber}',
-                                name: 'PhoneNumberScreen',
-                              );
-                            },
-                            showDropdownIcon: false,
-                            dropdownTextStyle: kLoginPhoneFieldR,
-                          ),
                           ),
                         ),
                       ],
