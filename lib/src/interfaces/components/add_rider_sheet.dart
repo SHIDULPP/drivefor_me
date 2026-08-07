@@ -51,93 +51,111 @@ class _AddRiderBottomSheetState extends ConsumerState<AddRiderBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 24),
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
 
-          /// ================= HEADER =================
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Add Rider',
-                    style: kStyle(kSemiBold, 16, color: kTextColor),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    height: 44,
-                    width: 44,
-                    decoration: const BoxDecoration(
-                      color: kTripCloseBtnBg,
-                      shape: BoxShape.circle,
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardInset),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
+        decoration: const BoxDecoration(
+          color: kWhite,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 24),
+
+              /// ================= HEADER =================
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Add Rider',
+                        style: kStyle(kSemiBold, 16, color: kTextColor),
+                      ),
                     ),
-                    child: const Icon(Icons.close, size: 24, color: kTextColor),
-                  ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        height: 44,
+                        width: 44,
+                        decoration: const BoxDecoration(
+                          color: kTripCloseBtnBg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 24,
+                          color: kTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 28),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// ================= RIDER NAME =================
+                    Text(
+                      'Rider Name *',
+                      style: kStyle(kSemiBold, 16, color: kTextColor),
+                    ),
+                    const SizedBox(height: 16),
+                    InputField(
+                      type: CustomFieldType.text,
+                      hint: 'Enter Rider Name',
+                      controller: nameController,
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    /// ================= MOBILE NUMBER =================
+                    Text(
+                      'Rider Mobile Number *',
+                      style: kStyle(kSemiBold, 16, color: kTextColor),
+                    ),
+                    const SizedBox(height: 16),
+                    InputField(
+                      type: CustomFieldType.number,
+                      hint: 'Enter Mobile Number',
+                      controller: mobileController,
+                    ),
+                  ],
+                ),
+              ),
+
+              /// ================= BUTTON =================
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  24,
+                  24,
+                  safeBottom > 0 ? safeBottom + 10 : 24,
+                ),
+                child: primaryButton(
+                  label: 'Confirm Rider',
+                  buttonHeight: 64,
+                  buttonColor: kBrandBlue,
+                  fontSize: 16,
+                  onPressed: _confirmRider,
+                ),
+              ),
+            ],
           ),
-
-          const SizedBox(height: 28),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// ================= RIDER NAME =================
-                Text(
-                  'Rider Name *',
-                  style: kStyle(kSemiBold, 16, color: kTextColor),
-                ),
-                const SizedBox(height: 16),
-                InputField(
-                  type: CustomFieldType.text,
-                  hint: 'Enter Rider Name',
-                  controller: nameController,
-                ),
-
-                const SizedBox(height: 28),
-
-                /// ================= MOBILE NUMBER =================
-                Text(
-                  'Rider Mobile Number *',
-                  style: kStyle(kSemiBold, 16, color: kTextColor),
-                ),
-                const SizedBox(height: 16),
-                InputField(
-                  type: CustomFieldType.number,
-                  hint: 'Enter Mobile Number',
-                  controller: mobileController,
-                ),
-              ],
-            ),
-          ),
-
-          /// ================= BUTTON =================
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: primaryButton(
-              label: 'Confirm Rider',
-              buttonHeight: 64,
-              buttonColor: kBrandBlue,
-              fontSize: 16,
-              onPressed: _confirmRider,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-        ],
+        ),
       ),
     );
   }
