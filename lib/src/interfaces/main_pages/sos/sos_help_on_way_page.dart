@@ -71,9 +71,8 @@ class SosHelpOnWayPage extends StatelessWidget {
                         titleColor: kTextColor,
                         subtitleColor: kMutedText,
                         borderColor: kCardBorder,
-                        onTap: () => Navigator.of(context).popUntil(
-                          (route) => route.isFirst,
-                        ),
+                        // Pop only the SOS flow so the active trip screen remains.
+                        onTap: () => Navigator.of(context).pop(),
                       ),
                     ),
                   ],
