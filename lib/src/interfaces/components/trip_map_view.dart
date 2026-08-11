@@ -7,11 +7,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 enum TripMapMode {
-  /// Route from pickup → dropoff (default).
-  fullRoute,
+  /// Route from driver → pickup (en route to collect vehicle owner).
+  toPickup,
 
-  /// Route from driver → destination.
-  driverToDestination,
+  /// Route from driver → dropoff (trip in progress).
+  toDropoff,
+
+  /// Route from pickup → dropoff (default / searching for driver).
+  fullRoute,
 }
 
 class TripMapView extends StatefulWidget {
@@ -132,10 +135,11 @@ class _TripMapViewState extends State<TripMapView> {
         resolvedDriver: resolvedDriver,
       );
       _lastRouteFetchAt = DateTime.now();
-      _lastRouteOrigin = resolvedDriver?.latLng ??
-          (widget.mode == TripMapMode.fullRoute
-              ? resolvedPickup.latLng
-              : resolvedDriver?.latLng);
+      _lastRouteOrigin = switch (widget.mode) {
+        TripMapMode.toPickup || TripMapMode.toDropoff =>
+          resolvedDriver?.latLng,
+        TripMapMode.fullRoute => resolvedPickup.latLng,
+      };
     }
 
     if (!mounted || generation != _resolveGeneration) return;
@@ -163,12 +167,17 @@ class _TripMapViewState extends State<TripMapView> {
     final dropoff = resolvedDropoff?.latLng;
 
     switch (widget.mode) {
-      case TripMapMode.driverToDestination:
+      case TripMapMode.toPickup:
+        if (driver != null && pickup != null) {
+          return _directionsService.routeBetween(driver, pickup);
+        }
+        return const [];
+      case TripMapMode.toDropoff:
         if (driver != null && dropoff != null) {
           return _directionsService.routeBetween(driver, dropoff);
         }
-        if (driver != null && pickup != null) {
-          return _directionsService.routeBetween(driver, pickup);
+        if (pickup != null && dropoff != null) {
+          return _directionsService.routeBetween(pickup, dropoff);
         }
         return const [];
       case TripMapMode.fullRoute:
@@ -185,7 +194,20 @@ class _TripMapViewState extends State<TripMapView> {
   Set<Marker> _buildMarkers() {
     final markers = <Marker>{};
     final pickup = _resolvedPickup?.latLng;
-    if (pickup != null) {
+    final dropoff = _resolvedDropoff?.latLng;
+    final driver = _resolvedDriver?.latLng;
+
+    final showPickup = switch (widget.mode) {
+      TripMapMode.toPickup || TripMapMode.fullRoute => true,
+      TripMapMode.toDropoff => false,
+    };
+    final showDropoff = widget.showDropoff &&
+        dropoff != null &&
+        (pickup == null ||
+            pickup.latitude != dropoff.latitude ||
+            pickup.longitude != dropoff.longitude);
+
+    if (showPickup && pickup != null) {
       markers.add(
         Marker(
           markerId: const MarkerId('pickup'),
@@ -197,12 +219,7 @@ class _TripMapViewState extends State<TripMapView> {
       );
     }
 
-    final dropoff = _resolvedDropoff?.latLng;
-    if (dropoff != null &&
-        widget.showDropoff &&
-        (pickup == null ||
-            pickup.latitude != dropoff.latitude ||
-            pickup.longitude != dropoff.longitude)) {
+    if (showDropoff) {
       markers.add(
         Marker(
           markerId: const MarkerId('dropoff'),
@@ -212,7 +229,6 @@ class _TripMapViewState extends State<TripMapView> {
       );
     }
 
-    final driver = _resolvedDriver?.latLng;
     if (driver != null) {
       markers.add(
         Marker(
@@ -248,6 +264,33 @@ class _TripMapViewState extends State<TripMapView> {
         kDefaultMapCenter;
   }
 
+  /// Points that should frame the camera for the current ride phase.
+  List<LatLng> _cameraFocusPoints() {
+    final pickup = _resolvedPickup?.latLng;
+    final dropoff = _resolvedDropoff?.latLng;
+    final driver = _resolvedDriver?.latLng;
+
+    switch (widget.mode) {
+      case TripMapMode.toPickup:
+        return [
+          if (driver != null) driver,
+          if (pickup != null) pickup,
+        ];
+      case TripMapMode.toDropoff:
+        return [
+          if (driver != null) driver,
+          if (dropoff != null) dropoff,
+          // Keep pickup in frame only when dropoff is missing.
+          if (dropoff == null && pickup != null) pickup,
+        ];
+      case TripMapMode.fullRoute:
+        return [
+          if (pickup != null) pickup,
+          if (dropoff != null) dropoff,
+        ];
+    }
+  }
+
   void _fitCamera() {
     if (!mounted || _mapController == null) return;
 
@@ -258,9 +301,7 @@ class _TripMapViewState extends State<TripMapView> {
       if (controller == null) return;
 
       final points = <LatLng>[
-        if (_resolvedPickup?.latLng != null) _resolvedPickup!.latLng!,
-        if (_resolvedDropoff?.latLng != null) _resolvedDropoff!.latLng!,
-        if (_resolvedDriver?.latLng != null) _resolvedDriver!.latLng!,
+        ..._cameraFocusPoints(),
         ..._routePoints,
       ];
 

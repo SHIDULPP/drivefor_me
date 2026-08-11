@@ -247,7 +247,9 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
                   driverLocation: _driverLocation,
-                  showRoute: _trip?.isOneWay ?? true,
+                  mode: TripMapMode.toPickup,
+                  showDropoff: false,
+                  showRoute: true,
                 ),
                 Positioned(
                   top: 0,

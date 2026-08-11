@@ -97,10 +97,9 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
 
   String get _price => _trip?.displayPrice ?? widget.price;
 
-  String get _distance =>
-      _trip != null && _trip!.distanceLabel.isNotEmpty
-          ? _trip!.distanceLabel
-          : widget.distance;
+  String get _distance => _trip != null && _trip!.distanceLabel.isNotEmpty
+      ? _trip!.distanceLabel
+      : widget.distance;
 
   String get _duration => _trip?.durationLabel ?? widget.duration;
 
@@ -109,8 +108,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
 
   TripLocation? get _dropoffLocation {
     final fromTrip = _trip?.dropoffLocation;
-    if (fromTrip != null &&
-        (fromTrip.hasAddress || fromTrip.hasCoordinates)) {
+    if (fromTrip != null && (fromTrip.hasAddress || fromTrip.hasCoordinates)) {
       return fromTrip;
     }
     if (widget.dropoff.trim().isNotEmpty) {
@@ -128,10 +126,9 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   String get _liveDistanceLabel =>
       _liveRouteSummary?.distanceLabel ?? _distance;
 
-  String get _liveEtaLabel =>
-      _liveRouteSummary != null
-          ? '${_liveRouteSummary!.durationLabel} remaining'
-          : 'Updating...';
+  String get _liveEtaLabel => _liveRouteSummary != null
+      ? '${_liveRouteSummary!.durationLabel} remaining'
+      : 'Updating...';
 
   @override
   void initState() {
@@ -262,7 +259,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
                   driverLocation: _driverLocation,
-                  mode: TripMapMode.driverToDestination,
+                  mode: TripMapMode.toDropoff,
+                  showDropoff: true,
                   showRoute: true,
                 ),
                 Positioned(
@@ -492,10 +490,7 @@ class _TripProgressSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _LiveTrackingRow(
-              distance: distance,
-              etaLabel: etaLabel,
-            ),
+            _LiveTrackingRow(distance: distance, etaLabel: etaLabel),
             const SizedBox(height: 12),
             _DriverProgressCard(
               driverName: driverName,
@@ -564,10 +559,7 @@ class _LiveTrackingRow extends StatelessWidget {
   final String distance;
   final String etaLabel;
 
-  const _LiveTrackingRow({
-    required this.distance,
-    required this.etaLabel,
-  });
+  const _LiveTrackingRow({required this.distance, required this.etaLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -736,11 +728,7 @@ class _DriverProgressCard extends StatelessWidget {
       width: 78,
       height: 78,
       color: kChipGreyBg,
-      child: const Icon(
-        Icons.person,
-        color: kMutedText,
-        size: 36,
-      ),
+      child: const Icon(Icons.person, color: kMutedText, size: 36),
     );
   }
 
@@ -886,7 +874,11 @@ class _TimeLimitReachedBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.error, color: AppColors.warningAlertOrange, size: 16),
+              const Icon(
+                Icons.error,
+                color: AppColors.warningAlertOrange,
+                size: 16,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Time Limit Reached',

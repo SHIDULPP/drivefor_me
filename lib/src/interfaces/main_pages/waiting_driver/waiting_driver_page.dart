@@ -219,6 +219,7 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
                   showRoute: _showRoute,
+                  mode: TripMapMode.fullRoute,
                 ),
                 Positioned(
                   right: 20,
