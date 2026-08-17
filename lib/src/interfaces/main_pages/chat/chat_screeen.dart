@@ -48,14 +48,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   String? _error;
   Timer? _pollTimer;
 
-  String get _displayName =>
-      widget.receiverName.isNotEmpty ? widget.receiverName : widget.participantName;
+  String get _displayName => widget.receiverName.isNotEmpty
+      ? widget.receiverName
+      : widget.participantName;
 
   @override
   void initState() {
     super.initState();
     _loadMessages();
-    _pollTimer = Timer.periodic(_pollInterval, (_) => _loadMessages(silent: true));
+    _pollTimer = Timer.periodic(
+      _pollInterval,
+      (_) => _loadMessages(silent: true),
+    );
   }
 
   @override
@@ -85,8 +89,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       });
     }
 
-    final response =
-        await ref.read(chatApiProvider).getMessages(widget.receiverId);
+    final response = await ref
+        .read(chatApiProvider)
+        .getMessages(widget.receiverId);
 
     if (!mounted) return;
 
@@ -122,10 +127,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (content.isEmpty || widget.receiverId.isEmpty || _isSending) return;
 
     setState(() => _isSending = true);
-    final response = await ref.read(chatApiProvider).sendMessage(
-          receiverId: widget.receiverId,
-          content: content,
-        );
+    final response = await ref
+        .read(chatApiProvider)
+        .sendMessage(receiverId: widget.receiverId, content: content);
 
     if (!mounted) return;
     setState(() => _isSending = false);
@@ -189,8 +193,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     style: kStyle(kRegular, kSize15, color: kTextColor),
                     decoration: InputDecoration(
                       hintText: 'Type your message',
-                      hintStyle:
-                          kStyle(kRegular, kSize15, color: kTripMutedLabel),
+                      hintStyle: kStyle(
+                        kRegular,
+                        kSize15,
+                        color: kTripMutedLabel,
+                      ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 14,
@@ -199,18 +206,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       fillColor: kWhite,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: _inputBorder, width: 1),
+                        borderSide: const BorderSide(
+                          color: _inputBorder,
+                          width: 1,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: _inputBorder, width: 1),
+                        borderSide: const BorderSide(
+                          color: _inputBorder,
+                          width: 1,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: _inputBorder, width: 1),
+                        borderSide: const BorderSide(
+                          color: _inputBorder,
+                          width: 1,
+                        ),
                       ),
                     ),
                   ),
@@ -246,7 +259,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: kStyle(kRegular, kSize15, color: kMutedText)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: kStyle(kRegular, kSize15, color: kMutedText),
+              ),
               const SizedBox(height: 12),
               TextButton(onPressed: _loadMessages, child: const Text('Retry')),
             ],
@@ -334,10 +351,7 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String participantName;
   final VoidCallback onBack;
 
-  const _ChatAppBar({
-    required this.participantName,
-    required this.onBack,
-  });
+  const _ChatAppBar({required this.participantName, required this.onBack});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -373,7 +387,10 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-      title: Text(participantName, style: kStyle(kSemiBold, kSize17, color: kTextColor)),
+      title: Text(
+        participantName,
+        style: kStyle(kSemiBold, kSize17, color: kTextColor),
+      ),
     );
   }
 }

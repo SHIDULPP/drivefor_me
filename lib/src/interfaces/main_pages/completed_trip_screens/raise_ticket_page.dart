@@ -37,7 +37,12 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
   Future<void> _submit() async {
     final subject = _subjectController.text.trim();
     final description = _descriptionController.text.trim();
-    if (subject.isEmpty || description.isEmpty) return;
+    if (subject.isEmpty || description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter subject and description.')),
+      );
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 
@@ -45,7 +50,9 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
         (isMongoObjectId(widget.tripId) ? widget.tripId : null);
 
     final response = await ref.read(supportApiProvider).createTicket(
-          category: widget.category,
+          category: widget.category.trim().isEmpty
+              ? 'General Support'
+              : widget.category.trim(),
           subject: subject,
           description: description,
           tripMongoId: tripMongoId,
@@ -56,19 +63,46 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
 
     if (!response.success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message ?? 'Failed to submit ticket.')),
+        SnackBar(content: Text(_friendlyError(response.message))),
       );
       return;
     }
 
+    final ticketData = response.data?['data'];
+    final ticketId = ticketData is Map
+        ? ticketData['ticketId']?.toString()
+        : null;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Support ticket submitted successfully.')),
+      SnackBar(
+        content: Text(
+          ticketId != null && ticketId.isNotEmpty
+              ? 'Ticket $ticketId submitted successfully.'
+              : 'Support ticket submitted successfully.',
+        ),
+      ),
     );
     Navigator.of(context).pop({
       'subject': subject,
       'description': description,
       'tripId': widget.tripId,
+      if (ticketId != null && ticketId.isNotEmpty) 'ticketId': ticketId,
     });
+  }
+
+  String _friendlyError(String? message) {
+    final raw = message?.trim() ?? '';
+    if (raw.isEmpty) return 'Failed to submit ticket.';
+    final lower = raw.toLowerCase();
+    if (lower.contains('e11000') ||
+        lower.contains('duplicate key') ||
+        lower.contains('ticketid')) {
+      return 'Could not create ticket right now. Please try again in a moment.';
+    }
+    if (lower.contains('linked trip not found')) {
+      return 'This trip could not be linked. Please try again from the trip details.';
+    }
+    return raw;
   }
 
   @override
