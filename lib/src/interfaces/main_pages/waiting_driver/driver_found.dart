@@ -57,7 +57,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
   String get _duration => _trip?.durationLabel ?? '—';
 
-  String get _driverName => _trip?.driverName ?? 'Driver';
+  String get _driverName =>
+      TripModel.resolveDriverName(_trip?.driverName);
 
   String get _driverId => _trip?.driverId ?? '';
 

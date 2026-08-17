@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:flutter/material.dart';
@@ -27,35 +28,29 @@ class CompletedTripDetailsPage extends StatelessWidget {
   final String ticketSubject;
   final String ticketDescription;
 
-  static const kDummyTicketSubject = 'Passenger not reachable at pickup';
-  static const kDummyTicketDescription =
-      'I reached the pickup location but the passenger was not responding to '
-      'calls or messages. I waited for more than 10 minutes. Please advise if '
-      'this should be marked as a no-show.';
-
   const CompletedTripDetailsPage({
     super.key,
     this.tripTitle = 'One Way Trip',
-    this.tripId = '# ID2562',
+    this.tripId = '—',
     this.tripMongoId,
     this.isLongTrip = false,
-    this.pickup = 'Edappally, Lulu Mall',
-    this.dropoff = 'Infopark, Kakkanad',
-    this.metaLine = 'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
-    this.distance = '12 km',
-    this.duration = '2 hrs',
-    this.tripFare = '₹ 235',
-    this.tripFareDurationLabel = '2 hrs',
-    this.extraTimeFare = '₹ 120',
-    this.extraTimeDurationLabel = '30 min',
-    this.totalPaid = '₹ 355',
-    this.driverName = 'Ajith Kumar',
-    this.driverRating = 4.8,
-    this.driverTrips = 120,
+    this.pickup = '—',
+    this.dropoff = '—',
+    this.metaLine = '—',
+    this.distance = '—',
+    this.duration = '—',
+    this.tripFare = '—',
+    this.tripFareDurationLabel = '—',
+    this.extraTimeFare = '—',
+    this.extraTimeDurationLabel = '—',
+    this.totalPaid = '—',
+    this.driverName = TripModel.noNameFound,
+    this.driverRating = 0,
+    this.driverTrips = 0,
     this.driverPhotoUrl,
-    this.vehicleTypes = 'Manual + Auto',
-    this.ticketSubject = kDummyTicketSubject,
-    this.ticketDescription = kDummyTicketDescription,
+    this.vehicleTypes = '—',
+    this.ticketSubject = '',
+    this.ticketDescription = '',
   });
 
   @override

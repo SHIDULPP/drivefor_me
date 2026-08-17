@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +17,11 @@ class PaymentCompletedPage extends StatelessWidget {
 
   const PaymentCompletedPage({
     super.key,
-    this.paidAmount = '₹590',
+    this.paidAmount = '—',
     this.tripMongoId = '',
     this.driverId = '',
-    this.driverName = 'Driver',
-    this.driverRating = 4.8,
+    this.driverName = TripModel.noNameFound,
+    this.driverRating = 0,
     this.driverTrips = 0,
     this.driverPhotoUrl,
     this.vehicleTypes = '',

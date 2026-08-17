@@ -22,13 +22,17 @@ class ConversationModel {
     final lastMap =
         lastMsg is Map ? Map<String, dynamic>.from(lastMsg) : null;
 
+    final parsedName = _userName(otherMap) ?? json['otherUserName']?.toString();
+    final trimmedName = parsedName?.trim();
+
     return ConversationModel(
       otherUserId: _userId(otherMap) ??
           json['otherUserId']?.toString() ??
           '',
-      otherUserName: _userName(otherMap) ??
-          json['otherUserName']?.toString() ??
-          'User',
+      otherUserName:
+          (trimmedName != null && trimmedName.isNotEmpty)
+              ? trimmedName
+              : 'No name found',
       lastMessage: lastMap?['content']?.toString() ??
           json['lastMessageText']?.toString() ??
           '',

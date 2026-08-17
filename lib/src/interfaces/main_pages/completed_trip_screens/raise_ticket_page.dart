@@ -13,7 +13,7 @@ class RaiseTicketPage extends ConsumerStatefulWidget {
 
   const RaiseTicketPage({
     super.key,
-    this.tripId = '# ID2562',
+    this.tripId = '—',
     this.tripMongoId,
     this.category = 'General Support',
   });

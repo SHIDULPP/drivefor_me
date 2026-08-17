@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
@@ -69,22 +70,21 @@ class TripCompletedPage extends StatefulWidget {
     this.paymentMethod = 'cash',
     this.isRated = false,
     this.tripTypeLabel = 'Long Trip',
-    this.destinationName = 'Infopark',
-    this.destinationAddress =
-        'Infoparks Kerala, Infopark Kochi Phase 1, P.O, Infopark, Kochi, Kakkanad, Kerala 682042',
-    this.totalFare = '₹ 335',
-    this.prepaidAmount = '₹ 255',
-    this.prepaidDuration = '2 hrs 30 min',
-    this.tripFare = '₹ 335',
-    this.tripDuration = '2 hrs 30 min',
-    this.extraTimeAmount = '₹ 255',
-    this.extraTimeDuration = '30 min',
-    this.remainingDue = '₹ 120',
-    this.remainingDuration = '30 min',
-    this.totalAmount = '₹ 590',
+    this.destinationName = '—',
+    this.destinationAddress = '—',
+    this.totalFare = '—',
+    this.prepaidAmount = '—',
+    this.prepaidDuration = '—',
+    this.tripFare = '—',
+    this.tripDuration = '—',
+    this.extraTimeAmount = '—',
+    this.extraTimeDuration = '—',
+    this.remainingDue = '—',
+    this.remainingDuration = '—',
+    this.totalAmount = '—',
     this.driverId = '',
-    this.driverName = 'Driver',
-    this.driverRating = 4.8,
+    this.driverName = TripModel.noNameFound,
+    this.driverRating = 0,
     this.driverTrips = 0,
     this.driverPhotoUrl,
     this.vehicleTypes = '',

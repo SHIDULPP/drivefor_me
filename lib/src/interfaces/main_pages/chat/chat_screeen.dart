@@ -4,6 +4,7 @@ import 'package:driveforme_user/src/data/apis/chat_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/models/chat_message_model.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -17,9 +18,9 @@ class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({
     super.key,
     this.receiverId = '',
-    this.receiverName = 'Driver',
+    this.receiverName = TripModel.noNameFound,
     this.tripId,
-    this.participantName = 'Jacob John',
+    this.participantName = TripModel.noNameFound,
   });
 
   @override

@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/apis/trip_api.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
@@ -20,11 +21,11 @@ class DriverRatingPage extends ConsumerStatefulWidget {
     super.key,
     this.tripMongoId = '',
     this.driverId = '',
-    this.driverName = 'Ajith Kumar',
-    this.driverRating = 4.8,
-    this.driverTrips = 120,
+    this.driverName = TripModel.noNameFound,
+    this.driverRating = 0,
+    this.driverTrips = 0,
     this.driverPhotoUrl,
-    this.vehicleTypes = 'Manual + Auto',
+    this.vehicleTypes = '—',
   });
 
   @override

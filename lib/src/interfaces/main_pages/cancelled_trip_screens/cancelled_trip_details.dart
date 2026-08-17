@@ -1,5 +1,6 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:flutter/material.dart';
 
@@ -23,20 +24,20 @@ class CancelledTripDetailsPage extends StatelessWidget {
   const CancelledTripDetailsPage({
     super.key,
     this.tripTitle = 'One Way Trip',
-    this.tripId = '# ID2562',
+    this.tripId = '—',
     this.tripMongoId,
     this.isLongTrip = false,
-    this.pickup = 'Edappally, Lulu Mall',
-    this.dropoff = 'Infopark, Kakkanad',
-    this.metaLine = 'April 30, 09:00 AM • 1 hrs 15 min • 12 km',
-    this.amountPaid = '₹ 235',
-    this.refundAmount = '₹ 355',
-    this.refundInitiatedAt = '25 April 2025, 08:45 AM',
-    this.driverName = 'Ajith Kumar',
-    this.driverRating = 4.8,
-    this.driverTrips = 120,
+    this.pickup = '—',
+    this.dropoff = '—',
+    this.metaLine = '—',
+    this.amountPaid = '—',
+    this.refundAmount = '—',
+    this.refundInitiatedAt = '—',
+    this.driverName = TripModel.noNameFound,
+    this.driverRating = 0,
+    this.driverTrips = 0,
     this.driverPhotoUrl,
-    this.vehicleTypes = 'Manual + Auto',
+    this.vehicleTypes = '—',
   });
 
   @override

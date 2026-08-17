@@ -39,20 +39,20 @@ class TripProgressPage extends ConsumerStatefulWidget {
     super.key,
     this.tripMongoId = '',
     this.tripTitle = 'One Way Trip',
-    this.tripId = '# ID2562',
-    this.headingTo = 'Infopark',
+    this.tripId = '—',
+    this.headingTo = '—',
     this.driverId = '',
-    this.driverName = 'Ajith Kumar',
-    this.driverRating = 4.8,
-    this.driverTrips = 120,
-    this.vehicleTypes = 'Manual + Auto',
-    this.completedStops = 3,
+    this.driverName = TripModel.noNameFound,
+    this.driverRating = 0,
+    this.driverTrips = 0,
+    this.vehicleTypes = '—',
+    this.completedStops = 0,
     this.showTimeLimitReached = true,
-    this.pickup = 'Edappally',
-    this.dropoff = 'Infopark',
-    this.price = '₹ 235',
-    this.distance = '12 km',
-    this.duration = '2 hrs 30 min',
+    this.pickup = '—',
+    this.dropoff = '—',
+    this.price = '—',
+    this.distance = '—',
+    this.duration = '—',
     this.paymentType = TripCompletedPaymentType.offline,
     this.paymentMethod = 'cash',
   });
@@ -82,7 +82,8 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
 
   String get _driverId => _trip?.driverId ?? widget.driverId;
 
-  String get _driverName => _trip?.driverName ?? widget.driverName;
+  String get _driverName =>
+      TripModel.resolveDriverName(_trip?.driverName ?? widget.driverName);
 
   double get _driverRating => _trip?.driverRating ?? widget.driverRating;
 

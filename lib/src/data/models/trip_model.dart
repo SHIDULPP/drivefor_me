@@ -3,6 +3,15 @@ import 'package:intl/intl.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 
 class TripModel {
+  /// Shown when the backend does not provide a driver / person full name.
+  static const String noNameFound = 'No name found';
+
+  static String resolveDriverName(String? name) {
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return noNameFound;
+    return trimmed;
+  }
+
   final String id;
   final String tripNumber;
   final String status;
@@ -180,6 +189,8 @@ class TripModel {
 
   bool get hasDriverName => driverName != null && driverName!.isNotEmpty;
 
+  String get displayDriverName => resolveDriverName(driverName);
+
   bool get isDriverAssigned =>
       status == 'driver_assigned' && driverId != null && driverId!.isNotEmpty;
 
@@ -312,7 +323,7 @@ class TripModel {
       'distance': distanceLabel.isEmpty ? '—' : distanceLabel,
       'duration': durationLabel,
       'driverId': driverId ?? '',
-      'driverName': driverName ?? 'Driver',
+      'driverName': displayDriverName,
       'driverPhone': driverPhone ?? '',
       'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
@@ -333,7 +344,7 @@ class TripModel {
       'pickup': pickupAddress,
       'dropoff': dropoffAddress ?? pickupAddress,
       'driverId': driverId ?? '',
-      'driverName': driverName ?? 'Driver',
+      'driverName': displayDriverName,
       'driverPhone': driverPhone ?? '',
       'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
@@ -368,7 +379,7 @@ class TripModel {
       'remainingDuration': '—',
       'totalAmount': displayPrice,
       'driverId': driverId ?? '',
-      'driverName': driverName ?? 'Driver',
+      'driverName': displayDriverName,
       'driverPhone': driverPhone ?? '',
       'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
@@ -384,7 +395,7 @@ class TripModel {
     return {
       'tripMongoId': id,
       'driverId': driverId ?? '',
-      'driverName': driverName ?? 'Driver',
+      'driverName': displayDriverName,
       'driverPhone': driverPhone ?? '',
       'driverPhotoUrl': driverPhotoUrl ?? '',
       'driverRating': driverRating ?? 5.0,
@@ -426,7 +437,7 @@ class TripModel {
       'hasDriver': hasDriver,
       'isLongTrip': isLongTrip,
       if (hasDriver) ...{
-        'driverName': driverName!,
+        'driverName': displayDriverName,
         'driverRating': driverRating ?? 5.0,
         'driverTrips': driverTrips ?? 0,
         'driverPhotoUrl': driverPhotoUrl ?? '',
@@ -450,7 +461,7 @@ class TripModel {
       'extraTimeFare': '—',
       'extraTimeDurationLabel': '—',
       'totalPaid': displayPrice,
-      'driverName': driverName ?? 'Driver',
+      'driverName': displayDriverName,
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
       'driverPhotoUrl': driverPhotoUrl ?? '',
@@ -473,7 +484,7 @@ class TripModel {
       'refundInitiatedAt': cancelledAt != null
           ? DateFormat('d MMMM yyyy, hh:mm a').format(cancelledAt!)
           : '—',
-      'driverName': driverName ?? 'Driver',
+      'driverName': displayDriverName,
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
       'driverPhotoUrl': driverPhotoUrl ?? '',
