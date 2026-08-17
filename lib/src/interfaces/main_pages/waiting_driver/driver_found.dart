@@ -18,10 +18,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class DriverFoundPage extends ConsumerStatefulWidget {
   final String tripMongoId;
 
-  const DriverFoundPage({
-    super.key,
-    this.tripMongoId = '',
-  });
+  const DriverFoundPage({super.key, this.tripMongoId = ''});
 
   @override
   ConsumerState<DriverFoundPage> createState() => _DriverFoundPageState();
@@ -45,9 +42,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
   String get _tripId => _trip?.displayTripId ?? '# —';
 
-  String get _pickup => _trip?.pickupAddress.isNotEmpty == true
-      ? _trip!.pickupAddress
-      : '—';
+  String get _pickup =>
+      _trip?.pickupAddress.isNotEmpty == true ? _trip!.pickupAddress : '—';
 
   String get _dropoff => _trip?.dropoffAddress?.isNotEmpty == true
       ? _trip!.dropoffAddress!
@@ -55,8 +51,9 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
   String get _price => _trip?.displayPrice ?? '—';
 
-  String get _distance =>
-      _trip != null && _trip!.distanceLabel.isNotEmpty ? _trip!.distanceLabel : '—';
+  String get _distance => _trip != null && _trip!.distanceLabel.isNotEmpty
+      ? _trip!.distanceLabel
+      : '—';
 
   String get _duration => _trip?.durationLabel ?? '—';
 
@@ -74,15 +71,15 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
   String? get _driverPhotoUrl => _trip?.driverPhotoUrl;
 
-  String get _subtitle => _trip?.driverFoundSubtitle ??
+  String get _subtitle =>
+      _trip?.driverFoundSubtitle ??
       'Share the OTP below with your driver to start the trip';
 
   TripLocation? get _pickupLocation => _trip?.pickupLocation;
 
   TripLocation? get _dropoffLocation {
     final dropoff = _trip?.dropoffLocation;
-    if (dropoff != null &&
-        (dropoff.hasAddress || dropoff.hasCoordinates)) {
+    if (dropoff != null && (dropoff.hasAddress || dropoff.hasCoordinates)) {
       return dropoff;
     }
     return _pickupLocation;
@@ -149,9 +146,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     if (expiresAt != null) {
       _startCancelCountdown(expiresAt);
     } else {
-      _startCancelCountdown(
-        DateTime.now().add(const Duration(minutes: 10)),
-      );
+      _startCancelCountdown(DateTime.now().add(const Duration(minutes: 10)));
     }
   }
 
@@ -605,7 +600,11 @@ class _DriverInfoCard extends StatelessWidget {
                     width: 56,
                     height: 56,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _driverAvatarFallback(),
+                    errorBuilder: (_, error, _) {
+                      debugPrint('Driver image load error: $error');
+                      debugPrint('Attempted to load URL: $photoUrl');
+                      return _driverAvatarFallback();
+                    },
                   )
                 : _driverAvatarFallback(),
           ),

@@ -591,12 +591,23 @@ class TripModel {
   }
 
   static String? _driverPhotoUrl(dynamic user) {
-    if (user is Map) {
-      final verification = user['driverVerification'];
-      if (verification is Map) {
-        final url = verification['livePhotoUrl']?.toString().trim();
-        if (url != null && url.isNotEmpty) return url;
-      }
+    if (user is! Map) return null;
+
+    final candidates = <dynamic>[
+      if (user['driverVerification'] is Map)
+        (user['driverVerification'] as Map)['livePhotoUrl'],
+      if (user['profile'] is Map) (user['profile'] as Map)['livePhotoUrl'],
+      if (user['profile'] is Map) (user['profile'] as Map)['avatarUrl'],
+      user['livePhotoUrl'],
+      user['photoUrl'],
+      user['avatar'],
+      user['avatarUrl'],
+      user['profilePhotoUrl'],
+    ];
+
+    for (final candidate in candidates) {
+      final url = candidate?.toString().trim();
+      if (url != null && url.isNotEmpty) return url;
     }
     return null;
   }
