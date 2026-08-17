@@ -429,8 +429,7 @@ class TripModel {
         'driverName': driverName!,
         'driverRating': driverRating ?? 5.0,
         'driverTrips': driverTrips ?? 0,
-        if (driverPhotoUrl != null && driverPhotoUrl!.isNotEmpty)
-          'driverPhotoUrl': driverPhotoUrl,
+        'driverPhotoUrl': driverPhotoUrl ?? '',
       },
       'vehicleTypes': vehicleTypesLabel,
     };

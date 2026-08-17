@@ -4,6 +4,7 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
+import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
 import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
@@ -68,6 +69,13 @@ class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsP
   Timer? _countdownTimer;
   Duration _timeUntilPickup = Duration.zero;
 
+  late bool _hasDriver;
+  late String? _driverName;
+  late double _driverRating;
+  late int _driverTrips;
+  late String? _driverPhotoUrl;
+  late String _vehicleTypes;
+
   /// True once local time reaches the scheduled pickup minute (or later).
   bool get _isPickupTime {
     if (widget.forcePickupTime) return true;
@@ -89,10 +97,39 @@ class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsP
   @override
   void initState() {
     super.initState();
+    _hasDriver = widget.hasDriver;
+    _driverName = widget.driverName;
+    _driverRating = widget.driverRating;
+    _driverTrips = widget.driverTrips;
+    _driverPhotoUrl = widget.driverPhotoUrl;
+    _vehicleTypes = widget.vehicleTypes;
     _refreshCountdown();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       _refreshCountdown();
+    });
+    _loadTripDriverDetails();
+  }
+
+  Future<void> _loadTripDriverDetails() async {
+    final tripMongoId = widget.tripMongoId;
+    if (tripMongoId == null || tripMongoId.isEmpty) return;
+
+    final trip = await fetchAndCacheTrip(ref, tripMongoId);
+    if (!mounted || trip == null || !trip.hasDriver) return;
+
+    setState(() {
+      _hasDriver = true;
+      _driverName = trip.driverName ?? _driverName;
+      _driverRating = trip.driverRating ?? _driverRating;
+      _driverTrips = trip.driverTrips ?? _driverTrips;
+      final photoUrl = trip.driverPhotoUrl?.trim();
+      if (photoUrl != null && photoUrl.isNotEmpty) {
+        _driverPhotoUrl = photoUrl;
+      }
+      if (trip.vehicleTypesLabel.isNotEmpty) {
+        _vehicleTypes = trip.vehicleTypesLabel;
+      }
     });
   }
 
@@ -208,16 +245,16 @@ class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsP
                       dropoff: widget.dropoff,
                     ),
                     const SizedBox(height: 16),
-                    if (widget.hasDriver && widget.driverName != null)
+                    if (_hasDriver && _driverName != null)
                       _ScheduledDriverCard(
-                        driverName: widget.driverName!,
-                        driverRating: widget.driverRating,
-                        driverTrips: widget.driverTrips,
-                        driverPhotoUrl: widget.driverPhotoUrl,
-                        vehicleTypes: widget.vehicleTypes,
+                        driverName: _driverName!,
+                        driverRating: _driverRating,
+                        driverTrips: _driverTrips,
+                        driverPhotoUrl: _driverPhotoUrl,
+                        vehicleTypes: _vehicleTypes,
                       )
                     else
-                      _DriverPendingCard(vehicleTypes: widget.vehicleTypes),
+                      _DriverPendingCard(vehicleTypes: _vehicleTypes),
                     if (showCountdown) ...[
                       const SizedBox(height: 14),
                       Row(
@@ -647,6 +684,9 @@ class _ScheduledDriverCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final photoUrl = driverPhotoUrl?.trim();
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -658,9 +698,9 @@ class _ScheduledDriverCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: driverPhotoUrl != null && driverPhotoUrl!.isNotEmpty
+            child: hasPhoto
                 ? Image.network(
-                    driverPhotoUrl!,
+                    photoUrl,
                     width: 56,
                     height: 56,
                     fit: BoxFit.cover,

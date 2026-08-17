@@ -881,6 +881,7 @@ class _UpcomingTripCard extends StatelessWidget {
                   child: _DriverProfilePill(
                     driverName: trip.driverName!,
                     driverRating: trip.driverRating ?? 5.0,
+                    driverPhotoUrl: trip.driverPhotoUrl,
                   ),
                 )
               else
@@ -912,14 +913,19 @@ class _UpcomingTripCard extends StatelessWidget {
 class _DriverProfilePill extends StatelessWidget {
   final String driverName;
   final double driverRating;
+  final String? driverPhotoUrl;
 
   const _DriverProfilePill({
     required this.driverName,
     required this.driverRating,
+    this.driverPhotoUrl,
   });
 
   @override
   Widget build(BuildContext context) {
+    final photoUrl = driverPhotoUrl?.trim();
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -929,22 +935,16 @@ class _DriverProfilePill extends StatelessWidget {
       child: Row(
         children: [
           ClipOval(
-            child: Image.network(
-              'https://i.pravatar.cc/128?u=ajith_kumar_driver',
-              width: 32,
-              height: 32,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 32,
-                height: 32,
-                color: kTripDestIconBg,
-                child: const Icon(
-                  Icons.person,
-                  size: 18,
-                  color: kTripIconMuted,
-                ),
-              ),
-            ),
+            child: hasPhoto
+                ? Image.network(
+                    photoUrl,
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _driverAvatarFallback(),
+                  )
+                : _driverAvatarFallback(),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -967,6 +967,15 @@ class _DriverProfilePill extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _driverAvatarFallback() {
+    return Container(
+      width: 32,
+      height: 32,
+      color: kTripDestIconBg,
+      child: const Icon(Icons.person, size: 18, color: kTripIconMuted),
     );
   }
 }
