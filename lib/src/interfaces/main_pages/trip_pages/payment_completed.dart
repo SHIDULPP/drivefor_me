@@ -11,6 +11,7 @@ class PaymentCompletedPage extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
 
   const PaymentCompletedPage({
@@ -21,6 +22,7 @@ class PaymentCompletedPage extends StatelessWidget {
     this.driverName = 'Driver',
     this.driverRating = 4.8,
     this.driverTrips = 0,
+    this.driverPhotoUrl,
     this.vehicleTypes = '',
   });
 
@@ -33,6 +35,7 @@ class PaymentCompletedPage extends StatelessWidget {
         'driverName': driverName,
         'driverRating': driverRating,
         'driverTrips': driverTrips,
+        'driverPhotoUrl': driverPhotoUrl ?? '',
         'vehicleTypes': vehicleTypes,
       },
     );

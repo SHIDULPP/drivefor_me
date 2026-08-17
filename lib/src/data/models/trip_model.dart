@@ -453,6 +453,7 @@ class TripModel {
       'driverName': driverName ?? 'Driver',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
+      'driverPhotoUrl': driverPhotoUrl ?? '',
       'vehicleTypes': vehicleTypesLabel,
     };
   }
@@ -475,6 +476,7 @@ class TripModel {
       'driverName': driverName ?? 'Driver',
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
+      'driverPhotoUrl': driverPhotoUrl ?? '',
       'vehicleTypes': vehicleTypesLabel,
     };
   }

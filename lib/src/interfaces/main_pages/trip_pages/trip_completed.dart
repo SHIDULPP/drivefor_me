@@ -59,6 +59,7 @@ class TripCompletedPage extends StatefulWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
 
   const TripCompletedPage({
@@ -85,6 +86,7 @@ class TripCompletedPage extends StatefulWidget {
     this.driverName = 'Driver',
     this.driverRating = 4.8,
     this.driverTrips = 0,
+    this.driverPhotoUrl,
     this.vehicleTypes = '',
   });
 
@@ -117,6 +119,7 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
       'driverName': widget.driverName,
       'driverRating': widget.driverRating,
       'driverTrips': widget.driverTrips,
+      'driverPhotoUrl': widget.driverPhotoUrl ?? '',
       'vehicleTypes': widget.vehicleTypes,
     };
 

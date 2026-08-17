@@ -13,6 +13,7 @@ class DriverRatingPage extends ConsumerStatefulWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
 
   const DriverRatingPage({
@@ -22,6 +23,7 @@ class DriverRatingPage extends ConsumerStatefulWidget {
     this.driverName = 'Ajith Kumar',
     this.driverRating = 4.8,
     this.driverTrips = 120,
+    this.driverPhotoUrl,
     this.vehicleTypes = 'Manual + Auto',
   });
 
@@ -107,6 +109,7 @@ class _DriverRatingPageState extends ConsumerState<DriverRatingPage> {
                       driverName: widget.driverName,
                       driverRating: widget.driverRating,
                       driverTrips: widget.driverTrips,
+                      driverPhotoUrl: widget.driverPhotoUrl,
                       vehicleTypes: widget.vehicleTypes,
                     ),
                     const SizedBox(height: 20),
@@ -218,33 +221,35 @@ class _DriverProfileCard extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
 
   const _DriverProfileCard({
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
+    this.driverPhotoUrl,
     required this.vehicleTypes,
   });
 
   @override
   Widget build(BuildContext context) {
+    final photoUrl = driverPhotoUrl?.trim();
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+
     return Row(
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            'https://i.pravatar.cc/128?u=ajith_kumar_rating',
-            width: 72,
-            height: 72,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              width: 72,
-              height: 72,
-              color: kChipGreyBg,
-              child: const Icon(Icons.person, color: kMutedText, size: 36),
-            ),
-          ),
+          child: hasPhoto
+              ? Image.network(
+                  photoUrl,
+                  width: 72,
+                  height: 72,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _driverPlaceholder(),
+                )
+              : _driverPlaceholder(),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -281,6 +286,15 @@ class _DriverProfileCard extends StatelessWidget {
         const SizedBox(width: 8),
         _ActionCircle(color: kBlue, icon: Icons.phone_in_talk_rounded),
       ],
+    );
+  }
+
+  Widget _driverPlaceholder() {
+    return Container(
+      width: 72,
+      height: 72,
+      color: kChipGreyBg,
+      child: const Icon(Icons.person, color: kMutedText, size: 36),
     );
   }
 

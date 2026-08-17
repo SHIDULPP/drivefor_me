@@ -230,6 +230,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverRating:
             (cancelledDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: cancelledDetailsArgs?['driverTrips'] as int? ?? 120,
+        driverPhotoUrl: cancelledDetailsArgs?['driverPhotoUrl'] as String?,
         vehicleTypes:
             cancelledDetailsArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
@@ -277,6 +278,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverRating:
             (completedDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: completedDetailsArgs?['driverTrips'] as int? ?? 120,
+        driverPhotoUrl: completedDetailsArgs?['driverPhotoUrl'] as String?,
         vehicleTypes:
             completedDetailsArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
         ticketSubject:
@@ -376,6 +378,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverRating:
             (paymentDoneArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: paymentDoneArgs?['driverTrips'] as int? ?? 0,
+        driverPhotoUrl: paymentDoneArgs?['driverPhotoUrl'] as String?,
         vehicleTypes:
             paymentDoneArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
@@ -390,6 +393,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverName: ratingArgs?['driverName'] as String? ?? 'Ajith Kumar',
         driverRating: (ratingArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: ratingArgs?['driverTrips'] as int? ?? 120,
+        driverPhotoUrl: ratingArgs?['driverPhotoUrl'] as String?,
         vehicleTypes: ratingArgs?['vehicleTypes'] as String? ?? 'Manual + Auto',
       );
       transitionToUse = TransitionType.slideFromRight;
@@ -484,6 +488,7 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         driverRating:
             (completedArgs?['driverRating'] as num?)?.toDouble() ?? 4.8,
         driverTrips: completedArgs?['driverTrips'] as int? ?? 0,
+        driverPhotoUrl: completedArgs?['driverPhotoUrl'] as String?,
         vehicleTypes: completedArgs?['vehicleTypes'] as String? ?? '',
       );
       transitionToUse = TransitionType.slideFromRight;

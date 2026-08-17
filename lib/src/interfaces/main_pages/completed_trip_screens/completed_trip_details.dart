@@ -22,6 +22,7 @@ class CompletedTripDetailsPage extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
   final String ticketSubject;
   final String ticketDescription;
@@ -51,6 +52,7 @@ class CompletedTripDetailsPage extends StatelessWidget {
     this.driverName = 'Ajith Kumar',
     this.driverRating = 4.8,
     this.driverTrips = 120,
+    this.driverPhotoUrl,
     this.vehicleTypes = 'Manual + Auto',
     this.ticketSubject = kDummyTicketSubject,
     this.ticketDescription = kDummyTicketDescription,
@@ -124,14 +126,17 @@ class CompletedTripDetailsPage extends StatelessWidget {
                       driverName: driverName,
                       driverRating: driverRating,
                       driverTrips: driverTrips,
+                      driverPhotoUrl: driverPhotoUrl,
                       vehicleTypes: vehicleTypes,
                       onRateRide: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => DriverRatingPage(
+                              tripMongoId: tripMongoId ?? '',
                               driverName: driverName,
                               driverRating: driverRating,
                               driverTrips: driverTrips,
+                              driverPhotoUrl: driverPhotoUrl,
                               vehicleTypes: vehicleTypes,
                             ),
                           ),
@@ -486,6 +491,7 @@ class _CompletedDriverCard extends StatelessWidget {
   final String driverName;
   final double driverRating;
   final int driverTrips;
+  final String? driverPhotoUrl;
   final String vehicleTypes;
   final VoidCallback onRateRide;
   final VoidCallback onChat;
@@ -494,6 +500,7 @@ class _CompletedDriverCard extends StatelessWidget {
     required this.driverName,
     required this.driverRating,
     required this.driverTrips,
+    this.driverPhotoUrl,
     required this.vehicleTypes,
     required this.onRateRide,
     required this.onChat,
@@ -501,6 +508,9 @@ class _CompletedDriverCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final photoUrl = driverPhotoUrl?.trim();
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -514,18 +524,16 @@ class _CompletedDriverCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  'https://i.pravatar.cc/128?u=ajith_kumar_driver',
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 56,
-                    height: 56,
-                    color: kChipGreyBg,
-                    child: const Icon(Icons.person, color: kMutedText, size: 32),
-                  ),
-                ),
+                child: hasPhoto
+                    ? Image.network(
+                        photoUrl,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _driverPlaceholder(),
+                      )
+                    : _driverPlaceholder(),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -592,6 +600,15 @@ class _CompletedDriverCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _driverPlaceholder() {
+    return Container(
+      width: 56,
+      height: 56,
+      color: kChipGreyBg,
+      child: const Icon(Icons.person, color: kMutedText, size: 32),
     );
   }
 
