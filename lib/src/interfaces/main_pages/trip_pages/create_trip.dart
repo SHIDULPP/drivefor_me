@@ -373,7 +373,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                   Expanded(
                     child: Text(
                       'Where to go?',
-                      style: kTripPageTitleSB,
+                      style: kStyle(kSemiBold, 14, color: kTextColor),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

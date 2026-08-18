@@ -1,10 +1,11 @@
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:flutter/material.dart';
 
-// ================= FONT WEIGHTS =================
+// Clash Grotesk (Figma: Regular 400 / Medium 500 / Semibold 600 / Bold 700).
+// Line-height is 120%. This app currently paints headings as Medium — legacy
+// weight names alias so existing `kStyle(kSemiBold, …)` call sites are unchanged.
 
-// Clash Grotesk — Regular (400) for body, Medium (500) for headings.
-// No bold / semibold in the app; legacy names alias to these two weights.
+const String kFontFamily = 'ClashGrotesk';
 
 const kRegular = FontWeight.w400;
 const kMedium = FontWeight.w500;
@@ -17,22 +18,19 @@ const kBold = kMedium;
 const kExtraBold = kMedium;
 const kBlackFont = kMedium;
 
-// ================= LETTER SPACING =================
-
 const double kShortClose = -1.2;
 const double kShort = -0.3;
 
-// ================= FONT SIZES =================
-
-const double kDisplay = 44;
-const double kExtraLarge = 40;
-const double kLarge = 38;
-const double kHeading = 36;
+// Figma type scale: Clash Grotesk/{size}/{weight}
+// 10 · 12 · 14 · 16 · 18 · 20 · 24 · 30 · 36
+const double kDisplay = 36;
+const double kExtraLarge = 30;
+const double kLarge = 24;
+const double kHeading = 20;
 const double kSubHeading = 18;
-const double kBody = 32;
-const double kSize30 = 30;
-const double kSize32 = 32;
-const double kSize28 = 28;
+const double kBody = 16;
+
+const double kSize10 = 10;
 const double kSize11 = 11;
 const double kSize12 = 12;
 const double kSize13 = 13;
@@ -41,24 +39,23 @@ const double kSize15 = 15;
 const double kSize16 = 16;
 const double kSize17 = 17;
 const double kSize18 = 18;
-const double kSize22 = 22;
-const double kSize34 = 34;
-const double kSize36 = 36;
-const double kSize10 = 10;
 const double kSize20 = 20;
+const double kSize22 = 22;
 const double kSize24 = 24;
+const double kSize25 = 25;
 const double kSize26 = 26;
+const double kSize28 = 28;
+const double kSize30 = 30;
+const double kSize32 = 32;
+const double kSize36 = 36;
 
-// ── Layout tokens (Figma 390pt frame) ─────────────────────────────────────────
-
+// Layout tokens (Figma iPhone 16 / 390pt frame)
 const double kCardRadiusLg = 24;
 const double kCardRadiusMd = 20;
 const double kCardRadiusSm = 16;
 const double kPillRadius = 30;
 const double kScreenPaddingH = 16;
 const double kReferEarnPaddingH = 20;
-
-// ================= BASE STYLE =================
 
 TextStyle kStyle(
   FontWeight weight,
@@ -68,7 +65,7 @@ TextStyle kStyle(
   double? height,
 }) {
   return TextStyle(
-    fontFamily: 'ClashGrotesk',
+    fontFamily: kFontFamily,
     fontWeight: weight,
     color: color ?? kTextColor,
     fontSize: size,
@@ -77,108 +74,93 @@ TextStyle kStyle(
   );
 }
 
-// ================= DISPLAY =================
+// ================= SCALE (Figma sizes × Regular / Medium) =================
 
 final kDisplayTitleR = kStyle(kRegular, kDisplay);
 final kDisplayTitleM = kStyle(kMedium, kDisplay);
-final kDisplayTitleSB = kStyle(kSemiBold, kDisplay);
-final kDisplayTitleB = kStyle(kBold, kDisplay);
-final kDisplayTitleEB = kStyle(kExtraBold, kDisplay);
+final kDisplayTitleSB = kDisplayTitleM;
+final kDisplayTitleB = kDisplayTitleM;
+final kDisplayTitleEB = kDisplayTitleM;
 
-// ================= LARGE =================
+final kExtraLargeTitleM = kStyle(kMedium, kExtraLarge);
+final kExtraLargeTitleR = kStyle(kRegular, kExtraLarge);
+final kExtraLargeTitleSB = kExtraLargeTitleM;
+final kExtraLargeTitleB = kExtraLargeTitleM;
 
 final kLargeTitleR = kStyle(kRegular, kLarge);
 final kLargeTitleM = kStyle(kMedium, kLarge);
-final kExtraLargeTitleM = kStyle(kMedium, kExtraLarge);
-final kLargeTitleSB = kStyle(kSemiBold, kLarge);
-final kLargeTitleB = kStyle(kBold, kLarge);
-final kLargeTitleEB = kStyle(kExtraBold, kLarge);
+final kLargeTitleSB = kLargeTitleM;
+final kLargeTitleB = kLargeTitleM;
+final kLargeTitleEB = kLargeTitleM;
 
-// ================= HEADING =================
-
-final kHeadTitleR = kStyle(kRegular, kHeading);
 final kHeadTitleM = kStyle(kMedium, kHeading);
-final kHeadTitleSB = kStyle(kSemiBold, kHeading);
-final kHeadTitleB = kStyle(kBold, kHeading);
-final kHeadTitleEB = kStyle(kExtraBold, kHeading);
+final kHeadTitleSB = kHeadTitleM;
+final kHeadTitleB = kHeadTitleM;
+final kHeadTitleEB = kHeadTitleM;
+// Login titles keep the existing 36 Regular call site (`kHeadTitleR`).
+final kHeadTitleR = kDisplayTitleR;
 
-// ================= SUBHEADING =================
-
-final kSubHeadingL = kStyle(kLight, kSubHeading);
 final kSubHeadingR = kStyle(kRegular, kSubHeading);
 final kSubHeadingM = kStyle(kMedium, kSubHeading);
-final kSubHeadingSB = kStyle(kSemiBold, kSubHeading);
-final kSubHeadingB = kStyle(kBold, kSubHeading);
-final kSubHeadingEB = kStyle(kExtraBold, kSubHeading);
+final kSubHeadingL = kSubHeadingR;
+final kSubHeadingSB = kSubHeadingM;
+final kSubHeadingB = kSubHeadingM;
+final kSubHeadingEB = kSubHeadingM;
 
-// ================= BODY =================
-
-final kBodyTitleL = kStyle(kLight, kBody);
 final kBodyTitleR = kStyle(kRegular, kBody);
 final kBodyTitleM = kStyle(kMedium, kBody);
-final kBodyTitleSB = kStyle(kSemiBold, kBody);
-final kBodyTitleB = kStyle(kBold, kBody);
-final kBodyTitleEB = kStyle(kExtraBold, kBody);
+final kBodyTitleL = kStyle(kRegular, kSize32);
+final kBodyTitleSB = kBodyTitleM;
+final kBodyTitleB = kBodyTitleM;
+final kBodyTitleEB = kBodyTitleM;
 
-// ================= SMALL =================
+final kSmallTitleR = kStyle(kRegular, kSize14);
+final kSmallTitleM = kStyle(kMedium, kSize14);
+final kSmallTitleL = kSmallTitleR;
+final kSmallTitleUL = kSmallTitleR;
+final kSmallTitleSB = kSmallTitleM;
+final kSmallTitleB = kSmallTitleM;
+final kSmallTitleEB = kSmallTitleM;
 
-final kSmallTitleUL = kStyle(kUltraLight, kSize30);
-final kSmallTitleL = kStyle(kLight, kSize30);
-final kSmallTitleR = kStyle(kRegular, kSize30);
-final kSmallTitleM = kStyle(kMedium, kSize30);
-final kSmallTitleSB = kStyle(kSemiBold, kSize30);
-final kSmallTitleB = kStyle(kBold, kSize30);
-final kSmallTitleEB = kStyle(kExtraBold, kSize30);
+final kSmallerTitleR = kStyle(kRegular, kSize12);
+final kSmallerTitleM = kStyle(kMedium, kSize12);
+final kSmallerTitleL = kSmallerTitleR;
+final kSmallerTitleEL = kSmallerTitleR;
+final kSmallerTitleUL = kSmallerTitleR;
+final kSmallerTitleSB = kSmallerTitleM;
+final kSmallerTitleB = kSmallerTitleM;
+final kSmallerTitleEB = kSmallerTitleM;
 
-// ================= SMALLER =================
-
-final kSmallerTitleEL = kStyle(kExtraLight, kSize28);
-final kSmallerTitleUL = kStyle(kUltraLight, kSize28);
-final kSmallerTitleL = kStyle(kLight, kSize28);
-final kSmallerTitleR = kStyle(kRegular, kSize28);
-final kSmallerTitleRWithGradient = kStyle(kRegular, kSize28);
-final kSmallerTitleM = kStyle(kMedium, kSize28);
-final kSmallerTitleSB = kStyle(kSemiBold, kSize28);
-final kSmallerTitleB = kStyle(kBold, kSize28);
-final kSmallerTitleEB = kStyle(kExtraBold, kSize28);
-
-// ── Compact UI (home, trips, bottom nav) ──────────────────────────────────────
+// ================= COMPACT UI =================
 
 final kCaption11R = kStyle(kRegular, kSize11);
 final kCaption12R = kStyle(kRegular, kSize12, color: kMutedText);
 final kCaption13R = kStyle(kRegular, kSize13, color: kMutedText);
-final kCaption13SB = kStyle(kSemiBold, kSize13, color: kTextColor);
-final kCaption14R = kStyle(kRegular, kSize14);
-final kCaption14M = kStyle(kMedium, kSize14);
-final kCaption14B = kStyle(kSemiBold, kSize14, color: kTextColor);
+final kCaption13SB = kStyle(kMedium, kSize13);
+final kCaption14R = kSmallTitleR;
+final kCaption14M = kSmallTitleM;
+final kCaption14B = kSmallTitleM;
 final kCaption15M = kStyle(kMedium, kSize15, color: kMutedText);
 
-final kLabel15M = kStyle(kMedium, kSize15, color: kTextColor, height: 1.25);
-final kLabel17B = kStyle(kSemiBold, kSize17, height: 1.1);
-final kLabel17BGold = kStyle(kSemiBold, kSize17, color: kGold, height: 1.1);
-final kLabel22B = kStyle(kSemiBold, kSize22, color: kBrandBlue, height: 1.1);
-final kLabel22White = kStyle(kSemiBold, kSize22, color: kWhite, height: 1.15);
+final kLabel15M = kStyle(kMedium, kSize15, height: 1.25);
+final kLabel17B = kStyle(kMedium, kSize17, height: 1.1);
+final kLabel17BGold = kStyle(kMedium, kSize17, color: kGold, height: 1.1);
+final kLabel22B = kStyle(kMedium, kSize22, color: kBrandBlue, height: 1.1);
+final kLabel22White = kStyle(kMedium, kSize22, color: kWhite, height: 1.15);
 
-final kTabLabelR = kStyle(kRegular, kSize14, color: kTextColor);
+final kTabLabelR = kCaption14R;
 final kTabLabelM = kStyle(kMedium, kSize14, color: kGoldAccent);
 
-final kNavLabelR = kStyle(kRegular, kSize12, color: kMutedText);
+final kNavLabelR = kCaption12R;
 final kNavLabelM = kStyle(kMedium, kSize12, color: kBrandBlue);
 
-final kTripBadgeSB = kStyle(kSemiBold, kSize13, color: kActiveGreen);
-final kTripChipR = kStyle(kRegular, kSize13);
-final kTrackTripSB = kStyle(kSemiBold, kSize14, color: kWhite, height: 1.1);
+final kEmptyStateM = kCaption15M;
+final kVersionR = kCaption12R;
+final kSectionLabelR = kCaption13R;
+final kMenuItemM = kBodyTitleM;
+final kMenuItemDangerM = kStyle(kMedium, kSize16, color: kRed);
 
-final kSupportTitleB = kStyle(kSemiBold, kSize17, color: kWhite, height: 1.2);
-final kSupportSubtitleR = kStyle(kRegular, kSize13, color: kWhite, height: 1.35);
-final kPhoneNumberB = kStyle(
-  kSemiBold,
-  kSize14,
-  color: kTextColor,
-  height: 1.0,
-);
-final kPhoneSupportR = kStyle(kRegular, kSize11, height: 1.0);
-
+// Watermark on Home — the only place that uses real Bold (700).
 final kDecorTitleEB = kStyle(
   FontWeight.w700,
   kSize36,
@@ -186,280 +168,304 @@ final kDecorTitleEB = kStyle(
   height: 1.02,
   letterSpacing: -0.8,
 );
+
+// ================= SCREEN ALIASES (existing call sites, same paint) =================
+
+// Home / nav / trips list
+final kTripBadgeSB = kStyle(kMedium, kSize13, color: kActiveGreen);
+final kTripChipR = kStyle(kRegular, kSize13);
+final kTrackTripSB = kStyle(kMedium, kSize14, color: kWhite, height: 1.1);
+final kSupportTitleB = kStyle(kMedium, kSize17, color: kWhite);
+final kSupportSubtitleR = kStyle(
+  kRegular,
+  kSize13,
+  color: kWhite,
+  height: 1.35,
+);
+final kPhoneNumberB = kStyle(kMedium, kSize14, height: 1.0);
+final kPhoneSupportR = kStyle(kRegular, kSize11, height: 1.0);
 final kFooterCaptionR = kStyle(kRegular, kSize13, height: 1.35);
-final kFooterBrandB = kStyle(kSemiBold, kSize13, color: kBrandBlue);
+final kFooterBrandB = kStyle(kMedium, kSize13, color: kBrandBlue);
 
-final kEmptyStateM = kStyle(kMedium, kSize15, color: kMutedText);
-
-// ── Profile ───────────────────────────────────────────────────────────────────
-
-final kProfileNameB = kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
-final kProfilePhoneR = kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
-final kMenuItemM = kStyle(kMedium, kSize16, color: kTextColor);
-final kMenuItemDangerM = kStyle(kMedium, kSize16, color: kRed);
-final kSectionLabelR = kStyle(kRegular, kSize13, color: kMutedText);
-final kQuickActionM = kStyle(kMedium, kSize13, color: kTextColor);
-final kVersionR = kStyle(kRegular, kSize12, color: kMutedText);
+// Profile
+final kProfileNameB = kStyle(kMedium, kSize16, height: 1.15);
+final kProfilePhoneR = kCaption13R;
+final kQuickActionM = kCaption13SB;
 final kEditProfileM = kStyle(kMedium, kSize14, color: kBrandBlue);
-final kTripNotificationBodyR =
-    kStyle(kRegular, kSize14, color: kTripBodyMuted, height: 1.45);
-final kTripNotificationTimeM =
-    kStyle(kMedium, kSize12, color: kTripCtaBlue, height: 1.2);
+final kTripNotificationBodyR = kStyle(
+  kRegular,
+  kSize14,
+  color: kTripBodyMuted,
+  height: 1.45,
+);
+final kTripNotificationTimeM = kNavLabelM;
 
-// ── Trip booking (Ride Now / create trip flow) ────────────────────────────────
+// Login
+final kLoginSubtitleR = kStyle(
+  kMedium,
+  kSize14,
+  color: kMutedText,
+  height: 1.5,
+);
+final kLoginSubtitleAccentSB = kStyle(
+  kMedium,
+  kSize14,
+  color: kBrandBlue,
+  height: 1.5,
+);
+final kLoginPhoneFieldR = kStyle(kRegular, kSize25, color: kGreyDark);
+final kLoginResendPromptM = kStyle(kMedium, kSize14, color: kMutedText);
+final kLoginResendTimerSB = kEditProfileM;
+final kLoginResendActionSB = kEditProfileM;
 
-final kTripPageTitleSB = kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.15);
-final kTripForPillM = kStyle(kMedium, kSize14, color: kTextColor);
-final kTripSectionTitleSB =
-    kStyle(kSemiBold, kSubHeading, color: kTextColor, height: 1.2);
-final kTripSubSectionSB = kStyle(kSemiBold, kSize14, color: kTextColor);
-final kTripLocationLabelR =
-    kStyle(kRegular, kSize12, color: kTripMutedLabel);
-final kTripLocationValueM = kStyle(kMedium, kSize16, color: kTextColor);
-final kTripTimePillM = kStyle(kMedium, kSize14, color: kTextColor);
+// Create trip
+final kTripForPillM = kSmallTitleM;
+final kTripSectionTitleSB = kSubHeadingM;
+final kTripSubSectionSB = kSmallTitleM;
+final kTripLocationLabelR = kStyle(kRegular, kSize12, color: kTripMutedLabel);
+final kTripLocationValueM = kBodyTitleM;
+final kTripTimePillM = kSmallTitleM;
 final kTripSegmentActiveM = kStyle(kMedium, kSize14, color: kWhite);
-final kTripSegmentInactiveM = kStyle(kMedium, kSize14, color: kTextColor);
-final kTripVehicleAddM = kStyle(kMedium, kSize16, color: kTextColor);
-final kTripTypeChipM = kStyle(kMedium, kSize15, color: kTextColor);
-final kTripDurationPriceB = kStyle(kSemiBold, kSize16, color: kBrandBlue);
+final kTripSegmentInactiveM = kSmallTitleM;
+final kTripVehicleAddM = kBodyTitleM;
+final kTripDurationPriceB = kStyle(kMedium, kSize16, color: kBrandBlue);
 final kTripDurationMetaR = kStyle(kRegular, kSize13, color: kTripBodyMuted);
-final kTripChipDurationSB = kStyle(kSemiBold, kSize14, color: kTextColor);
-final kTripChipHourB = kStyle(kSemiBold, kSize16, color: kTextColor);
-final kTripChipHourMutedB =
-    kStyle(kSemiBold, kSize16, color: kTripDarkText);
-final kTripChipUnitM = kStyle(kMedium, kSize12, color: kBrandBlue);
-final kTripChipCustomM = kStyle(kMedium, kSize12, color: kBrandBlue);
-final kTripOvernightTitleSB =
-    kStyle(kSemiBold, kSize13, color: kTextColor, height: 1.1);
-final kTripOvernightSubR =
-    kStyle(kRegular, kSize11, color: kTripMutedLabel, height: 1.2);
+final kTripChipDurationSB = kSmallTitleM;
+final kTripChipHourB = kBodyTitleM;
+final kTripChipHourMutedB = kStyle(kMedium, kSize16, color: kTripDarkText);
+final kTripChipUnitM = kNavLabelM;
+final kTripChipCustomM = kNavLabelM;
+final kTripOvernightTitleSB = kStyle(kMedium, kSize13, height: 1.1);
+final kTripOvernightSubR = kStyle(kRegular, kSize11, color: kTripMutedLabel);
 final kTripWaitingNoteM = kStyle(kMedium, kSize12, color: kTripGold);
-final kTripProtectionTitleSB =
-    kStyle(kSemiBold, kSize18, color: kTextColor);
-final kTripProtectionAddonB = kStyle(kSemiBold, kSize14, color: kBrandBlue);
-final kTripProtectionDescR =
-    kStyle(kRegular, kSize13, color: kTripMutedLabel);
-final kTripPaymentTitleSB = kStyle(kSemiBold, kSize16, color: kTextColor);
-final kTripPaymentSubtitleR =
-    kStyle(kRegular, kSize13, color: kTripMutedLabel);
-final kTripPaymentPriceB = kStyle(kSemiBold, kSize18, color: kBrandBlue);
-final kTripPaymentTrailingR =
-    kStyle(kRegular, kSize13, color: kTripMutedLabel);
-final kTripSecureBannerR =
-    kStyle(kRegular, kSize12, color: kActiveGreen);
-final kTripSecureBannerB =
-    kStyle(kSemiBold, kSize12, color: kActiveGreen);
-final kTripTotalLabelR = kStyle(kRegular, kSize13, color: kTripMutedLabel);
-final kTripTotalPriceB =
-    kStyle(kSemiBold, kSize26, color: kBrandBlue, height: 1.1);
-final kTripModalTitleSB = kStyle(kSemiBold, kSize22, color: kTextColor);
-final kTripModalSummaryR = kStyle(kRegular, kSize14, color: kTextColor);
-final kTripModalSummaryB = kStyle(kSemiBold, kSize14, color: kTextColor);
-final kTripPickerSelectedM = kStyle(kMedium, kSize18, color: kBrandBlue);
-final kTripPickerUnselectedM =
-    kStyle(kMedium, kSize18, color: kTripPickerMuted);
+final kTripProtectionTitleSB = kSubHeadingM;
+final kTripProtectionAddonB = kEditProfileM;
+final kTripProtectionDescR = kStyle(kRegular, kSize13, color: kTripMutedLabel);
+final kTripPaymentTitleSB = kBodyTitleM;
+final kTripPaymentSubtitleR = kTripProtectionDescR;
+final kTripPaymentPriceB = kStyle(kMedium, kSize18, color: kBrandBlue);
+final kTripPaymentTrailingR = kTripProtectionDescR;
+final kTripSecureBannerR = kStyle(kRegular, kSize12, color: kActiveGreen);
+final kTripSecureBannerB = kStyle(kMedium, kSize12, color: kActiveGreen);
+final kTripTotalLabelR = kTripProtectionDescR;
+final kTripTotalPriceB = kStyle(
+  kMedium,
+  kSize26,
+  color: kBrandBlue,
+  height: 1.1,
+);
+final kTripModalTitleSB = kStyle(kMedium, kSize22);
+final kTripModalSummaryR = kSmallTitleR;
+final kTripModalSummaryB = kSmallTitleM;
+final kTripPickerSelectedM = kTripPaymentPriceB;
+final kTripPickerUnselectedM = kStyle(
+  kMedium,
+  kSize18,
+  color: kTripPickerMuted,
+);
 final kTripModalButtonM = kStyle(kMedium, kSize16, color: kWhite);
-final kTripStaySheetTitleSB =
-    kStyle(kSemiBold, kSize18, color: kTextColor);
-final kTripStayCounterB =
-    kStyle(kSemiBold, kSize28, color: kTripStayCounter, height: 1.1);
+final kTripStaySheetTitleSB = kSubHeadingM;
+final kTripStayCounterB = kStyle(
+  kMedium,
+  kSize28,
+  color: kTripStayCounter,
+  height: 1.1,
+);
 
-// ── Login (phone + OTP) ───────────────────────────────────────────────────────
+// Booking confirmed / scheduled
+final kBookingConfirmedTitleSB = kStyle(kMedium, kSize30, height: 1.15);
+final kBookingConfirmedAccentSB = kStyle(
+  kMedium,
+  kSize30,
+  color: kBrandBlue,
+  height: 1.15,
+);
+final kBookingConfirmedSubtitleR = kStyle(
+  kRegular,
+  kSize16,
+  color: kTripMutedLabel,
+  height: 1.4,
+);
+final kTripScheduledAccentSB = kBookingConfirmedAccentSB;
+final kTripScheduledDateB = kTripDurationPriceB;
+final kTripScheduledBodyR = kStyle(
+  kRegular,
+  kSize15,
+  color: kTripBodyMuted,
+  height: 1.45,
+);
+final kTripScheduledLinkSB = kStyle(
+  kMedium,
+  kSize16,
+  color: kBrandBlue,
+  height: 1.1,
+);
 
-final kLoginSubtitleR =
-    kStyle(kMedium, kSize14, color: kSecondaryTextColor, height: 1.5);
-final kLoginSubtitleAccentSB =
-    kStyle(kSemiBold, kSize14, color: kPrimaryColor, height: 1.5);
-final kLoginPhoneFieldR =
-    kStyle(kRegular, 25, color: kGreyDark);
-final kLoginResendPromptM =
-    kStyle(kMedium, kSize14, color: kSecondaryTextColor);
-final kLoginResendTimerSB =
-    kStyle(kSemiBold, kSize14, color: kPrimaryColor);
-final kLoginResendActionSB =
-    kStyle(kSemiBold, kSize14, color: kPrimaryColor);
+// Scheduled / completed / cancelled trip details
+final kScheduledTripDateR = kStyle(kRegular, kSize14, color: kTripBodyMuted);
+final kScheduledTripCountdownSB = kStyle(kMedium, kSize15, color: kActiveGreen);
+final kScheduledTripStatLabelR = kStyle(
+  kRegular,
+  kSize12,
+  color: kTripMutedLabel,
+  height: 1.1,
+);
+final kScheduledTripStatValueSB = kStyle(kMedium, kSize16, height: 1.1);
+final kScheduledTripRouteTitleSB = kStyle(kMedium, kSize15);
+final kScheduledTripRouteSubtitleR = kStyle(
+  kRegular,
+  kSize12,
+  color: kTripMutedLabel,
+  height: 1.15,
+);
+final kScheduledTripSectionSB = kProfileNameB;
+final kScheduledTripPaymentLabelR = kScheduledTripDateR;
+final kScheduledTripPaymentValueSB = kSmallTitleM;
+final kScheduledTripPaidSB = kStyle(kMedium, kSize14, color: kActiveGreen);
+final kCompletedTripTotalLabelSB = kStyle(kMedium, kSize15, color: kBrandBlue);
+final kCompletedTripTotalValueSB = kTripDurationPriceB;
+final kCancelledRefundAmountSB = kStyle(kMedium, kSize16, color: kActiveGreen);
+final kCancelledRefundDateSB = kTripBadgeSB;
 
-// ── Booking confirmed ─────────────────────────────────────────────────────────
+// Waiting for driver
+final kWaitingDriverTripTitleSB = kStyle(kMedium, kSize18, height: 1.15);
+final kWaitingDriverTripIdR = kStyle(
+  kRegular,
+  kSize14,
+  color: kTripMutedLabel,
+  height: 1.15,
+);
+final kWaitingDriverHelpM = kStyle(kMedium, kSize15, height: 1.1);
+final kWaitingDriverHeadlineSB = kStyle(kMedium, kSize22, height: 1.25);
+final kWaitingDriverHeadlineAccentSB = kStyle(
+  kMedium,
+  kSize22,
+  color: kBrandBlue,
+  height: 1.25,
+);
+final kWaitingDriverStatusBlueSB = kStyle(kMedium, kSize20, color: kBrandBlue);
+final kWaitingDriverStatusBlackSB = kStyle(kMedium, kSize24, height: 1.15);
+final kWaitingDriverDescriptionR = kStyle(kRegular, kSize15, height: 1.4);
 
-final kBookingConfirmedTitleSB =
-    kStyle(kSemiBold, kSize30, color: kTextColor, height: 1.15);
-final kBookingConfirmedAccentSB =
-    kStyle(kSemiBold, kSize30, color: kBrandBlue, height: 1.15);
-final kBookingConfirmedSubtitleR =
-    kStyle(kRegular, kSize16, color: kTripMutedLabel, height: 1.4);
+// Driver found
+final kDriverFoundTitleSB = kWaitingDriverStatusBlackSB;
+final kDriverFoundSubtitleR = kStyle(
+  kRegular,
+  kSize14,
+  color: kMutedText,
+  height: 1.3,
+);
+final kDriverFoundNameSB = kProfileNameB;
+final kDriverFoundRatingM = kTripOvernightTitleSB;
+final kDriverFoundMetaR = kCaption12R;
+final kDriverFoundOtpTitleSB = kProfileNameB;
+final kDriverFoundOtpDigitSB = kStyle(kMedium, kSize22, height: 1.0);
+final kDriverFoundOtpHintR = kStyle(
+  kRegular,
+  kSize12,
+  color: kMutedText,
+  height: 1.3,
+);
+final kDriverFoundRouteSB = kStyle(kMedium, kSize14, height: 1.15);
+final kDriverFoundPriceSB = kStyle(
+  kMedium,
+  kSize18,
+  color: kBrandBlue,
+  height: 1.1,
+);
+final kDriverFoundTripMetaR = kTripDurationMetaR;
+final kDriverFoundSectionTitleSB = kScheduledTripRouteTitleSB;
+final kDriverFoundPolicyR = kStyle(
+  kRegular,
+  kSize13,
+  color: kMutedText,
+  height: 1.45,
+);
+final kDriverFoundPolicyTimerSB = kStyle(
+  kMedium,
+  kSize13,
+  color: kBrandBlue,
+  height: 1.45,
+);
+final kDriverFoundLearnMoreM = kFooterBrandB;
 
-// ── Trip scheduled ────────────────────────────────────────────────────────────
+// Driver rating
+final kDriverRatingAppBarSB = kStyle(kMedium, kSize20, height: 1.15);
+final kDriverRatingNameSB = kStyle(kMedium, kSize24, height: 1.1);
+final kDriverRatingQuestionSB = kHeadTitleM;
+final kDriverRatingStatR = kStyle(kRegular, kSize14, height: 1.15);
+final kDriverRatingStatMutedR = kStyle(
+  kRegular,
+  kSize14,
+  color: kMutedText,
+  height: 1.15,
+);
+final kDriverRatingVehicleR = kCaption13R;
+final kDriverRatingChipR = kStyle(kRegular, kSize15, height: 1.1);
+final kDriverRatingCommentR = kStyle(kRegular, kSize15);
+final kDriverRatingCommentHintR = kStyle(
+  kRegular,
+  kSize15,
+  color: kTripMutedLabel,
+);
 
-final kTripScheduledAccentSB =
-    kStyle(kSemiBold, kSize30, color: kTripCtaBlue, height: 1.15);
-final kTripScheduledDateB =
-    kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.2);
-final kTripScheduledBodyR =
-    kStyle(kRegular, kSize15, color: kTripBodyMuted, height: 1.45);
-final kTripScheduledLinkSB =
-    kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.1);
-
-// ── Scheduled trip details ────────────────────────────────────────────────────
-
-final kScheduledTripDateR =
-    kStyle(kRegular, kSize14, color: kTripBodyMuted, height: 1.2);
-final kScheduledTripCountdownSB =
-    kStyle(kSemiBold, kSize15, color: kActiveGreen, height: 1.2);
-final kScheduledTripStatLabelR =
-    kStyle(kRegular, kSize12, color: kTripMutedLabel, height: 1.1);
-final kScheduledTripStatValueSB =
-    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.1);
-final kScheduledTripRouteTitleSB =
-    kStyle(kSemiBold, kSize15, color: kTextColor, height: 1.2);
-final kScheduledTripRouteSubtitleR =
-    kStyle(kRegular, kSize12, color: kTripMutedLabel, height: 1.15);
-final kScheduledTripSectionSB =
-    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
-final kScheduledTripPaymentLabelR =
-    kStyle(kRegular, kSize14, color: kTripBodyMuted, height: 1.2);
-final kScheduledTripPaymentValueSB =
-    kStyle(kSemiBold, kSize14, color: kTextColor, height: 1.2);
-final kScheduledTripPaidSB =
-    kStyle(kSemiBold, kSize14, color: kActiveGreen, height: 1.2);
-
-// ── Completed trip details ────────────────────────────────────────────────────
-
-final kCompletedTripTotalLabelSB =
-    kStyle(kSemiBold, kSize15, color: kTripCtaBlue, height: 1.2);
-final kCompletedTripTotalValueSB =
-    kStyle(kSemiBold, kSize16, color: kTripCtaBlue, height: 1.2);
-
-// ── Cancelled trip details ────────────────────────────────────────────────────
-
-final kCancelledRefundAmountSB =
-    kStyle(kSemiBold, kSize16, color: kActiveGreen, height: 1.2);
-final kCancelledRefundDateSB =
-    kStyle(kSemiBold, kSize13, color: kActiveGreen, height: 1.2);
-
-// ── Waiting for driver ────────────────────────────────────────────────────────
-
-final kWaitingDriverTripTitleSB =
-    kStyle(kSemiBold, kSize18, color: kTextColor, height: 1.15);
-final kWaitingDriverTripIdR =
-    kStyle(kRegular, kSize14, color: kTripMutedLabel, height: 1.15);
-final kWaitingDriverHelpM =
-    kStyle(kMedium, kSize15, color: kTextColor, height: 1.1);
-final kWaitingDriverHeadlineSB =
-    kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.25);
-final kWaitingDriverHeadlineAccentSB =
-    kStyle(kSemiBold, kSize22, color: kBrandBlue, height: 1.25);
-final kWaitingDriverStatusBlueSB =
-    kStyle(kSemiBold, kSize20, color: kBrandBlue, height: 1.2);
-final kWaitingDriverStatusBlackSB =
-    kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.15);
-final kWaitingDriverDescriptionR =
-    kStyle(kRegular, kSize15, color: kTextColor, height: 1.4);
-
-// ── Driver found ──────────────────────────────────────────────────────────────
-
-final kDriverFoundTitleSB =
-    kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.15);
-final kDriverFoundSubtitleR =
-    kStyle(kRegular, kSize14, color: kMutedText, height: 1.3);
-final kDriverFoundNameSB =
-    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
-final kDriverFoundRatingM =
-    kStyle(kMedium, kSize13, color: kTextColor, height: 1.1);
-final kDriverFoundMetaR =
-    kStyle(kRegular, kSize12, color: kMutedText, height: 1.2);
-final kDriverFoundOtpTitleSB =
-    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
-final kDriverFoundOtpDigitSB =
-    kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.0);
-final kDriverFoundOtpHintR =
-    kStyle(kRegular, kSize12, color: kMutedText, height: 1.3);
-final kDriverFoundRouteSB =
-    kStyle(kSemiBold, kSize14, color: kTextColor, height: 1.15);
-final kDriverFoundPriceSB =
-    kStyle(kSemiBold, kSize18, color: kTripCtaBlue, height: 1.1);
-final kDriverFoundTripMetaR =
-    kStyle(kRegular, kSize13, color: kTripBodyMuted, height: 1.2);
-final kDriverFoundSectionTitleSB =
-    kStyle(kSemiBold, kSize15, color: kTextColor, height: 1.2);
-final kDriverFoundPolicyR =
-    kStyle(kRegular, kSize13, color: kMutedText, height: 1.45);
-final kDriverFoundPolicyTimerSB =
-    kStyle(kSemiBold, kSize13, color: kTripCtaBlue, height: 1.45);
-final kDriverFoundLearnMoreM =
-    kStyle(kMedium, kSize13, color: kTripCtaBlue, height: 1.2);
-
-// ── Driver rating ─────────────────────────────────────────────────────────────
-
-final kDriverRatingAppBarSB =
-    kStyle(kSemiBold, kSize20, color: kTextColor, height: 1.15);
-final kDriverRatingNameSB =
-    kStyle(kSemiBold, kSize24, color: kTextColor, height: 1.1);
-final kDriverRatingQuestionSB =
-    kStyle(kSemiBold, kSize20, color: kTextColor, height: 1.2);
-final kDriverRatingStatR =
-    kStyle(kRegular, kSize14, color: kTextColor, height: 1.15);
-final kDriverRatingStatMutedR =
-    kStyle(kRegular, kSize14, color: kMutedText, height: 1.15);
-final kDriverRatingVehicleR =
-    kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
-final kDriverRatingChipR =
-    kStyle(kRegular, kSize15, color: kTextColor, height: 1.1);
-final kDriverRatingCommentR =
-    kStyle(kRegular, kSize15, color: kTextColor, height: 1.2);
-final kDriverRatingCommentHintR =
-    kStyle(kRegular, kSize15, color: kTripMutedLabel, height: 1.2);
-
-// ── Refer & Earn (wallet) ─────────────────────────────────────────────────────
-
-final kReferEarnAppBarSB =
-    kStyle(kSemiBold, kSize18, color: kTextColor, height: 1.15);
-final kReferBannerTitleSB =
-    kStyle(kSemiBold, kSize22, color: kTextColor, height: 1.15);
-final kReferBannerTitleAccentSB =
-    kStyle(kSemiBold, kSize22, color: kBlue, height: 1.15);
-final kReferBannerSubtitleR =
-    kStyle(kRegular, kSize13, color: kMutedText, height: 1.45);
-final kReferCodeLabelR = kStyle(kRegular, kSize13, color: kMutedText);
+// Refer & Earn / Wallet / Support call
+final kReferEarnAppBarSB = kWaitingDriverTripTitleSB;
+final kReferBannerTitleSB = kStyle(kMedium, kSize22, height: 1.15);
+final kReferBannerTitleAccentSB = kStyle(
+  kMedium,
+  kSize22,
+  color: kBlue,
+  height: 1.15,
+);
+final kReferBannerSubtitleR = kDriverFoundPolicyR;
+final kReferCodeLabelR = kCaption13R;
 final kReferCodeValueM = kStyle(
   kMedium,
   kSize18,
-  color: kTextColor,
   letterSpacing: 7,
   height: 1.0,
 );
-final kReferInviteButtonM =
-    kStyle(kMedium, kSize16, color: kWhite, height: 1.1);
-
-// ── Wallet ────────────────────────────────────────────────────────────────────
-
-final kWalletAppBarSB =
-    kStyle(kSemiBold, kSize18, color: kTextColor, height: 1.15);
-final kWalletBalanceLabelR =
-    kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
+final kReferInviteButtonM = kStyle(
+  kMedium,
+  kSize16,
+  color: kWhite,
+  height: 1.1,
+);
+final kWalletAppBarSB = kWaitingDriverTripTitleSB;
+final kWalletBalanceLabelR = kCaption13R;
 final kWalletBalanceAmountSB = kStyle(
-  kSemiBold,
+  kMedium,
   kSize32,
   color: kWalletBalanceGold,
   height: 1.05,
 );
-final kWalletSectionTitleSB =
-    kStyle(kSemiBold, kSize16, color: kTextColor, height: 1.15);
-final kWalletDateHeaderR =
-    kStyle(kRegular, kSize13, color: kMutedText, height: 1.2);
-final kWalletTxTitleSB =
-    kStyle(kSemiBold, kSize15, color: kTextColor, height: 1.2);
-final kWalletTxSubtitleR =
-    kStyle(kRegular, kSize12, color: kMutedText, height: 1.25);
-final kWalletTxCreditSB =
-    kStyle(kSemiBold, kSize15, color: kWalletCreditGreen, height: 1.1);
-final kWalletTxDebitSB =
-    kStyle(kSemiBold, kSize15, color: kWalletDebitRed, height: 1.1);
-
-// ── Support Call ──────────────────────────────────────────────────────────────
-
-final kSupportCallTitleSB =
-    kStyle(kSemiBold, kSize20, color: kTextColor, height: 1.25);
-final kSupportCallSubtitleR =
-    kStyle(kRegular, kSize14, color: kMutedText, height: 1.45);
-final kSupportCallFooterR =
-    kStyle(kRegular, kSize12, color: kMutedText, height: 1.3);
+final kWalletSectionTitleSB = kProfileNameB;
+final kWalletDateHeaderR = kCaption13R;
+final kWalletTxTitleSB = kScheduledTripRouteTitleSB;
+final kWalletTxSubtitleR = kStyle(
+  kRegular,
+  kSize12,
+  color: kMutedText,
+  height: 1.25,
+);
+final kWalletTxCreditSB = kStyle(
+  kMedium,
+  kSize15,
+  color: kWalletCreditGreen,
+  height: 1.1,
+);
+final kWalletTxDebitSB = kStyle(
+  kMedium,
+  kSize15,
+  color: kWalletDebitRed,
+  height: 1.1,
+);
+final kSupportCallTitleSB = kStyle(kMedium, kSize20, height: 1.25);
+final kSupportCallSubtitleR = kStyle(
+  kRegular,
+  kSize14,
+  color: kMutedText,
+  height: 1.45,
+);
+final kSupportCallFooterR = kDriverFoundOtpHintR;
