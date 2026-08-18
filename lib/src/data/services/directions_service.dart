@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:driveforme_user/src/data/models/route_summary_model.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/services/location_service.dart';
+import 'package:driveforme_user/src/data/services/logging_http_client.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -15,7 +16,7 @@ class DirectionsService {
   DirectionsService({
     http.Client? client,
     LocationService? locationService,
-  })  : _client = client ?? http.Client(),
+  })  : _client = loggingHttpClient(client),
         _locationService = locationService ?? const LocationService();
 
   String get _apiKey =>

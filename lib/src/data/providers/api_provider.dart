@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'package:flutter/foundation.dart';
 
 import 'package:driveforme_user/src/data/models/api_response.dart';
+import 'package:driveforme_user/src/data/services/logging_http_client.dart';
 import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,16 +19,13 @@ class ApiProvider {
     required this.apiKey,
     required this.secureStorage,
     http.Client? client,
-  }) : _client = client ?? http.Client();
+  }) : _client = loggingHttpClient(client);
 
   Future<Map<String, String>> _buildHeaders({
     bool requireUserId = false,
     bool requireAuth = false,
   }) async {
-    final headers = {
-      'Content-Type': 'application/json',
-      'accept': '*/*',
-    };
+    final headers = {'Content-Type': 'application/json', 'accept': '*/*'};
 
     if (apiKey.isNotEmpty) {
       headers['x-api-key'] = apiKey;
@@ -70,9 +68,10 @@ class ApiProvider {
       final response = await _client.get(requestUri, headers: headers);
       return _parseResponse(response);
     } on StateError catch (e) {
+      debugPrint('[ApiProvider] GET $endpoint StateError: ${e.message}');
       return ApiResponse.error(e.message);
     } catch (e) {
-      log('GET $endpoint failed: $e', name: 'ApiProvider');
+      debugPrint('[ApiProvider] GET $endpoint failed: $e');
       return ApiResponse.error('Failed to connect to the server.');
     }
   }
@@ -95,9 +94,10 @@ class ApiProvider {
       );
       return _parseResponse(response);
     } on StateError catch (e) {
+      debugPrint('[ApiProvider] POST $endpoint StateError: ${e.message}');
       return ApiResponse.error(e.message);
     } catch (e) {
-      log('POST $endpoint failed: $e', name: 'ApiProvider');
+      debugPrint('[ApiProvider] POST $endpoint failed: $e');
       return ApiResponse.error('Failed to connect to the server.');
     }
   }
@@ -120,9 +120,10 @@ class ApiProvider {
       );
       return _parseResponse(response);
     } on StateError catch (e) {
+      debugPrint('[ApiProvider] PATCH $endpoint StateError: ${e.message}');
       return ApiResponse.error(e.message);
     } catch (e) {
-      log('PATCH $endpoint failed: $e', name: 'ApiProvider');
+      debugPrint('[ApiProvider] PATCH $endpoint failed: $e');
       return ApiResponse.error('Failed to connect to the server.');
     }
   }
@@ -143,9 +144,10 @@ class ApiProvider {
       );
       return _parseResponse(response);
     } on StateError catch (e) {
+      debugPrint('[ApiProvider] DELETE $endpoint StateError: ${e.message}');
       return ApiResponse.error(e.message);
     } catch (e) {
-      log('DELETE $endpoint failed: $e', name: 'ApiProvider');
+      debugPrint('[ApiProvider] DELETE $endpoint failed: $e');
       return ApiResponse.error('Failed to connect to the server.');
     }
   }
@@ -182,10 +184,10 @@ final apiProviderProvider = Provider<ApiProvider>((ref) {
   final baseUrl = dotenv.env['BASE_URL'] ?? '';
   final apiKey = dotenv.env['API_KEY'] ?? '';
   if (baseUrl.isEmpty) {
-    log('BASE_URL is missing from .env', name: 'ApiProvider');
+    debugPrint('[ApiProvider] BASE_URL is missing from .env');
   }
   if (apiKey.isEmpty) {
-    log('API_KEY is missing from .env', name: 'ApiProvider');
+    debugPrint('[ApiProvider] API_KEY is missing from .env');
   }
 
   return ApiProvider(
