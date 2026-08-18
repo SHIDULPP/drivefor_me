@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:developer';
+
 import 'package:http/http.dart' as http;
 
 const _secretQueryKeys = {'key', 'api_key', 'apikey', 'token'};
 
-/// Wraps any [http.Client] so every request/response is emitted with [debugPrint].
+/// Wraps any [http.Client] so every request/response is emitted with [log].
 http.Client loggingHttpClient([http.Client? client]) {
   if (client is LoggingHttpClient) return client;
   return LoggingHttpClient(inner: client);
@@ -20,7 +21,7 @@ class LoggingHttpClient extends http.BaseClient {
     final method = request.method;
     final url = _redactedUri(request.url);
 
-    debugPrint('[API Request] $method $url');
+    log('$method $url', name: 'API');
     _logRequestBody(request);
 
     try {
@@ -28,9 +29,9 @@ class LoggingHttpClient extends http.BaseClient {
       final bytes = await streamed.stream.toBytes();
       final body = utf8.decode(bytes, allowMalformed: true);
 
-      debugPrint('[API Response] ${streamed.statusCode} $method $url');
+      log('${streamed.statusCode} $method $url', name: 'API');
       if (body.isNotEmpty) {
-        debugPrint('[API Response Body] $body');
+        log(body, name: 'API RESPONSE');
       }
 
       return http.StreamedResponse(
@@ -44,18 +45,23 @@ class LoggingHttpClient extends http.BaseClient {
         reasonPhrase: streamed.reasonPhrase,
       );
     } catch (e, stackTrace) {
-      debugPrint('[API Error] $method $url failed: $e\n$stackTrace');
+      log(
+        '$method $url failed: $e',
+        name: 'API',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
 
   void _logRequestBody(http.BaseRequest request) {
     if (request is http.Request && request.body.isNotEmpty) {
-      debugPrint('[API Request Body] ${request.body}');
+      log(request.body, name: 'API REQUEST');
       return;
     }
     if (request is http.MultipartRequest && request.fields.isNotEmpty) {
-      debugPrint('[API Request Fields] ${request.fields}');
+      log(request.fields.toString(), name: 'API REQUEST');
     }
   }
 
