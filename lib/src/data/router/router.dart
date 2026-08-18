@@ -206,31 +206,34 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       break;
     case 'cancelled_trip_details':
       final cancelledDetailsArgs = settings?.arguments as Map?;
+      final dynamic driverNameVal = cancelledDetailsArgs?['driverName'];
+      final bool hasDriver =
+          cancelledDetailsArgs?['hasDriver'] == true ||
+          (driverNameVal != null &&
+              driverNameVal != TripModel.noNameFound &&
+              driverNameVal.toString().trim().isNotEmpty);
       page = CancelledTripDetailsPage(
         tripTitle:
             cancelledDetailsArgs?['tripTitle'] as String? ?? 'One Way Trip',
         tripId: cancelledDetailsArgs?['tripId'] as String? ?? '—',
         tripMongoId: cancelledDetailsArgs?['tripMongoId'] as String?,
         isLongTrip: cancelledDetailsArgs?['isLongTrip'] == true,
-        pickup:
-            cancelledDetailsArgs?['pickup'] as String? ?? '—',
-        dropoff:
-            cancelledDetailsArgs?['dropoff'] as String? ?? '—',
-        metaLine:
-            cancelledDetailsArgs?['metaLine'] as String? ?? '—',
+        pickup: cancelledDetailsArgs?['pickup'] as String? ?? '—',
+        dropoff: cancelledDetailsArgs?['dropoff'] as String? ?? '—',
+        metaLine: cancelledDetailsArgs?['metaLine'] as String? ?? '—',
         amountPaid: cancelledDetailsArgs?['amountPaid'] as String? ?? '—',
-        refundAmount:
-            cancelledDetailsArgs?['refundAmount'] as String? ?? '—',
+        refundAmount: cancelledDetailsArgs?['refundAmount'] as String? ?? '—',
         refundInitiatedAt:
             cancelledDetailsArgs?['refundInitiatedAt'] as String? ?? '—',
-        driverName:
-            TripModel.resolveDriverName(cancelledDetailsArgs?['driverName'] as String?),
+        driverName: TripModel.resolveDriverName(
+          cancelledDetailsArgs?['driverName'] as String?,
+        ),
         driverRating:
             (cancelledDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 0,
         driverTrips: cancelledDetailsArgs?['driverTrips'] as int? ?? 0,
         driverPhotoUrl: cancelledDetailsArgs?['driverPhotoUrl'] as String?,
-        vehicleTypes:
-            cancelledDetailsArgs?['vehicleTypes'] as String? ?? '—',
+        vehicleTypes: cancelledDetailsArgs?['vehicleTypes'] as String? ?? '—',
+        hasDriver: hasDriver,
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -253,28 +256,24 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         tripId: completedDetailsArgs?['tripId'] as String? ?? '—',
         tripMongoId: completedDetailsArgs?['tripMongoId'] as String?,
         isLongTrip: completedDetailsArgs?['isLongTrip'] == true,
-        pickup:
-            completedDetailsArgs?['pickup'] as String? ?? '—',
-        dropoff:
-            completedDetailsArgs?['dropoff'] as String? ?? '—',
-        metaLine:
-            completedDetailsArgs?['metaLine'] as String? ?? '—',
+        pickup: completedDetailsArgs?['pickup'] as String? ?? '—',
+        dropoff: completedDetailsArgs?['dropoff'] as String? ?? '—',
+        metaLine: completedDetailsArgs?['metaLine'] as String? ?? '—',
         tripFare: completedDetailsArgs?['tripFare'] as String? ?? '—',
         tripFareDurationLabel:
             completedDetailsArgs?['tripFareDurationLabel'] as String? ?? '—',
-        extraTimeFare:
-            completedDetailsArgs?['extraTimeFare'] as String? ?? '—',
+        extraTimeFare: completedDetailsArgs?['extraTimeFare'] as String? ?? '—',
         extraTimeDurationLabel:
             completedDetailsArgs?['extraTimeDurationLabel'] as String? ?? '—',
         totalPaid: completedDetailsArgs?['totalPaid'] as String? ?? '—',
-        driverName:
-            TripModel.resolveDriverName(completedDetailsArgs?['driverName'] as String?),
+        driverName: TripModel.resolveDriverName(
+          completedDetailsArgs?['driverName'] as String?,
+        ),
         driverRating:
             (completedDetailsArgs?['driverRating'] as num?)?.toDouble() ?? 0,
         driverTrips: completedDetailsArgs?['driverTrips'] as int? ?? 0,
         driverPhotoUrl: completedDetailsArgs?['driverPhotoUrl'] as String?,
-        vehicleTypes:
-            completedDetailsArgs?['vehicleTypes'] as String? ?? '—',
+        vehicleTypes: completedDetailsArgs?['vehicleTypes'] as String? ?? '—',
         ticketSubject: completedDetailsArgs?['ticketSubject'] as String? ?? '',
         ticketDescription:
             completedDetailsArgs?['ticketDescription'] as String? ?? '',
@@ -366,13 +365,14 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         paidAmount: paymentDoneArgs?['paidAmount'] as String? ?? '—',
         tripMongoId: paymentDoneArgs?['tripMongoId'] as String? ?? '',
         driverId: paymentDoneArgs?['driverId'] as String? ?? '',
-        driverName: TripModel.resolveDriverName(paymentDoneArgs?['driverName'] as String?),
+        driverName: TripModel.resolveDriverName(
+          paymentDoneArgs?['driverName'] as String?,
+        ),
         driverRating:
             (paymentDoneArgs?['driverRating'] as num?)?.toDouble() ?? 0,
         driverTrips: paymentDoneArgs?['driverTrips'] as int? ?? 0,
         driverPhotoUrl: paymentDoneArgs?['driverPhotoUrl'] as String?,
-        vehicleTypes:
-            paymentDoneArgs?['vehicleTypes'] as String? ?? '—',
+        vehicleTypes: paymentDoneArgs?['vehicleTypes'] as String? ?? '—',
       );
       transitionToUse = TransitionType.slideFromRight;
       transitionDuration = const Duration(milliseconds: 400);
@@ -382,7 +382,9 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
       page = DriverRatingPage(
         tripMongoId: ratingArgs?['tripMongoId'] as String? ?? '',
         driverId: ratingArgs?['driverId'] as String? ?? '',
-        driverName: TripModel.resolveDriverName(ratingArgs?['driverName'] as String?),
+        driverName: TripModel.resolveDriverName(
+          ratingArgs?['driverName'] as String?,
+        ),
         driverRating: (ratingArgs?['driverRating'] as num?)?.toDouble() ?? 0,
         driverTrips: ratingArgs?['driverTrips'] as int? ?? 0,
         driverPhotoUrl: ratingArgs?['driverPhotoUrl'] as String?,
@@ -455,19 +457,15 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
             (paymentType == TripCompletedPaymentType.online
                 ? 'Short Trip'
                 : 'Long Trip'),
-        destinationName:
-            completedArgs?['destinationName'] as String? ?? '—',
+        destinationName: completedArgs?['destinationName'] as String? ?? '—',
         destinationAddress:
             completedArgs?['destinationAddress'] as String? ?? '—',
         totalFare: completedArgs?['totalFare'] as String? ?? '—',
         prepaidAmount: completedArgs?['prepaidAmount'] as String? ?? '—',
-        prepaidDuration:
-            completedArgs?['prepaidDuration'] as String? ?? '—',
+        prepaidDuration: completedArgs?['prepaidDuration'] as String? ?? '—',
         tripFare: completedArgs?['tripFare'] as String? ?? '—',
-        tripDuration:
-            completedArgs?['tripDuration'] as String? ?? '—',
-        extraTimeAmount:
-            completedArgs?['extraTimeAmount'] as String? ?? '—',
+        tripDuration: completedArgs?['tripDuration'] as String? ?? '—',
+        extraTimeAmount: completedArgs?['extraTimeAmount'] as String? ?? '—',
         extraTimeDuration:
             completedArgs?['extraTimeDuration'] as String? ?? '—',
         remainingDue: completedArgs?['remainingDue'] as String? ?? '—',
@@ -475,9 +473,10 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
             completedArgs?['remainingDuration'] as String? ?? '—',
         totalAmount: completedArgs?['totalAmount'] as String? ?? '—',
         driverId: completedArgs?['driverId'] as String? ?? '',
-        driverName: TripModel.resolveDriverName(completedArgs?['driverName'] as String?),
-        driverRating:
-            (completedArgs?['driverRating'] as num?)?.toDouble() ?? 0,
+        driverName: TripModel.resolveDriverName(
+          completedArgs?['driverName'] as String?,
+        ),
+        driverRating: (completedArgs?['driverRating'] as num?)?.toDouble() ?? 0,
         driverTrips: completedArgs?['driverTrips'] as int? ?? 0,
         driverPhotoUrl: completedArgs?['driverPhotoUrl'] as String?,
         vehicleTypes: completedArgs?['vehicleTypes'] as String? ?? '',

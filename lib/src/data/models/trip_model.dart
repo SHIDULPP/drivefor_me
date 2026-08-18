@@ -489,6 +489,7 @@ class TripModel {
       'driverTrips': driverTrips ?? 0,
       'driverPhotoUrl': driverPhotoUrl ?? '',
       'vehicleTypes': vehicleTypesLabel,
+      'hasDriver': hasDriver,
     };
   }
 

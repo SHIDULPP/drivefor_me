@@ -20,6 +20,7 @@ class CancelledTripDetailsPage extends StatelessWidget {
   final int driverTrips;
   final String? driverPhotoUrl;
   final String vehicleTypes;
+  final bool hasDriver;
 
   const CancelledTripDetailsPage({
     super.key,
@@ -38,7 +39,13 @@ class CancelledTripDetailsPage extends StatelessWidget {
     this.driverTrips = 0,
     this.driverPhotoUrl,
     this.vehicleTypes = '—',
+    this.hasDriver = true,
   });
+
+  bool get _effectiveHasDriver =>
+      hasDriver &&
+      driverName != TripModel.noNameFound &&
+      driverName.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -106,20 +113,23 @@ class CancelledTripDetailsPage extends StatelessWidget {
                       pickup: pickup,
                       dropoff: dropoff,
                     ),
-                    const SizedBox(height: 16),
-                    _CancelledDriverCard(
-                      driverName: driverName,
-                      driverRating: driverRating,
-                      driverTrips: driverTrips,
-                      driverPhotoUrl: driverPhotoUrl,
-                      vehicleTypes: vehicleTypes,
-                      onChat: () {
-                        NavigationService().pushNamed(
-                          'chat_screen',
-                          arguments: {'participantName': driverName},
-                        );
-                      },
-                    ),
+                    SizedBox(height: 15,),
+                    if (_effectiveHasDriver)
+                      _CancelledDriverCard(
+                        driverName: driverName,
+                        driverRating: driverRating,
+                        driverTrips: driverTrips,
+                        driverPhotoUrl: driverPhotoUrl,
+                        vehicleTypes: vehicleTypes,
+                        onChat: () {
+                          NavigationService().pushNamed(
+                            'chat_screen',
+                            arguments: {'participantName': driverName},
+                          );
+                        },
+                      )
+                    else
+                      const _NoDriverAssignedCard(),
                     const SizedBox(height: 16),
                     _CancelledFareBreakdownCard(
                       amountPaid: amountPaid,
@@ -708,6 +718,49 @@ class _BottomActionButton extends StatelessWidget {
             style: kStyle(kSemiBold, kSize15, color: textColor),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _NoDriverAssignedCard extends StatelessWidget {
+  const _NoDriverAssignedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: kTripCreamBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kCardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: kChipGreyBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.person_outline, color: kMutedText, size: 32),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('No driver assigned', style: kDriverFoundNameSB),
+                const SizedBox(height: 4),
+                Text(
+                  'This trip was cancelled before a driver was assigned.',
+                  style: kDriverFoundMetaR,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
