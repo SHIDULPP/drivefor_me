@@ -54,6 +54,7 @@ class _TripMapViewState extends State<TripMapView> {
   TripLocation? _resolvedDriver;
   List<LatLng> _routePoints = const [];
   bool _isResolving = true;
+  bool _hasFittedCamera = false;
   int _resolveGeneration = 0;
   DateTime? _lastRouteFetchAt;
   LatLng? _lastRouteOrigin;
@@ -68,13 +69,14 @@ class _TripMapViewState extends State<TripMapView> {
   void didUpdateWidget(covariant TripMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
     final driverChanged = oldWidget.driverLocation != widget.driverLocation;
-    final otherChanged = oldWidget.pickup != widget.pickup ||
+    final endpointsChanged = oldWidget.pickup != widget.pickup ||
         oldWidget.dropoff != widget.dropoff ||
         oldWidget.mode != widget.mode ||
         oldWidget.showDropoff != widget.showDropoff ||
         oldWidget.showRoute != widget.showRoute;
 
-    if (otherChanged) {
+    if (endpointsChanged) {
+      _hasFittedCamera = false;
       _resolveMapData(forceRouteRefresh: true);
       return;
     }
@@ -115,15 +117,12 @@ class _TripMapViewState extends State<TripMapView> {
       }
     });
 
-    if (shouldRefresh) {
-      _fitCamera();
-      return;
-    }
-
     final moving = resolvedDriver?.latLng;
+    // Live updates must never re-fit bounds (that zooms the map out).
+    // Pan only, or do a one-time frame when the moving marker first appears.
     if (widget.followMovingMarker && moving != null) {
       _followMovingMarker(moving);
-    } else if (!hadDriver && moving != null) {
+    } else if (!hadDriver && moving != null && !_hasFittedCamera) {
       _fitCamera();
     }
   }
@@ -132,6 +131,7 @@ class _TripMapViewState extends State<TripMapView> {
     final controller = _mapController;
     if (controller == null) return;
     try {
+      // Preserve current zoom — only pan to the moving marker.
       controller.animateCamera(CameraUpdate.newLatLng(position));
     } catch (_) {}
   }
@@ -206,7 +206,11 @@ class _TripMapViewState extends State<TripMapView> {
       _isResolving = false;
     });
 
-    _fitCamera();
+    if (!_hasFittedCamera) {
+      _fitCamera();
+    } else if (widget.followMovingMarker && resolvedDriver?.latLng != null) {
+      _followMovingMarker(resolvedDriver!.latLng!);
+    }
   }
 
   Future<List<LatLng>> _resolveRoute({
@@ -347,28 +351,29 @@ class _TripMapViewState extends State<TripMapView> {
     if (!mounted || _mapController == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || _hasFittedCamera) return;
 
       final controller = _mapController;
       if (controller == null) return;
 
-      final points = <LatLng>[
-        ..._cameraFocusPoints(),
-        ..._routePoints,
-      ];
+      // Frame only markers for the current phase — never the whole polyline.
+      // Including every route point repeatedly zooms the map way out.
+      final points = _cameraFocusPoints();
 
       try {
         if (points.isEmpty) {
           controller.animateCamera(
             CameraUpdate.newLatLngZoom(kDefaultMapCenter, 12),
           );
+          _hasFittedCamera = true;
           return;
         }
 
         if (points.length == 1) {
           controller.animateCamera(
-            CameraUpdate.newLatLngZoom(points.first, 14),
+            CameraUpdate.newLatLngZoom(points.first, 15),
           );
+          _hasFittedCamera = true;
           return;
         }
 
@@ -380,7 +385,8 @@ class _TripMapViewState extends State<TripMapView> {
           bounds = _expandBounds(bounds, point);
         }
 
-        controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 56));
+        controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 72));
+        _hasFittedCamera = true;
       } catch (_) {
         // Map was disposed before the camera animation ran.
       }
@@ -435,7 +441,9 @@ class _TripMapViewState extends State<TripMapView> {
           rotateGesturesEnabled: false,
           onMapCreated: (controller) {
             _mapController = controller;
-            _fitCamera();
+            if (!_hasFittedCamera) {
+              _fitCamera();
+            }
           },
         ),
         if (_isResolving)

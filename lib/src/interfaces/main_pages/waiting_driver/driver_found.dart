@@ -6,6 +6,7 @@ import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/live_driver_location_provider.dart';
+import 'package:driveforme_user/src/data/services/trip_socket_service.dart';
 import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
@@ -38,6 +39,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   Timer? _pollTimer;
   Duration _cancelRemaining = const Duration(minutes: 10);
   bool _navigatedToProgress = false;
+  /// Cached for dispose — ref is unsafe after the widget unmounts.
+  late final TripSocketService _tripSocket;
 
   String get _tripTitle => _trip?.tripTitle ?? 'One Way Trip';
 
@@ -98,10 +101,12 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   @override
   void initState() {
     super.initState();
+    _tripSocket = ref.read(tripSocketServiceProvider);
     _loadTrip();
     _loadStartOtp();
     _startTripStatusPolling();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ref.read(liveTripTrackingProvider.notifier).trackTrip(widget.tripMongoId);
     });
   }
@@ -233,9 +238,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     _cancelTimer?.cancel();
     _pollTimer?.cancel();
     if (widget.tripMongoId.isNotEmpty) {
-      ref.read(liveTripTrackingProvider.notifier).stopTrackingTrip(
-            widget.tripMongoId,
-          );
+      _tripSocket.leaveTripRoom(widget.tripMongoId);
     }
     super.dispose();
   }
