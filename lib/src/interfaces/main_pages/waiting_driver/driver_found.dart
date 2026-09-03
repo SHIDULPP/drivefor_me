@@ -5,6 +5,7 @@ import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
+import 'package:driveforme_user/src/data/providers/live_driver_location_provider.dart';
 import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
 import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
@@ -86,7 +87,13 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     return _pickupLocation;
   }
 
-  TripLocation? get _driverLocation => _trip?.driverLocation;
+  TripLocation? get _driverLocation {
+    final live = ref.watch(liveDriverLocationProvider);
+    if (live != null && live.tripId == widget.tripMongoId) {
+      return live.location;
+    }
+    return _trip?.driverLocation;
+  }
 
   @override
   void initState() {
@@ -94,12 +101,16 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     _loadTrip();
     _loadStartOtp();
     _startTripStatusPolling();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(liveTripTrackingProvider.notifier).trackTrip(widget.tripMongoId);
+    });
   }
 
   Future<void> _loadTrip() async {
     final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
     if (!mounted || trip == null) return;
     setState(() => _trip = trip);
+    _syncLiveLocation(trip);
 
     if (await navigateIfTripLeftDriverFoundStage(ref: ref, trip: trip)) {
       _navigatedToProgress = true;
@@ -188,11 +199,23 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     if (trip == null) return;
 
     setState(() => _trip = trip);
+    _syncLiveLocation(trip);
 
     if (await navigateIfTripLeftDriverFoundStage(ref: ref, trip: trip)) {
       _navigatedToProgress = true;
       _pollTimer?.cancel();
     }
+  }
+
+  void _syncLiveLocation(TripModel trip) {
+    final location = trip.driverLocation;
+    if (location == null || !location.hasCoordinates) return;
+    ref.read(liveDriverLocationProvider.notifier).applyFromTrip(
+          tripId: trip.id.isNotEmpty ? trip.id : widget.tripMongoId,
+          driverId: trip.driverId ?? '',
+          location: location,
+          tripStatus: trip.status,
+        );
   }
 
   Future<void> _handleCancel() async {
@@ -209,6 +232,11 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   void dispose() {
     _cancelTimer?.cancel();
     _pollTimer?.cancel();
+    if (widget.tripMongoId.isNotEmpty) {
+      ref.read(liveTripTrackingProvider.notifier).stopTrackingTrip(
+            widget.tripMongoId,
+          );
+    }
     super.dispose();
   }
 
@@ -226,6 +254,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(liveTripTrackingProvider);
     final screenHeight = MediaQuery.sizeOf(context).height;
     final mapHeight = screenHeight * 0.34;
 
@@ -246,6 +275,7 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
                   mode: TripMapMode.toPickup,
                   showDropoff: false,
                   showRoute: true,
+                  followMovingMarker: true,
                 ),
                 Positioned(
                   top: 0,

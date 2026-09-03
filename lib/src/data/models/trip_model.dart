@@ -519,6 +519,7 @@ class TripModel {
     Map<String, dynamic>? routeMap,
   ) {
     final candidates = <dynamic>[
+      json['liveDriverLocation'],
       json['driverLocation'],
       routeMap?['driverLocation'],
       routeMap?['liveDriverLocation'],
@@ -527,6 +528,7 @@ class TripModel {
     final driver = _resolveDriver(json);
     if (driver is Map) {
       candidates.addAll([
+        driver['lastLocation'],
         driver['currentLocation'],
         driver['location'],
         driver['liveLocation'],

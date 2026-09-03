@@ -99,7 +99,11 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     return _pickupLocation;
   }
 
-  bool get _showRoute => _trip?.isOneWay ?? true;
+  bool get _showRoute {
+    final dropoff = _trip?.dropoffLocation;
+    if (dropoff == null) return false;
+    return dropoff.hasAddress || dropoff.hasCoordinates;
+  }
 
   @override
   void initState() {

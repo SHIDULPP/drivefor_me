@@ -24,6 +24,7 @@ class TripMapView extends StatefulWidget {
   final TripMapMode mode;
   final bool showDropoff;
   final bool showRoute;
+  final bool followMovingMarker;
 
   const TripMapView({
     super.key,
@@ -33,6 +34,7 @@ class TripMapView extends StatefulWidget {
     this.mode = TripMapMode.fullRoute,
     this.showDropoff = true,
     this.showRoute = false,
+    this.followMovingMarker = false,
   });
 
   @override
@@ -78,10 +80,60 @@ class _TripMapViewState extends State<TripMapView> {
     }
 
     if (driverChanged) {
-      _resolveMapData(
-        forceRouteRefresh: _shouldRefreshRoute(widget.driverLocation),
-      );
+      _applyLiveDriverLocation(widget.driverLocation);
     }
+  }
+
+  Future<void> _applyLiveDriverLocation(TripLocation? driver) async {
+    final hadDriver = _resolvedDriver?.hasCoordinates == true;
+    final resolvedDriver =
+        driver != null && driver.hasCoordinates ? driver : driver;
+
+    var routePoints = _routePoints;
+    final shouldRefresh =
+        widget.showRoute && _resolvedPickup != null && _shouldRefreshRoute(driver);
+    if (shouldRefresh) {
+      routePoints = await _resolveRoute(
+        resolvedPickup: _resolvedPickup!,
+        resolvedDropoff: _resolvedDropoff,
+        resolvedDriver: resolvedDriver,
+      );
+      if (!mounted) return;
+      _lastRouteFetchAt = DateTime.now();
+      _lastRouteOrigin = switch (widget.mode) {
+        TripMapMode.toPickup || TripMapMode.toDropoff =>
+          resolvedDriver?.latLng,
+        TripMapMode.fullRoute => _resolvedPickup?.latLng,
+      };
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _resolvedDriver = resolvedDriver;
+      if (shouldRefresh) {
+        _routePoints = routePoints;
+      }
+    });
+
+    if (shouldRefresh) {
+      _fitCamera();
+      return;
+    }
+
+    final moving = resolvedDriver?.latLng;
+    if (widget.followMovingMarker && moving != null) {
+      _followMovingMarker(moving);
+    } else if (!hadDriver && moving != null) {
+      _fitCamera();
+    }
+  }
+
+  void _followMovingMarker(LatLng position) {
+    final controller = _mapController;
+    if (controller == null) return;
+    try {
+      controller.animateCamera(CameraUpdate.newLatLng(position));
+    } catch (_) {}
   }
 
   bool _shouldRefreshRoute(TripLocation? driver) {

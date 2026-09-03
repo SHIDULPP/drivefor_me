@@ -6,6 +6,8 @@ import 'package:driveforme_user/src/data/models/route_summary_model.dart';
 import 'package:driveforme_user/src/data/models/trip_location_model.dart';
 import 'package:driveforme_user/src/data/models/trip_model.dart';
 import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
+import 'package:driveforme_user/src/data/providers/live_driver_location_provider.dart';
+import 'package:driveforme_user/src/data/services/location_service.dart';
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
 import 'package:driveforme_user/src/data/utils/live_route_helper.dart';
 import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
@@ -68,8 +70,10 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   Duration _cancelRemaining = const Duration(minutes: 58, seconds: 32);
   Timer? _cancelTimer;
   Timer? _pollTimer;
+  StreamSubscription<TripLocation>? _ownerLocationSub;
   bool _navigatedAway = false;
   TripModel? _trip;
+  TripLocation? _ownerLocation;
   final LiveRouteHelper _liveRouteHelper = LiveRouteHelper();
   RouteSummary? _liveRouteSummary;
 
@@ -120,7 +124,16 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
         : null;
   }
 
-  TripLocation? get _driverLocation => _trip?.driverLocation;
+  TripLocation? get _movingLocation {
+    if (_ownerLocation?.hasCoordinates == true) {
+      return _ownerLocation;
+    }
+    final live = ref.watch(liveDriverLocationProvider);
+    if (live != null && live.tripId == widget.tripMongoId) {
+      return live.location;
+    }
+    return _trip?.driverLocation;
+  }
 
   String? get _driverPhotoUrl => _trip?.driverPhotoUrl;
 
@@ -146,26 +159,62 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
       });
     });
     _startPolling();
+    _startOwnerLocationTracking();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(liveTripTrackingProvider.notifier).trackTrip(widget.tripMongoId);
+    });
   }
 
   Future<void> _loadTrip() async {
     final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
     if (!mounted || trip == null) return;
     setState(() => _trip = trip);
+    _syncLiveLocation(trip);
     await _refreshLiveRoute();
   }
 
   Future<void> _refreshLiveRoute() async {
-    final driver = _driverLocation;
+    final origin = _locationForRoute();
     final destination = _dropoffLocation;
-    if (driver == null || destination == null) return;
+    if (origin == null || destination == null) return;
 
     final summary = await _liveRouteHelper.fetchIfNeeded(
-      origin: driver,
+      origin: origin,
       destination: destination,
     );
     if (!mounted || summary == null) return;
     setState(() => _liveRouteSummary = summary);
+  }
+
+  TripLocation? _locationForRoute() {
+    if (_ownerLocation?.hasCoordinates == true) return _ownerLocation;
+    final live = ref.read(liveDriverLocationProvider);
+    if (live != null && live.tripId == widget.tripMongoId) {
+      return live.location;
+    }
+    return _trip?.driverLocation;
+  }
+
+  void _syncLiveLocation(TripModel trip) {
+    final location = trip.driverLocation;
+    if (location == null || !location.hasCoordinates) return;
+    ref.read(liveDriverLocationProvider.notifier).applyFromTrip(
+          tripId: trip.id.isNotEmpty ? trip.id : widget.tripMongoId,
+          driverId: trip.driverId ?? '',
+          location: location,
+          tripStatus: trip.status,
+        );
+  }
+
+  void _startOwnerLocationTracking() {
+    _ownerLocationSub = const LocationService().watchPosition().listen(
+      (location) {
+        if (!mounted || !location.hasCoordinates) return;
+        setState(() => _ownerLocation = location);
+        _refreshLiveRoute();
+      },
+      onError: (_) {},
+    );
   }
 
   void _startPolling() {
@@ -182,6 +231,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     if (trip == null) return;
 
     setState(() => _trip = trip);
+    _syncLiveLocation(trip);
     await _refreshLiveRoute();
 
     if (trip.isCancelled) {
@@ -203,6 +253,12 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
     _navigatedAway = true;
     _pollTimer?.cancel();
     ref.read(activeTripProvider.notifier).clear();
+    if (widget.tripMongoId.isNotEmpty) {
+      ref.read(liveTripTrackingProvider.notifier).stopTrackingTrip(
+            widget.tripMongoId,
+            clearLocation: true,
+          );
+    }
     NavigationService().pushNamedReplacement(
       'trip_completed',
       arguments: arguments,
@@ -224,7 +280,13 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
   void dispose() {
     _cancelTimer?.cancel();
     _pollTimer?.cancel();
+    _ownerLocationSub?.cancel();
     _liveRouteHelper.dispose();
+    if (widget.tripMongoId.isNotEmpty) {
+      ref.read(liveTripTrackingProvider.notifier).stopTrackingTrip(
+            widget.tripMongoId,
+          );
+    }
     super.dispose();
   }
 
@@ -242,6 +304,7 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(liveTripTrackingProvider);
     return Scaffold(
       backgroundColor: kScreenBg,
       body: Column(
@@ -259,10 +322,11 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
                 TripMapView(
                   pickup: _pickupLocation,
                   dropoff: _dropoffLocation,
-                  driverLocation: _driverLocation,
+                  driverLocation: _movingLocation,
                   mode: TripMapMode.toDropoff,
                   showDropoff: true,
                   showRoute: true,
+                  followMovingMarker: true,
                 ),
                 Positioned(
                   right: 14,

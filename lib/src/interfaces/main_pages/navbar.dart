@@ -1,6 +1,7 @@
 import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/constants/style_constants.dart';
+import 'package:driveforme_user/src/data/providers/live_driver_location_provider.dart';
 import 'package:driveforme_user/src/data/providers/nav_provider.dart';
 import 'package:driveforme_user/src/data/services/active_trip_service.dart';
 import 'package:driveforme_user/src/data/services/haptic_helper.dart';
@@ -56,7 +57,10 @@ class _NavBarState extends ConsumerState<NavBar> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _resumeActiveTrip());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(liveTripTrackingProvider);
+      _resumeActiveTrip();
+    });
   }
 
   Future<void> _resumeActiveTrip() async {
@@ -73,6 +77,7 @@ class _NavBarState extends ConsumerState<NavBar> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(liveTripTrackingProvider);
     final selectedIndex = ref.watch(selectedIndexProvider);
 
     return PopScope(

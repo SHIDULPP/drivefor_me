@@ -83,6 +83,22 @@ class LocationService {
     );
   }
 
+  Stream<TripLocation> watchPosition({
+    int distanceFilterMeters = 8,
+  }) {
+    return Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+      ),
+    ).map(
+      (position) => TripLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      ),
+    );
+  }
+
   Future<LatLng?> geocodeAddress(String address) async {
     final query = address.trim();
     if (query.isEmpty) return null;

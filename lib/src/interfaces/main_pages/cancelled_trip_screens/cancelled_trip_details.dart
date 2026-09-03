@@ -43,9 +43,7 @@ class CancelledTripDetailsPage extends StatelessWidget {
   });
 
   bool get _effectiveHasDriver =>
-      hasDriver &&
-      driverName != TripModel.noNameFound &&
-      driverName.isNotEmpty;
+      hasDriver && driverName != TripModel.noNameFound && driverName.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -109,11 +107,8 @@ class CancelledTripDetailsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    _CancelledRouteSection(
-                      pickup: pickup,
-                      dropoff: dropoff,
-                    ),
-                    SizedBox(height: 15,),
+                    _CancelledRouteSection(pickup: pickup, dropoff: dropoff),
+                    SizedBox(height: 15),
                     if (_effectiveHasDriver)
                       _CancelledDriverCard(
                         driverName: driverName,
@@ -336,10 +331,7 @@ class _CancelledRouteSection extends StatelessWidget {
   final String pickup;
   final String dropoff;
 
-  const _CancelledRouteSection({
-    required this.pickup,
-    required this.dropoff,
-  });
+  const _CancelledRouteSection({required this.pickup, required this.dropoff});
 
   @override
   Widget build(BuildContext context) {
@@ -744,7 +736,11 @@ class _NoDriverAssignedCard extends StatelessWidget {
               color: kChipGreyBg,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.person_outline, color: kMutedText, size: 32),
+            child: const Icon(
+              Icons.person_outline,
+              color: kMutedText,
+              size: 32,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

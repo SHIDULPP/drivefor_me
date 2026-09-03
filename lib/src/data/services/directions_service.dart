@@ -85,7 +85,7 @@ class DirectionsService {
       return RouteSummary(
         distanceKm: double.parse((distanceMeters / 1000).toStringAsFixed(1)),
         durationMinutes: durationMinutes,
-        durationLabel: _formatDuration(durationMinutes),
+        durationLabel: RouteSummary.formatDuration(durationMinutes),
       );
     } catch (e) {
       log('Directions request failed: $e', name: 'DirectionsService');
@@ -133,14 +133,6 @@ class DirectionsService {
       log('Directions request failed: $e', name: 'DirectionsService');
       return const [];
     }
-  }
-
-  static String _formatDuration(int minutes) {
-    if (minutes < 60) return '$minutes min';
-    final hours = minutes ~/ 60;
-    final remaining = minutes % 60;
-    if (remaining == 0) return hours == 1 ? '1 hr' : '$hours hrs';
-    return '$hours hr $remaining min';
   }
 
   static List<LatLng> decodePolyline(String encoded) {

@@ -87,7 +87,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     if (_routeSummary == null) {
       return isOneWay
           ? 'Select destination to auto-detect trip type'
-          : 'Route details appear after pickup is set';
+          : 'Select where you are going to calculate round-trip distance';
     }
     return 'Drive time: ${_routeSummary!.durationLabel} • Booking: $_durationUsageLabel';
   }
@@ -145,8 +145,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   }
 
   Future<void> _refreshRouteAndTripPlan() async {
-    if (!isOneWay ||
-        !_pickupLocation.hasAddress ||
+    if (!_pickupLocation.hasAddress ||
         _dropoffLocation == null ||
         !_dropoffLocation!.hasAddress) {
       if (!mounted) return;
@@ -173,13 +172,13 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return;
     }
 
+    final tripSummary = isOneWay ? summary : summary.doubled();
+
     setState(() {
-      _routeSummary = summary;
+      _routeSummary = tripSummary;
       _isLoadingRoute = false;
       if (!_hasUserAdjustedDuration) {
-        _applyTripPlan(
-          _tripPlanService.suggestFromRoute(route: summary, isOneWay: isOneWay),
-        );
+        _applyTripPlan(_tripPlanService.suggestFromRoute(route: tripSummary));
       }
     });
     _schedulePriceEstimate();
@@ -529,79 +528,19 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             onRoundTripTap: () {
               _mutateTripForm(() {
                 isOneWay = false;
-                _dropoffLocation = null;
                 _routeSummary = null;
                 _hasUserAdjustedDuration = false;
+                _hasUserSetPickup = false;
               });
-              _scheduleRouteRefresh();
+              _applyDefaultPickupLocation();
             },
           ),
 
           const SizedBox(height: 14),
 
-          if (isOneWay)
-            _buildOneWayLocationFields()
-          else
-            _buildRoundTripLocationField(),
+          _buildOneWayLocationFields(),
         ],
       ),
-    );
-  }
-
-  Widget _buildRoundTripLocationField() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          height: 18,
-          width: 18,
-          decoration: BoxDecoration(
-            color: kActiveGreen,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Icon(Icons.star, size: 12, color: kWhite),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: GestureDetector(
-            onTap: _pickPickupLocation,
-            behavior: HitTestBehavior.opaque,
-            child: Text(
-              _pickupLocation.hasAddress
-                  ? _pickupLocation.displayLabel
-                  : 'Select location',
-              style: kTripLocationValueM.copyWith(
-                color: _pickupLocation.hasAddress
-                    ? kTextColor
-                    : kTripMutedLabel,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => _openScheduleSheet(openOnScheduleTab: !isRideNow),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: kTripCreamBg,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.access_time, size: 15),
-                const SizedBox(width: 6),
-                Text(isRideNow ? 'Now' : 'Later', style: kTripTimePillM),
-                const SizedBox(width: 2),
-                const Icon(Icons.keyboard_arrow_down, size: 18),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -620,7 +559,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
               ),
               child: const Icon(Icons.star, size: 12, color: kWhite),
             ),
-            Container(width: 1.5, height: 56, color: kLineGrey),
+            Container(width: 1.5, height: isOneWay ? 56 : 72, color: kLineGrey),
             Container(
               height: 18,
               width: 18,
@@ -687,10 +626,16 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('To', style: kTripLocationLabelR),
+                    Text(
+                      isOneWay ? 'To' : 'Going to',
+                      style: kTripLocationLabelR,
+                    ),
                     const SizedBox(height: 4),
                     Text(
-                      _dropoffLocation?.address ?? 'Enter destination',
+                      _dropoffLocation?.address ??
+                          (isOneWay
+                              ? 'Enter destination'
+                              : 'Select where you are going'),
                       style: kTripLocationValueM.copyWith(
                         color: _dropoffLocation == null
                             ? kTripMutedLabel
@@ -699,6 +644,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (!isOneWay) ...[
+                      const SizedBox(height: 4),
+                      Text('Returns to pickup', style: kTripOvernightSubR),
+                    ],
                   ],
                 ),
               ),
@@ -1812,9 +1761,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return ApiResponse.error('Please select pickup location.');
     }
 
-    if (isOneWay &&
-        (_dropoffLocation == null || !_dropoffLocation!.hasAddress)) {
-      return ApiResponse.error('Please select destination for one-way trip.');
+    if (_dropoffLocation == null || !_dropoffLocation!.hasAddress) {
+      return ApiResponse.error('Please select destination for this trip.');
     }
 
     if (_selectedVehicle == null || _selectedVehicle!.id.isEmpty) {
@@ -1841,7 +1789,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'userId': userId,
       'tripDirection': isOneWay ? 'one_way' : 'round_trip',
       'pickupLocation': _pickupLocation.toJson(),
-      if (isOneWay && _dropoffLocation != null)
+      if (_dropoffLocation != null)
         'dropoffLocation': _dropoffLocation!.toJson(),
       if (_routeSummary != null) 'routeSummary': _routeSummary!.toJson(),
       'tripType': isShortTrip ? 'short_trip' : 'long_trip',
@@ -1967,7 +1915,7 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     final result = await NavigationService().pushNamed(
       'search_location',
       arguments: {
-        'title': 'Where are you heading?',
+        'title': isOneWay ? 'Where are you heading?' : 'Where are you going?',
         'showCurrentLocation': false,
       },
     );

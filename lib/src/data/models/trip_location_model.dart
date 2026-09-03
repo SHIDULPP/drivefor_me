@@ -59,6 +59,17 @@ class TripLocation {
     );
   }
 
+  @override
+  bool operator ==(Object other) {
+    return other is TripLocation &&
+        other.address == address &&
+        other.latitude == latitude &&
+        other.longitude == longitude;
+  }
+
+  @override
+  int get hashCode => Object.hash(address, latitude, longitude);
+
   String get displayLabel {
     if (!hasAddress) return 'Current location';
 

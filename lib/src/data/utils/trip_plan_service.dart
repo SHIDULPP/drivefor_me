@@ -44,11 +44,8 @@ class TripPlanService {
 
   TripPlanSuggestion suggestFromRoute({
     required RouteSummary route,
-    required bool isOneWay,
   }) {
-    final driveMinutes = isOneWay
-        ? route.durationMinutes
-        : route.durationMinutes * 2;
+    final driveMinutes = route.durationMinutes;
     final suggestedHours = bookingHoursFromMinutes(driveMinutes);
 
     if (suggestedHours <= shortTripMaxHours) {
