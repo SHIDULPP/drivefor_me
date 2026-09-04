@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "38589530732",
+    "project_id": "driveforme-706f9",
+    "storage_bucket": "driveforme-706f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:38589530732:android:fba40d20148ca084a48e49",
+        "android_client_info": {
+          "package_name": "com.example.driveforme_user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxERp0eZ0Ob_N_YF_SEeX-JxsQOqE1VY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

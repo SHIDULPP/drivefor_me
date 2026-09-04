@@ -1,8 +1,12 @@
+import 'package:driveforme_user/firebase_options.dart';
 import 'package:driveforme_user/src/data/constants/app_colors.dart';
 import 'package:driveforme_user/src/data/constants/colour_constants.dart';
 import 'package:driveforme_user/src/data/providers/screen_size_provider.dart';
 import 'package:driveforme_user/src/data/router/router.dart' as router;
 import 'package:driveforme_user/src/data/services/navigation_services.dart';
+import 'package:driveforme_user/src/data/services/notification_token_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -11,6 +15,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   runApp(const ProviderScope(child: MyApp()));
 }
 
