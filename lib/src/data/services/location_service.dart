@@ -84,7 +84,7 @@ class LocationService {
   }
 
   Stream<TripLocation> watchPosition({
-    int distanceFilterMeters = 8,
+    int distanceFilterMeters = 3,
   }) {
     return Geolocator.getPositionStream(
       locationSettings: LocationSettings(

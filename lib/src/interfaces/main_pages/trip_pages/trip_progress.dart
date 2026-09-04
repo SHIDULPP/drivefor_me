@@ -17,6 +17,7 @@ import 'package:driveforme_user/src/interfaces/components/trip_map_view.dart';
 import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 class TripProgressPage extends ConsumerStatefulWidget {
   final String tripMongoId;
@@ -219,6 +220,18 @@ class _TripProgressPageState extends ConsumerState<TripProgressPage> {
       location,
     ) {
       if (!mounted || !location.hasCoordinates) return;
+      final previous = _ownerLocation;
+      if (previous != null &&
+          previous.hasCoordinates &&
+          Geolocator.distanceBetween(
+                previous.latitude!,
+                previous.longitude!,
+                location.latitude!,
+                location.longitude!,
+              ) <
+              3) {
+        return;
+      }
       setState(() => _ownerLocation = location);
       _refreshLiveRoute();
     }, onError: (_) {});

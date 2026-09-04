@@ -54,6 +54,7 @@ class _TripMapViewState extends State<TripMapView> {
   TripLocation? _resolvedDriver;
   List<LatLng> _routePoints = const [];
   bool _isResolving = true;
+  bool _hasResolvedOnce = false;
   bool _hasFittedCamera = false;
   int _resolveGeneration = 0;
   DateTime? _lastRouteFetchAt;
@@ -62,40 +63,82 @@ class _TripMapViewState extends State<TripMapView> {
   @override
   void initState() {
     super.initState();
-    _resolveMapData(forceRouteRefresh: true);
+    _resolveMapData(forceRouteRefresh: true, showLoading: true);
   }
 
   @override
   void didUpdateWidget(covariant TripMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final driverChanged = oldWidget.driverLocation != widget.driverLocation;
-    final endpointsChanged = oldWidget.pickup != widget.pickup ||
-        oldWidget.dropoff != widget.dropoff ||
-        oldWidget.mode != widget.mode ||
+
+    final modeChanged = oldWidget.mode != widget.mode ||
         oldWidget.showDropoff != widget.showDropoff ||
         oldWidget.showRoute != widget.showRoute;
+    final endpointsChanged = !_sameEndpoint(oldWidget.pickup, widget.pickup) ||
+        !_sameEndpoint(oldWidget.dropoff, widget.dropoff);
+    final movingChanged =
+        !_sameMovingPoint(oldWidget.driverLocation, widget.driverLocation);
 
-    if (endpointsChanged) {
-      _hasFittedCamera = false;
-      _resolveMapData(forceRouteRefresh: true);
-      return;
-    }
-
-    if (driverChanged) {
+    // Always move the live marker immediately — never block this behind resolve.
+    if (movingChanged) {
       _applyLiveDriverLocation(widget.driverLocation);
     }
+
+    if (modeChanged || endpointsChanged) {
+      if (modeChanged) {
+        _hasFittedCamera = false;
+      }
+      _resolveMapData(forceRouteRefresh: true, showLoading: false);
+    }
+  }
+
+  /// Pickup / dropoff equality — ignores tiny float noise.
+  bool _sameEndpoint(TripLocation? a, TripLocation? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return a == b;
+    if (a.address.trim() != b.address.trim()) return false;
+
+    final aHas = a.hasCoordinates;
+    final bHas = b.hasCoordinates;
+    if (aHas != bHas) return false;
+    if (!aHas) return true;
+
+    return (a.latitude! - b.latitude!).abs() < 0.00001 &&
+        (a.longitude! - b.longitude!).abs() < 0.00001;
+  }
+
+  /// Moving marker equality — coords only (addresses often differ across sources).
+  bool _sameMovingPoint(TripLocation? a, TripLocation? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return a == b;
+    if (!a.hasCoordinates && !b.hasCoordinates) return true;
+    if (!a.hasCoordinates || !b.hasCoordinates) return false;
+    return (a.latitude! - b.latitude!).abs() < 0.000001 &&
+        (a.longitude! - b.longitude!).abs() < 0.000001;
   }
 
   Future<void> _applyLiveDriverLocation(TripLocation? driver) async {
     final hadDriver = _resolvedDriver?.hasCoordinates == true;
+    // Live GPS already has coordinates — never geocode / never show loading.
     final resolvedDriver =
-        driver != null && driver.hasCoordinates ? driver : driver;
+        driver != null && driver.hasCoordinates ? driver : null;
+    if (resolvedDriver == null) return;
 
-    var routePoints = _routePoints;
-    final shouldRefresh =
-        widget.showRoute && _resolvedPickup != null && _shouldRefreshRoute(driver);
-    if (shouldRefresh) {
-      routePoints = await _resolveRoute(
+    // Update the marker immediately so the map tracks movement.
+    if (!mounted) return;
+    setState(() => _resolvedDriver = resolvedDriver);
+
+    final moving = resolvedDriver.latLng!;
+    if (widget.followMovingMarker) {
+      _followMovingMarker(moving);
+    } else if (!hadDriver && !_hasFittedCamera) {
+      _fitCamera();
+    }
+
+    // Refresh the polyline in the background without covering the map.
+    if (widget.showRoute &&
+        _resolvedPickup != null &&
+        _shouldRefreshRoute(resolvedDriver)) {
+      final routePoints = await _resolveRoute(
         resolvedPickup: _resolvedPickup!,
         resolvedDropoff: _resolvedDropoff,
         resolvedDriver: resolvedDriver,
@@ -103,27 +146,10 @@ class _TripMapViewState extends State<TripMapView> {
       if (!mounted) return;
       _lastRouteFetchAt = DateTime.now();
       _lastRouteOrigin = switch (widget.mode) {
-        TripMapMode.toPickup || TripMapMode.toDropoff =>
-          resolvedDriver?.latLng,
+        TripMapMode.toPickup || TripMapMode.toDropoff => moving,
         TripMapMode.fullRoute => _resolvedPickup?.latLng,
       };
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _resolvedDriver = resolvedDriver;
-      if (shouldRefresh) {
-        _routePoints = routePoints;
-      }
-    });
-
-    final moving = resolvedDriver?.latLng;
-    // Live updates must never re-fit bounds (that zooms the map out).
-    // Pan only, or do a one-time frame when the moving marker first appears.
-    if (widget.followMovingMarker && moving != null) {
-      _followMovingMarker(moving);
-    } else if (!hadDriver && moving != null && !_hasFittedCamera) {
-      _fitCamera();
+      setState(() => _routePoints = routePoints);
     }
   }
 
@@ -131,7 +157,6 @@ class _TripMapViewState extends State<TripMapView> {
     final controller = _mapController;
     if (controller == null) return;
     try {
-      // Preserve current zoom — only pan to the moving marker.
       controller.animateCamera(CameraUpdate.newLatLng(position));
     } catch (_) {}
   }
@@ -157,16 +182,23 @@ class _TripMapViewState extends State<TripMapView> {
     return moved >= _routeRefreshMinDistanceMeters;
   }
 
-  Future<void> _resolveMapData({required bool forceRouteRefresh}) async {
+  Future<void> _resolveMapData({
+    required bool forceRouteRefresh,
+    required bool showLoading,
+  }) async {
     final generation = ++_resolveGeneration;
 
-    if (mounted) {
+    // Loading overlay only before the map has content — never again.
+    if (showLoading && !_hasResolvedOnce && mounted) {
       setState(() => _isResolving = true);
     }
 
     final pickup = widget.pickup ?? const TripLocation.empty();
     final dropoff = widget.dropoff;
-    final driver = widget.driverLocation;
+    // Prefer the latest live moving point already on the map.
+    final driver = widget.driverLocation?.hasCoordinates == true
+        ? widget.driverLocation
+        : _resolvedDriver;
 
     final resolvedPickup = await _locationService.resolveLocation(pickup);
     TripLocation? resolvedDropoff;
@@ -174,8 +206,10 @@ class _TripMapViewState extends State<TripMapView> {
       resolvedDropoff = await _locationService.resolveLocation(dropoff);
     }
 
-    TripLocation? resolvedDriver;
-    if (driver != null) {
+    TripLocation? resolvedDriver = _resolvedDriver;
+    if (driver != null && driver.hasCoordinates) {
+      resolvedDriver = driver;
+    } else if (driver != null) {
       resolvedDriver = await _locationService.resolveLocation(driver);
     }
 
@@ -199,17 +233,27 @@ class _TripMapViewState extends State<TripMapView> {
     setState(() {
       _resolvedPickup = resolvedPickup;
       _resolvedDropoff = resolvedDropoff;
-      _resolvedDriver = resolvedDriver;
+      // Don't clobber a newer live GPS point that arrived during resolve.
+      if (resolvedDriver != null) {
+        final live = widget.driverLocation;
+        if (live != null && live.hasCoordinates) {
+          _resolvedDriver = live;
+        } else {
+          _resolvedDriver = resolvedDriver;
+        }
+      }
       if (forceRouteRefresh) {
         _routePoints = routePoints;
       }
+      _hasResolvedOnce = true;
       _isResolving = false;
     });
 
     if (!_hasFittedCamera) {
       _fitCamera();
-    } else if (widget.followMovingMarker && resolvedDriver?.latLng != null) {
-      _followMovingMarker(resolvedDriver!.latLng!);
+    } else if (widget.followMovingMarker) {
+      final moving = widget.driverLocation?.latLng ?? resolvedDriver?.latLng;
+      if (moving != null) _followMovingMarker(moving);
     }
   }
 
