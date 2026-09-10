@@ -1,5 +1,5 @@
-import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
-import 'package:driveforme_user/src/data/models/user_model.dart';
+import 'package:DriveForme/src/data/apis/onboarding_api.dart';
+import 'package:DriveForme/src/data/models/user_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Loads the logged-in user from `GET /onboarding/me`.

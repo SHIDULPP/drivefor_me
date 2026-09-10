@@ -1,8 +1,8 @@
-import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
-import 'package:driveforme_user/src/data/providers/notification_provider.dart';
-import 'package:driveforme_user/src/data/providers/user_provider.dart';
-import 'package:driveforme_user/src/data/providers/wallet_provider.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/providers/active_trip_provider.dart';
+import 'package:DriveForme/src/data/providers/notification_provider.dart';
+import 'package:DriveForme/src/data/providers/user_provider.dart';
+import 'package:DriveForme/src/data/providers/wallet_provider.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Mirrors 24-connect `AuthProvider.clearAllData()` — local session wipe.

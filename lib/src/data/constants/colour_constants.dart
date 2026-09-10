@@ -1,4 +1,4 @@
-import 'package:driveforme_user/src/data/constants/app_colors.dart';
+import 'package:DriveForme/src/data/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 export 'app_colors.dart';

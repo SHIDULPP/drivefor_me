@@ -1,7 +1,7 @@
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/models/wallet_model.dart';
-import 'package:driveforme_user/src/data/providers/wallet_provider.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/models/wallet_model.dart';
+import 'package:DriveForme/src/data/providers/wallet_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

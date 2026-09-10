@@ -1,4 +1,4 @@
-import 'package:driveforme_user/src/data/models/rider_model.dart';
+import 'package:DriveForme/src/data/models/rider_model.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 class RidersNotifier extends StateNotifier<List<RiderModel>> {

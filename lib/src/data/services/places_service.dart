@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:driveforme_user/src/data/models/place_prediction_model.dart';
-import 'package:driveforme_user/src/data/models/trip_location_model.dart';
-import 'package:driveforme_user/src/data/services/logging_http_client.dart';
+import 'package:DriveForme/src/data/models/place_prediction_model.dart';
+import 'package:DriveForme/src/data/models/trip_location_model.dart';
+import 'package:DriveForme/src/data/services/logging_http_client.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 

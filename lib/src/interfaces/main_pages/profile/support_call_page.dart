@@ -1,7 +1,7 @@
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/utils/phone_launcher.dart';
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/utils/phone_launcher.dart';
+import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
 
 const _kSupportTollFreePhone = '+916282359916';

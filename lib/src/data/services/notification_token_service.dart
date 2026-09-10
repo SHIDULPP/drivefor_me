@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:driveforme_user/firebase_options.dart';
-import 'package:driveforme_user/src/data/apis/notification_api.dart';
+import 'package:DriveForme/firebase_options.dart';
+import 'package:DriveForme/src/data/apis/notification_api.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -71,7 +71,7 @@ class PushNotificationService {
 
     await _local.show(
       notification.hashCode,
-      title ?? 'Drive For Me',
+      title ?? 'DriveForme',
       body ?? '',
       NotificationDetails(
         android: AndroidNotificationDetails(

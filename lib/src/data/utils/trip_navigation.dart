@@ -1,4 +1,4 @@
-import 'package:driveforme_user/src/data/models/trip_model.dart';
+import 'package:DriveForme/src/data/models/trip_model.dart';
 
 class TripNavigationTarget {
   final String route;

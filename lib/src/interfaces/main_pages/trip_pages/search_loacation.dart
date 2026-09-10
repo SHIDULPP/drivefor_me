@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/models/place_prediction_model.dart';
-import 'package:driveforme_user/src/data/services/location_service.dart';
-import 'package:driveforme_user/src/data/services/places_service.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/models/place_prediction_model.dart';
+import 'package:DriveForme/src/data/services/location_service.dart';
+import 'package:DriveForme/src/data/services/places_service.dart';
 import 'package:flutter/material.dart';
 
 class SearchLocationPage extends StatefulWidget {

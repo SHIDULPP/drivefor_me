@@ -1,9 +1,9 @@
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/models/user_model.dart';
-import 'package:driveforme_user/src/data/providers/user_provider.dart';
-import 'package:driveforme_user/src/interfaces/components/input_field.dart';
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/models/user_model.dart';
+import 'package:DriveForme/src/data/providers/user_provider.dart';
+import 'package:DriveForme/src/interfaces/components/input_field.dart';
+import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

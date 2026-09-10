@@ -1,6 +1,6 @@
-import 'package:driveforme_user/src/data/apis/trip_api.dart';
-import 'package:driveforme_user/src/data/models/trip_model.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/apis/trip_api.dart';
+import 'package:DriveForme/src/data/models/trip_model.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 

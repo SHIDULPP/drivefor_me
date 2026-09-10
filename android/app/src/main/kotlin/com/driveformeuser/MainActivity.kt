@@ -1,4 +1,4 @@
-package com.example.driveforme_user
+package com.driveformeuser
 
 import io.flutter.embedding.android.FlutterActivity
 

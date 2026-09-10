@@ -1,6 +1,6 @@
-import 'package:driveforme_user/src/data/models/api_response.dart';
-import 'package:driveforme_user/src/data/models/sos_model.dart';
-import 'package:driveforme_user/src/data/providers/api_provider.dart';
+import 'package:DriveForme/src/data/models/api_response.dart';
+import 'package:DriveForme/src/data/models/sos_model.dart';
+import 'package:DriveForme/src/data/providers/api_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SosApi {

@@ -1,4 +1,4 @@
-import 'package:driveforme_user/src/data/models/route_summary_model.dart';
+import 'package:DriveForme/src/data/models/route_summary_model.dart';
 
 class TripPlanSuggestion {
   final bool isShortTrip;

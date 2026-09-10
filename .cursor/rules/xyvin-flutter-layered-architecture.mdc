@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Flutter app architecture (Xyvin / 24-connect pattern)
 
-This project (`driveforme_user`) follows the same conventions as **24-connect-app**.
+This project (`DriveForme`) follows the same conventions as **24-connect-app**.
 
 ## Layout
 
@@ -13,7 +13,7 @@ This project (`driveforme_user`) follows the same conventions as **24-connect-ap
 - `lib/src/data/` — models, providers, services, router, constants, utils (no feature widgets).
 - `lib/src/interfaces/` — all `Widget` code: `onboarding/`, `main_pages/<feature>/`, `components/`.
 
-Imports: `package:driveforme_user/...` (paths under `lib/`).
+Imports: `package:DriveForme/...` (paths under `lib/`).
 
 ## State (Riverpod 3)
 

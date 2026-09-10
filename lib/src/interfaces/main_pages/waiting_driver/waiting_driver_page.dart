@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/models/trip_location_model.dart';
-import 'package:driveforme_user/src/data/models/trip_model.dart';
-import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
-import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
-import 'package:driveforme_user/src/interfaces/components/trip_map_view.dart';
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/components/trip_route_summary_card.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/models/trip_location_model.dart';
+import 'package:DriveForme/src/data/models/trip_model.dart';
+import 'package:DriveForme/src/data/providers/active_trip_provider.dart';
+import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/utils/trip_lifecycle.dart';
+import 'package:DriveForme/src/data/utils/trip_screen_helpers.dart';
+import 'package:DriveForme/src/interfaces/components/trip_map_view.dart';
+import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
+import 'package:DriveForme/src/interfaces/components/trip_route_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';

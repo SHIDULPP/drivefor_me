@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:driveforme_user/src/data/apis/auth_api.dart';
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/models/api_response.dart';
-import 'package:driveforme_user/src/data/providers/loading_provider.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/data/services/notification_token_service.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
-import 'package:driveforme_user/src/data/utils/auth_navigation.dart';
-import 'package:driveforme_user/src/interfaces/animations/index.dart' as anim;
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:DriveForme/src/data/apis/auth_api.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/models/api_response.dart';
+import 'package:DriveForme/src/data/providers/loading_provider.dart';
+import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/services/notification_token_service.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/utils/auth_navigation.dart';
+import 'package:DriveForme/src/interfaces/animations/index.dart' as anim;
+import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

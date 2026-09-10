@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import 'package:driveforme_user/src/data/models/trip_location_model.dart';
+import 'package:DriveForme/src/data/models/trip_location_model.dart';
 
 class TripModel {
   /// Shown when the backend does not provide a driver / person full name.

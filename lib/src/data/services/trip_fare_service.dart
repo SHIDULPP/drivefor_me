@@ -1,5 +1,5 @@
-import 'package:driveforme_user/src/data/models/pricing_settings_model.dart';
-import 'package:driveforme_user/src/data/models/trip_price_estimate_model.dart';
+import 'package:DriveForme/src/data/models/pricing_settings_model.dart';
+import 'package:DriveForme/src/data/models/trip_price_estimate_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Mirrors backend `calculateTripFare` in `trip.service.js` using pricing rules

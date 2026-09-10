@@ -1,6 +1,6 @@
-import 'package:driveforme_user/src/data/apis/onboarding_api.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
-import 'package:driveforme_user/src/data/utils/auth_navigation.dart';
+import 'package:DriveForme/src/data/apis/onboarding_api.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/utils/auth_navigation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Decides which screen to open after splash based on stored session + API.

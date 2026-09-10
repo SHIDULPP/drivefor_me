@@ -1,12 +1,12 @@
 import 'dart:developer';
 import 'dart:ui';
 
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/providers/screen_size_provider.dart';
-import 'package:driveforme_user/src/data/services/auth_session_service.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/providers/screen_size_provider.dart';
+import 'package:DriveForme/src/data/services/auth_session_service.dart';
+import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';

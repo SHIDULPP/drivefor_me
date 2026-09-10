@@ -1,8 +1,8 @@
-import 'package:driveforme_user/src/data/models/trip_location_model.dart';
-import 'package:driveforme_user/src/data/providers/notification_provider.dart';
-import 'package:driveforme_user/src/data/providers/user_provider.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
-import 'package:driveforme_user/src/data/services/trip_socket_service.dart';
+import 'package:DriveForme/src/data/models/trip_location_model.dart';
+import 'package:DriveForme/src/data/providers/notification_provider.dart';
+import 'package:DriveForme/src/data/providers/user_provider.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/services/trip_socket_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LiveDriverLocationUpdate {

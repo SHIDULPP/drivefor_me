@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:driveforme_user/src/data/models/api_response.dart';
-import 'package:driveforme_user/src/data/services/logging_http_client.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/models/api_response.dart';
+import 'package:DriveForme/src/data/services/logging_http_client.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;

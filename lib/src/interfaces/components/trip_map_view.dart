@@ -1,7 +1,7 @@
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/models/trip_location_model.dart';
-import 'package:driveforme_user/src/data/services/directions_service.dart';
-import 'package:driveforme_user/src/data/services/location_service.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/models/trip_location_model.dart';
+import 'package:DriveForme/src/data/services/directions_service.dart';
+import 'package:DriveForme/src/data/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';

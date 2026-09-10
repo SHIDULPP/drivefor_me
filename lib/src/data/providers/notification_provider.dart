@@ -1,5 +1,5 @@
-import 'package:driveforme_user/src/data/apis/notification_api.dart';
-import 'package:driveforme_user/src/data/models/notification_model.dart';
+import 'package:DriveForme/src/data/apis/notification_api.dart';
+import 'package:DriveForme/src/data/models/notification_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final notificationsProvider =

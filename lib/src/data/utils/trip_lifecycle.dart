@@ -1,8 +1,8 @@
-import 'package:driveforme_user/src/data/apis/trip_api.dart';
-import 'package:driveforme_user/src/data/models/trip_model.dart';
-import 'package:driveforme_user/src/data/providers/active_trip_provider.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/apis/trip_api.dart';
+import 'package:DriveForme/src/data/models/trip_model.dart';
+import 'package:DriveForme/src/data/providers/active_trip_provider.dart';
+import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

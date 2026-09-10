@@ -1,10 +1,10 @@
-import 'package:driveforme_user/firebase_options.dart';
-import 'package:driveforme_user/src/data/constants/app_colors.dart';
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/providers/screen_size_provider.dart';
-import 'package:driveforme_user/src/data/router/router.dart' as router;
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/data/services/notification_token_service.dart';
+import 'package:DriveForme/firebase_options.dart';
+import 'package:DriveForme/src/data/constants/app_colors.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/providers/screen_size_provider.dart';
+import 'package:DriveForme/src/data/router/router.dart' as router;
+import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/services/notification_token_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: NavigationService.navigatorKey,
       onGenerateRoute: router.generateRoute,
       initialRoute: 'Splash',
-      title: 'Drive For Me',
+      title: 'DriveForme',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

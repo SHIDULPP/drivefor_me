@@ -1,8 +1,8 @@
-import 'package:driveforme_user/src/data/models/api_response.dart';
-import 'package:driveforme_user/src/data/models/chat_message_model.dart';
-import 'package:driveforme_user/src/data/models/conversation_model.dart';
-import 'package:driveforme_user/src/data/providers/api_provider.dart';
-import 'package:driveforme_user/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/models/api_response.dart';
+import 'package:DriveForme/src/data/models/chat_message_model.dart';
+import 'package:DriveForme/src/data/models/conversation_model.dart';
+import 'package:DriveForme/src/data/providers/api_provider.dart';
+import 'package:DriveForme/src/data/services/secure_storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatApi {

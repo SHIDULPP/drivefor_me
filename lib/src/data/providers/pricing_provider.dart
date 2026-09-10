@@ -1,5 +1,5 @@
-import 'package:driveforme_user/src/data/apis/pricing_api.dart';
-import 'package:driveforme_user/src/data/models/pricing_settings_model.dart';
+import 'package:DriveForme/src/data/apis/pricing_api.dart';
+import 'package:DriveForme/src/data/models/pricing_settings_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Live pricing rules from `GET /pricing`, with schema defaults as fallback.

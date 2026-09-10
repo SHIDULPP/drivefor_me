@@ -1,8 +1,8 @@
-import 'package:driveforme_user/src/data/apis/vehicle_api.dart';
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/models/vehicle_model.dart';
-import 'package:driveforme_user/src/interfaces/components/add_vehicle_sheet.dart';
+import 'package:DriveForme/src/data/apis/vehicle_api.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/models/vehicle_model.dart';
+import 'package:DriveForme/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,5 +1,5 @@
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/utils/responsive.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/utils/responsive.dart';
 import 'package:flutter/material.dart';
 
 const _kSheetBlue = Color(0xFF1E5D94);

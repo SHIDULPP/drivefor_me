@@ -1,5 +1,5 @@
-import 'package:driveforme_user/src/data/constants/app_colors.dart';
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/app_colors.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';

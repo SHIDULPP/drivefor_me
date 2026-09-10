@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:driveforme_user/src/data/constants/colour_constants.dart';
-import 'package:driveforme_user/src/data/constants/style_constants.dart';
-import 'package:driveforme_user/src/data/services/navigation_services.dart';
-import 'package:driveforme_user/src/data/utils/trip_lifecycle.dart';
-import 'package:driveforme_user/src/data/utils/trip_screen_helpers.dart';
-import 'package:driveforme_user/src/interfaces/components/primaryButton.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/trip_pages/trip_completed.dart';
-import 'package:driveforme_user/src/interfaces/main_pages/waiting_driver/driver_found.dart';
+import 'package:DriveForme/src/data/constants/colour_constants.dart';
+import 'package:DriveForme/src/data/constants/style_constants.dart';
+import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/utils/trip_lifecycle.dart';
+import 'package:DriveForme/src/data/utils/trip_screen_helpers.dart';
+import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
+import 'package:DriveForme/src/interfaces/main_pages/trip_pages/trip_completed.dart';
+import 'package:DriveForme/src/interfaces/main_pages/waiting_driver/driver_found.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.driveformeUser</string>
+	<string>com.driveformeuser</string>
 	<key>PROJECT_ID</key>
 	<string>driveforme-706f9</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:38589530732:ios:1680bea114be683aa48e49</string>
+	<string>1:38589530732:ios:820eb1c1f5c52aaea48e49</string>
 </dict>
 </plist>
