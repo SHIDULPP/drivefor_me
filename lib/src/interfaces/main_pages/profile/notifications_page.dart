@@ -124,7 +124,12 @@ class NotificationsPage extends ConsumerWidget {
       ref.invalidate(notificationsProvider);
     }
 
-    if (item.type != 'trip_accepted') return;
+    if (item.type != 'trip_accepted' &&
+        item.type != 'trip_reassigned' &&
+        item.type != 'driver_assigned' &&
+        item.type != 'trip_cancelled') {
+      return;
+    }
 
     final tripId = item.payload['tripId']?.toString();
     if (tripId == null || tripId.isEmpty) return;
@@ -141,7 +146,16 @@ class NotificationsPage extends ConsumerWidget {
       return;
     }
 
-    final target = tripNavigationTarget(tripResponse.data!);
+    final trip = tripResponse.data!;
+    if (trip.isCancelled) {
+      NavigationService().pushNamed(
+        'cancelled_trip_details',
+        arguments: trip.toCancelledDetailsArguments(),
+      );
+      return;
+    }
+
+    final target = tripNavigationTarget(trip);
     if (target == null) return;
 
     NavigationService().pushNamed(

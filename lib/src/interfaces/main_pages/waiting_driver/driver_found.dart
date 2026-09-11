@@ -41,6 +41,8 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   bool _navigatedToProgress = false;
   /// Cached for dispose — ref is unsafe after the widget unmounts.
   late final TripSocketService _tripSocket;
+  void Function(Map<String, dynamic>)? _onTripReassigned;
+  void Function(Map<String, dynamic>)? _onTripUpdated;
 
   String get _tripTitle => _trip?.tripTitle ?? 'One Way Trip';
 
@@ -105,10 +107,49 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
     _loadTrip();
     _loadStartOtp();
     _startTripStatusPolling();
+    _listenForReassignment();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(liveTripTrackingProvider.notifier).trackTrip(widget.tripMongoId);
     });
+  }
+
+  void _listenForReassignment() {
+    if (widget.tripMongoId.isEmpty) return;
+
+    Future<void> handlePayload(Map<String, dynamic> payload) async {
+      // trip_reassigned sends {tripId,status}; trip_updated may send the full trip.
+      final tripId = payload['tripId']?.toString() ??
+          payload['_id']?.toString() ??
+          payload['id']?.toString() ??
+          '';
+      final status = payload['status']?.toString() ?? '';
+      if (tripId.isNotEmpty && tripId != widget.tripMongoId) return;
+      if (_navigatedToProgress || !mounted) return;
+
+      if (status.isNotEmpty && status != 'pending_assignment') {
+        final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
+        if (!mounted || trip == null || _navigatedToProgress) return;
+        if (await navigateIfTripLeftDriverFoundStage(ref: ref, trip: trip)) {
+          _navigatedToProgress = true;
+          _pollTimer?.cancel();
+        }
+        return;
+      }
+
+      final trip = await fetchAndCacheTrip(ref, widget.tripMongoId);
+      if (!mounted || trip == null || _navigatedToProgress) return;
+      if (trip.status == 'pending_assignment' || status == 'pending_assignment') {
+        _navigatedToProgress = true;
+        _pollTimer?.cancel();
+        await navigateAfterDriverReassigned(trip: trip);
+      }
+    }
+
+    _onTripReassigned = (payload) => handlePayload(payload);
+    _onTripUpdated = (payload) => handlePayload(payload);
+    _tripSocket.listenForTripReassigned(_onTripReassigned!);
+    _tripSocket.listenForTripUpdated(_onTripUpdated!);
   }
 
   Future<void> _loadTrip() async {
@@ -237,6 +278,12 @@ class _DriverFoundPageState extends ConsumerState<DriverFoundPage> {
   void dispose() {
     _cancelTimer?.cancel();
     _pollTimer?.cancel();
+    if (_onTripReassigned != null) {
+      _tripSocket.removeTripReassignedListener(_onTripReassigned!);
+    }
+    if (_onTripUpdated != null) {
+      _tripSocket.removeTripUpdatedListener(_onTripUpdated!);
+    }
     if (widget.tripMongoId.isNotEmpty) {
       _tripSocket.leaveTripRoom(widget.tripMongoId);
     }

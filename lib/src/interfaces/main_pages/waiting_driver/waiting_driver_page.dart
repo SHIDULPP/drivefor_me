@@ -6,6 +6,7 @@ import 'package:DriveForme/src/data/models/trip_location_model.dart';
 import 'package:DriveForme/src/data/models/trip_model.dart';
 import 'package:DriveForme/src/data/providers/active_trip_provider.dart';
 import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/services/trip_socket_service.dart';
 import 'package:DriveForme/src/data/utils/trip_lifecycle.dart';
 import 'package:DriveForme/src/data/utils/trip_screen_helpers.dart';
 import 'package:DriveForme/src/interfaces/components/trip_map_view.dart';
@@ -117,6 +118,33 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     _runStage(_stage);
     _loadTrip();
     _startPolling();
+    _listenForReassignment();
+  }
+
+  void Function(Map<String, dynamic>)? _onTripReassigned;
+  TripSocketService? _tripSocket;
+
+  void _listenForReassignment() {
+    if (widget.tripMongoId.isEmpty) return;
+    final socket = ref.read(tripSocketServiceProvider);
+    _tripSocket = socket;
+    socket.ensureConnected();
+    _onTripReassigned = (payload) {
+      final tripId = payload['tripId']?.toString() ??
+          payload['_id']?.toString() ??
+          payload['id']?.toString() ??
+          '';
+      if (tripId.isNotEmpty && tripId != widget.tripMongoId) return;
+      if (!mounted || _navigatedToDriverFound) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Previous driver cancelled. Still finding you another driver...',
+          ),
+        ),
+      );
+    };
+    socket.listenForTripReassigned(_onTripReassigned!);
   }
 
   Future<void> _loadTrip() async {
@@ -200,6 +228,9 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
   void dispose() {
     _stageTimer?.cancel();
     _pollTimer?.cancel();
+    if (_onTripReassigned != null) {
+      _tripSocket?.removeTripReassignedListener(_onTripReassigned!);
+    }
     _progressController.dispose();
     super.dispose();
   }

@@ -32,6 +32,12 @@ Future<bool> navigateIfTripLeftDriverFoundStage({
     return true;
   }
 
+  // Driver released the trip — booking is still live; go back to matching.
+  if (trip.status == 'pending_assignment') {
+    await navigateAfterDriverReassigned(trip: trip);
+    return true;
+  }
+
   if (trip.isInProgress) {
     NavigationService().pushNamedReplacement(
       'trip_progress',

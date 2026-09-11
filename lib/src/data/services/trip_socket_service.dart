@@ -113,6 +113,59 @@ class TripSocketService {
     _socket?.on('new_notification', (_) => onNewNotification());
   }
 
+  final List<void Function(Map<String, dynamic>)> _tripReassignedHandlers = [];
+  final List<void Function(Map<String, dynamic>)> _tripUpdatedHandlers = [];
+
+  void listenForTripReassigned(
+    void Function(Map<String, dynamic> payload) onTripReassigned,
+  ) {
+    ensureConnected();
+    if (!_tripReassignedHandlers.contains(onTripReassigned)) {
+      _tripReassignedHandlers.add(onTripReassigned);
+    }
+    _socket?.off('trip_reassigned');
+    _socket?.on('trip_reassigned', (data) {
+      final map = _asMap(data);
+      if (map == null) return;
+      for (final handler in List<void Function(Map<String, dynamic>)>.from(
+        _tripReassignedHandlers,
+      )) {
+        handler(map);
+      }
+    });
+  }
+
+  void removeTripReassignedListener(
+    void Function(Map<String, dynamic> payload) onTripReassigned,
+  ) {
+    _tripReassignedHandlers.remove(onTripReassigned);
+  }
+
+  void listenForTripUpdated(
+    void Function(Map<String, dynamic> payload) onTripUpdated,
+  ) {
+    ensureConnected();
+    if (!_tripUpdatedHandlers.contains(onTripUpdated)) {
+      _tripUpdatedHandlers.add(onTripUpdated);
+    }
+    _socket?.off('trip_updated');
+    _socket?.on('trip_updated', (data) {
+      final map = _asMap(data);
+      if (map == null) return;
+      for (final handler in List<void Function(Map<String, dynamic>)>.from(
+        _tripUpdatedHandlers,
+      )) {
+        handler(map);
+      }
+    });
+  }
+
+  void removeTripUpdatedListener(
+    void Function(Map<String, dynamic> payload) onTripUpdated,
+  ) {
+    _tripUpdatedHandlers.remove(onTripUpdated);
+  }
+
   void disconnect() {
     _socket?.disconnect();
     _socket?.dispose();
@@ -120,6 +173,8 @@ class TripSocketService {
     _onDriverLocation = null;
     _userId = null;
     _tripId = null;
+    _tripReassignedHandlers.clear();
+    _tripUpdatedHandlers.clear();
   }
 
   static Map<String, dynamic>? _asMap(dynamic value) {

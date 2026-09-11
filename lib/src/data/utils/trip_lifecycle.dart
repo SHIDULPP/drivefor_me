@@ -69,6 +69,28 @@ Future<void> navigateAfterTripCancelled(
   );
 }
 
+Future<void> navigateAfterDriverReassigned({
+  required TripModel trip,
+  String? message,
+}) async {
+  final context = NavigationService.navigatorKey.currentContext;
+  if (context != null && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message ??
+              'Your driver cancelled. Finding another driver nearby...',
+        ),
+      ),
+    );
+  }
+
+  NavigationService().pushNamedReplacement(
+    'waiting_driver',
+    arguments: trip.toWaitingDriverArguments(),
+  );
+}
+
 void openChatScreen({
   required String receiverId,
   required String receiverName,

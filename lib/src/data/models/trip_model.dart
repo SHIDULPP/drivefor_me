@@ -105,9 +105,12 @@ class TripModel {
       tripDirection: tripDetails is Map
           ? tripDetails['tripDirection']?.toString() ?? 'one_way'
           : 'one_way',
-      tripType: tripDetails is Map
-          ? tripDetails['tripType']?.toString() ?? 'short_trip'
-          : 'short_trip',
+      tripType: () {
+        if (tripDetails is Map && tripDetails['tripType'] != null) {
+          return tripDetails['tripType'].toString();
+        }
+        return json['tripType']?.toString() ?? 'short_trip';
+      }(),
       rideTime: tripDetails is Map
           ? tripDetails['rideTime']?.toString() ?? 'now'
           : 'now',
