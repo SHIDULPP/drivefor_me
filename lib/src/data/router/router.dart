@@ -31,6 +31,7 @@ import 'package:DriveForme/src/interfaces/main_pages/profile/personal_details_pa
 import 'package:DriveForme/src/interfaces/main_pages/profile/refer_earn.dart';
 import 'package:DriveForme/src/interfaces/main_pages/profile/support_call_page.dart';
 import 'package:flutter/material.dart';
+
 //router file
 
 enum TransitionType { slideFromBottom, slideFromRight, fade, fadeScale }
@@ -225,6 +226,8 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
         refundAmount: cancelledDetailsArgs?['refundAmount'] as String? ?? '—',
         refundInitiatedAt:
             cancelledDetailsArgs?['refundInitiatedAt'] as String? ?? '—',
+        isPaid: cancelledDetailsArgs?['isPaid'] == true,
+        hasRefund: cancelledDetailsArgs?['hasRefund'] == true,
         driverName: TripModel.resolveDriverName(
           cancelledDetailsArgs?['driverName'] as String?,
         ),

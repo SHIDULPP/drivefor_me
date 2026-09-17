@@ -15,6 +15,8 @@ class CancelledTripDetailsPage extends StatelessWidget {
   final String amountPaid;
   final String refundAmount;
   final String refundInitiatedAt;
+  final bool isPaid;
+  final bool hasRefund;
   final String driverName;
   final double driverRating;
   final int driverTrips;
@@ -34,6 +36,8 @@ class CancelledTripDetailsPage extends StatelessWidget {
     this.amountPaid = '—',
     this.refundAmount = '—',
     this.refundInitiatedAt = '—',
+    this.isPaid = false,
+    this.hasRefund = false,
     this.driverName = TripModel.noNameFound,
     this.driverRating = 0,
     this.driverTrips = 0,
@@ -130,6 +134,8 @@ class CancelledTripDetailsPage extends StatelessWidget {
                       amountPaid: amountPaid,
                       refundAmount: refundAmount,
                       refundInitiatedAt: refundInitiatedAt,
+                      isPaid: isPaid,
+                      hasRefund: hasRefund,
                     ),
                   ],
                 ),
@@ -547,11 +553,15 @@ class _CancelledFareBreakdownCard extends StatelessWidget {
   final String amountPaid;
   final String refundAmount;
   final String refundInitiatedAt;
+  final bool isPaid;
+  final bool hasRefund;
 
   const _CancelledFareBreakdownCard({
     required this.amountPaid,
     required this.refundAmount,
     required this.refundInitiatedAt,
+    required this.isPaid,
+    required this.hasRefund,
   });
 
   @override
@@ -571,39 +581,41 @@ class _CancelledFareBreakdownCard extends StatelessWidget {
           const _DashedDivider(),
           const SizedBox(height: 12),
           _FareRow(label: 'Amount Paid', value: amountPaid),
-          const SizedBox(height: 12),
-          const _DashedDivider(),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text('Refund Initiated', style: kScheduledTripSectionSB),
-              const Spacer(),
-              Text(refundAmount, style: kCancelledRefundAmountSB),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Refund will be credited to your wallet within 5-7 business days.',
-            style: kStyle(
-              kRegular,
-              kSize13,
-              color: kTripBodyMuted,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 8),
-          RichText(
-            text: TextSpan(
-              style: kStyle(kRegular, kSize13, color: kTripBodyMuted),
+          if (hasRefund) ...[
+            const SizedBox(height: 12),
+            const _DashedDivider(),
+            const SizedBox(height: 12),
+            Row(
               children: [
-                const TextSpan(text: 'Initiated on '),
-                TextSpan(
-                  text: refundInitiatedAt,
-                  style: kCancelledRefundDateSB,
-                ),
+                Text('Refund Initiated', style: kScheduledTripSectionSB),
+                const Spacer(),
+                Text(refundAmount, style: kCancelledRefundAmountSB),
               ],
             ),
-          ),
+            const SizedBox(height: 10),
+            Text(
+              'Refund will be credited to your wallet within 5-7 business days.',
+              style: kStyle(
+                kRegular,
+                kSize13,
+                color: kTripBodyMuted,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            RichText(
+              text: TextSpan(
+                style: kStyle(kRegular, kSize13, color: kTripBodyMuted),
+                children: [
+                  const TextSpan(text: 'Initiated on '),
+                  TextSpan(
+                    text: refundInitiatedAt,
+                    style: kCancelledRefundDateSB,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

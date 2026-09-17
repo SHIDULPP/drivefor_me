@@ -33,6 +33,7 @@ class TripModel {
   final double? priceMaximum;
   final String currency;
   final String paymentMethod;
+  final String paymentStatus;
   final String? driverName;
   final double? driverRating;
   final int? driverTrips;
@@ -70,6 +71,7 @@ class TripModel {
     this.priceMaximum,
     this.currency = 'INR',
     required this.paymentMethod,
+    this.paymentStatus = 'pending',
     this.driverName,
     this.driverRating,
     this.driverTrips,
@@ -144,6 +146,9 @@ class TripModel {
           ? priceEstimate['currency']?.toString() ?? 'INR'
           : 'INR',
       paymentMethod: json['paymentMethod']?.toString() ?? 'cash',
+      paymentStatus: json['paymentStatus']?.toString() ??
+          json['payment_status']?.toString() ??
+          (json['isPaid'] == true ? 'paid' : 'pending'),
       driverName: _userName(driver),
       driverRating: _userRating(driver),
       driverTrips: _userTotalTrips(driver),
@@ -472,6 +477,10 @@ class TripModel {
     };
   }
 
+  bool get isPaid => paymentStatus == 'paid' || paymentStatus == 'completed';
+
+  bool get hasRefund => isPaid;
+
   Map<String, dynamic> toCancelledDetailsArguments() {
     return {
       'tripTitle': tripTitle,
@@ -482,11 +491,13 @@ class TripModel {
       'dropoff': dropoffAddress ?? pickupAddress,
       'metaLine':
           '${formatMetaPrimary(referenceDate)}$metaRest',
-      'amountPaid': displayPrice,
-      'refundAmount': '—',
+      'amountPaid': isPaid ? displayPrice : '₹ 0',
+      'refundAmount': isPaid ? displayPrice : '—',
       'refundInitiatedAt': cancelledAt != null
           ? DateFormat('d MMMM yyyy, hh:mm a').format(cancelledAt!)
           : '—',
+      'isPaid': isPaid,
+      'hasRefund': hasRefund,
       'driverName': displayDriverName,
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
