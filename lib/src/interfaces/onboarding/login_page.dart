@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:pin_code_fields/pin_code_fields.dart'
     show PinCodeTextField, PinTheme, PinCodeFieldShape, AnimationType
 // ignore: library_prefixes
@@ -37,7 +36,6 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
   late TextEditingController _mobileController;
   late FocusNode _phoneFocusNode;
   bool _showPhoneError = false;
-  String _fullPhoneNumber = '';
 
   @override
   void initState() {
@@ -59,7 +57,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
-      backgroundColor: kLoginScreenBg,
+      backgroundColor: kWhite,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 20),
@@ -86,89 +84,109 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                               anim.AnimationType.fadeSlideInFromBottom,
                           duration: anim.AnimationDuration.normal,
                           delayMilliseconds: 200,
-                          child: Theme(
-                            data: Theme.of(context).copyWith(
-                              inputDecorationTheme: const InputDecorationTheme(
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                              ),
-                            ),
-                            child: IntlPhoneField(
-                              focusNode: _phoneFocusNode,
-                              validator: (phone) {
-                                if (!_showPhoneError) {
-                                  return null;
-                                }
-                                if (phone == null || phone.number.isEmpty) {
-                                  return 'Mobile number is required';
-                                }
-                                if (!RegExp(
-                                  r'^[0-9]+$',
-                                ).hasMatch(phone.number)) {
-                                  return 'Mobile number must contain only digits';
-                                }
-                                return null;
-                              },
-                              style: kLoginPhoneFieldR,
-                              controller: _mobileController,
-                              disableLengthCheck: true,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
-                              ],
-                              showCountryFlag: false,
-                              cursorColor: kBlack,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: kLoginScreenBg,
-                                hintText: 'Mobile Number',
-                                hintStyle: kLoginPhoneFieldR,
-                                errorStyle: kStyle(
-                                  kRegular,
-                                  kSize12,
-                                  color: kRed,
-                                ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  borderSide: const BorderSide(
-                                    color: kRed,
-                                    width: 1.5,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Fixed dial code — read-only underline field matching baseline
+                              IgnorePointer(
+                                child: SizedBox(
+                                  width: 56,
+                                  child: TextFormField(
+                                    initialValue: '+ 91',
+                                    textAlign: TextAlign.center,
+                                    style: kLoginPhoneFieldR.copyWith(
+                                      color: kTextColor,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      isDense: true,
+                                      filled: false,
+                                      fillColor: Colors.transparent,
+                                      contentPadding: EdgeInsets.zero,
+                                      border: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: kPrimaryColor,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      enabledBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: kPrimaryColor,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: kPrimaryColor,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  borderSide: const BorderSide(
-                                    color: kRed,
-                                    width: 2.0,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _mobileController,
+                                  focusNode: _phoneFocusNode,
+                                  keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10),
+                                  ],
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  validator: (value) {
+                                    if (!_showPhoneError) {
+                                      return null;
+                                    }
+                                    final number = value?.trim() ?? '';
+                                    if (number.isEmpty) {
+                                      return 'Mobile number is required';
+                                    }
+                                    if (!RegExp(r'^[0-9]+$').hasMatch(number)) {
+                                      return 'Mobile number must contain only digits';
+                                    }
+                                    if (number.length != 10) {
+                                      return 'Mobile number must be exactly 10 digits';
+                                    }
+                                    return null;
+                                  },
+                                  style: kLoginPhoneFieldR,
+                                  cursorColor: kPrimaryColor,
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    filled: false,
+                                    fillColor: Colors.transparent,
+                                    contentPadding: EdgeInsets.zero,
+                                    hintText: 'Mobile Number',
+                                    hintStyle: kLoginPhoneFieldR,
+                                    enabledBorder: const UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF9E9E9E),
+                                      ),
+                                    ),
+                                    focusedBorder: const UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: kPrimaryColor,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    errorBorder: const UnderlineInputBorder(
+                                      borderSide: BorderSide(color: kRed),
+                                    ),
+                                    focusedErrorBorder:
+                                        const UnderlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: kRed,
+                                            width: 1.5,
+                                          ),
+                                        ),
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16.0,
-                                  horizontal: 10.0,
-                                ),
                               ),
-                              onCountryChanged: (value) {
-                                ref.read(countryCodeProvider.notifier).state =
-                                    value.dialCode;
-                              },
-                              initialCountryCode: 'IN',
-                              onChanged: (phone) {
-                                _fullPhoneNumber = phone.completeNumber;
-                                setState(() {});
-                                log(
-                                  'Phone number changed: ${phone.completeNumber}',
-                                  name: 'PhoneNumberScreen',
-                                );
-                              },
-                              showDropdownIcon: false,
-                              dropdownTextStyle: kLoginPhoneFieldR,
-                            ),
+                            ],
                           ),
                         ),
                       ],
@@ -225,9 +243,8 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
       return;
     }
 
-    final phoneNumber = _fullPhoneNumber.isNotEmpty
-        ? _fullPhoneNumber
-        : '+${ref.read(countryCodeProvider)}$digits';
+    final countryCode = ref.read(countryCodeProvider) ?? '91';
+    final phoneNumber = '+$countryCode$digits';
 
     ref.read(loadingProvider.notifier).startLoading();
 
