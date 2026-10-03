@@ -257,6 +257,35 @@ class TripModel {
   bool get isDriverAssigned =>
       status == 'driver_assigned' && driverId != null && driverId!.isNotEmpty;
 
+  /// True when a driver is on the booking (including future scheduled accepts).
+  bool get hasAssignedDriver =>
+      driverId != null && driverId!.isNotEmpty;
+
+  bool get isPickupTimeReached {
+    if (pickupAt == null) return rideTime != 'scheduled';
+    final now = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+      DateTime.now().hour,
+      DateTime.now().minute,
+    );
+    final scheduled = DateTime(
+      pickupAt!.year,
+      pickupAt!.month,
+      pickupAt!.day,
+      pickupAt!.hour,
+      pickupAt!.minute,
+    );
+    return !now.isBefore(scheduled);
+  }
+
+  /// Scheduled booking that should not enter the live trip screens yet.
+  bool get isFutureScheduled =>
+      (rideTime == 'scheduled' || status == 'scheduled') &&
+      !isPickupTimeReached &&
+      !isCancelled;
+
   bool get isInProgress => status == 'in_progress';
 
   bool get isCompleted => status == 'completed';

@@ -66,7 +66,10 @@ class ScheduledTripDetailsPage extends ConsumerStatefulWidget {
 class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsPage> {
   static final _dateFormat = DateFormat('MMMM d, hh:mm a');
 
+  static const _driverPollInterval = Duration(seconds: 5);
+
   Timer? _countdownTimer;
+  Timer? _driverPollTimer;
   Duration _timeUntilPickup = Duration.zero;
 
   late bool _hasDriver;
@@ -109,6 +112,9 @@ class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsP
       _refreshCountdown();
     });
     _loadTripDriverDetails();
+    _driverPollTimer = Timer.periodic(_driverPollInterval, (_) {
+      _loadTripDriverDetails();
+    });
   }
 
   Future<void> _loadTripDriverDetails() async {
@@ -116,7 +122,9 @@ class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsP
     if (tripMongoId == null || tripMongoId.isEmpty) return;
 
     final trip = await fetchAndCacheTrip(ref, tripMongoId);
-    if (!mounted || trip == null || !trip.hasDriver) return;
+    if (!mounted || trip == null) return;
+
+    if (!trip.hasAssignedDriver && !trip.hasDriver) return;
 
     setState(() {
       _hasDriver = true;
@@ -143,6 +151,7 @@ class _ScheduledTripDetailsPageState extends ConsumerState<ScheduledTripDetailsP
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _driverPollTimer?.cancel();
     super.dispose();
   }
 

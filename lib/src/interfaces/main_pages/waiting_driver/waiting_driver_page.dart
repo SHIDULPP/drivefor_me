@@ -184,8 +184,12 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
       return;
     }
 
-    if (trip.isDriverAssigned) {
-      _goToDriverFound(trip.toDriverFoundArguments());
+    if (trip.hasAssignedDriver) {
+      if (trip.isFutureScheduled) {
+        _goToScheduledDetails(trip.toScheduledDetailsArguments());
+      } else {
+        _goToDriverFound(trip.toDriverFoundArguments());
+      }
     }
   }
 
@@ -210,6 +214,18 @@ class _WaitingDriverPageState extends ConsumerState<WaitingDriverPage>
     _progressController.stop();
     NavigationService().pushNamedReplacement(
       'driver_found',
+      arguments: arguments,
+    );
+  }
+
+  void _goToScheduledDetails(Map<String, dynamic> arguments) {
+    if (_navigatedToDriverFound || !mounted) return;
+    _navigatedToDriverFound = true;
+    _stageTimer?.cancel();
+    _pollTimer?.cancel();
+    _progressController.stop();
+    NavigationService().pushNamedReplacement(
+      'scheduled_trip_details',
       arguments: arguments,
     );
   }

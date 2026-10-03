@@ -23,12 +23,30 @@ bool isActiveTripStatus(String status) => _activeTripStatuses.contains(status);
 TripNavigationTarget? tripNavigationTarget(TripModel trip) {
   switch (trip.status) {
     case 'pending_assignment':
+      return TripNavigationTarget(
+        route: 'waiting_driver',
+        arguments: trip.toWaitingDriverArguments(),
+      );
     case 'scheduled':
+      // Driver accepted early — show scheduled details with driver info.
+      if (trip.hasAssignedDriver) {
+        return TripNavigationTarget(
+          route: 'scheduled_trip_details',
+          arguments: trip.toScheduledDetailsArguments(),
+        );
+      }
       return TripNavigationTarget(
         route: 'waiting_driver',
         arguments: trip.toWaitingDriverArguments(),
       );
     case 'driver_assigned':
+      // Legacy / edge: assigned before pickup on a scheduled ride.
+      if (trip.isFutureScheduled) {
+        return TripNavigationTarget(
+          route: 'scheduled_trip_details',
+          arguments: trip.toScheduledDetailsArguments(),
+        );
+      }
       return TripNavigationTarget(
         route: 'driver_found',
         arguments: trip.toDriverFoundArguments(),

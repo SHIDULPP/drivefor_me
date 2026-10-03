@@ -76,7 +76,7 @@ class TripScheduledPage extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
-                  "We'll assign your driver before pickup time and notify you once confirmed.",
+                  "We'll notify you when a driver accepts. Trip details stay here until the scheduled pickup time.",
                   textAlign: TextAlign.center,
                   style: kTripScheduledBodyR,
                 ),
