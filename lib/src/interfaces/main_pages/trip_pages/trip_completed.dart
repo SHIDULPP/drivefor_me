@@ -1,9 +1,14 @@
+import 'dart:async';
+
+import 'package:DriveForme/src/data/apis/trip_api.dart';
 import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:DriveForme/src/data/constants/style_constants.dart';
 import 'package:DriveForme/src/data/models/trip_model.dart';
 import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/services/trip_socket_service.dart';
 import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum TripCompletedPaymentType { online, offline }
 
@@ -38,7 +43,7 @@ Map<String, dynamic> tripPaymentArguments(TripCompletedPaymentType paymentType) 
   };
 }
 
-class TripCompletedPage extends StatefulWidget {
+class TripCompletedPage extends ConsumerStatefulWidget {
   final String tripMongoId;
   final TripCompletedPaymentType paymentType;
   final String paymentMethod;
@@ -91,14 +96,28 @@ class TripCompletedPage extends StatefulWidget {
   });
 
   @override
-  State<TripCompletedPage> createState() => _TripCompletedPageState();
+  ConsumerState<TripCompletedPage> createState() => _TripCompletedPageState();
 }
 
-class _TripCompletedPageState extends State<TripCompletedPage> {
+class _TripCompletedPageState extends ConsumerState<TripCompletedPage> {
+  static const _pollInterval = Duration(seconds: 3);
+
+  bool _waitingForCashCollection = false;
+  bool _navigatedAway = false;
+  Timer? _pollTimer;
+  TripSocketService? _tripSocket;
+
   bool get _isOnline =>
       widget.paymentType == TripCompletedPaymentType.online;
 
   bool get _isWallet => widget.paymentMethod == 'wallet';
+
+  bool get _isCash =>
+      !_isOnline &&
+      !_isWallet &&
+      (widget.paymentMethod == 'cash' ||
+          widget.paymentMethod == 'offline' ||
+          widget.paymentMethod.isEmpty);
 
   String get _paidAmount {
     if (_isOnline) {
@@ -107,27 +126,106 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
     return widget.totalAmount.replaceAll(' ', '');
   }
 
-  void _onContinue() {
-    if (widget.isRated) {
-      NavigationService().pushNamedAndRemoveUntil('thank_you');
+  Map<String, dynamic> get _ratingArgs => {
+        'tripMongoId': widget.tripMongoId,
+        'driverId': widget.driverId,
+        'driverName': widget.driverName,
+        'driverRating': widget.driverRating,
+        'driverTrips': widget.driverTrips,
+        'driverPhotoUrl': widget.driverPhotoUrl ?? '',
+        'vehicleTypes': widget.vehicleTypes,
+      };
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isCash && widget.tripMongoId.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _startCashCollectionWatch();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _stopCashCollectionWatch();
+    super.dispose();
+  }
+
+  void _startCashCollectionWatch() {
+    if (_waitingForCashCollection || widget.tripMongoId.isEmpty) return;
+
+    setState(() => _waitingForCashCollection = true);
+
+    _tripSocket = ref.read(tripSocketServiceProvider);
+    _tripSocket!
+      ..ensureConnected()
+      ..joinTripRoom(widget.tripMongoId)
+      ..listenForTripUpdated(_onTripUpdated);
+
+    _pollCashCollectionStatus();
+    _pollTimer = Timer.periodic(_pollInterval, (_) {
+      _pollCashCollectionStatus();
+    });
+  }
+
+  void _stopCashCollectionWatch() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+    final tripId = widget.tripMongoId;
+    final socket = _tripSocket;
+    if (socket != null) {
+      socket.removeTripUpdatedListener(_onTripUpdated);
+      if (tripId.isNotEmpty) {
+        socket.leaveTripRoom(tripId);
+      }
+    }
+    _tripSocket = null;
+  }
+
+  void _onTripUpdated(Map<String, dynamic> payload) {
+    final tripId = payload['_id']?.toString() ??
+        payload['id']?.toString() ??
+        payload['tripId']?.toString() ??
+        '';
+    if (tripId.isNotEmpty && tripId != widget.tripMongoId) return;
+
+    final paymentStatus = payload['paymentStatus']?.toString() ?? '';
+    final cashCollectedAt = payload['cashCollectedAt'];
+    final collected = paymentStatus == 'paid' ||
+        paymentStatus == 'completed' ||
+        cashCollectedAt != null;
+
+    if (collected) {
+      _goToPaymentCompleted();
       return;
     }
 
-    final ratingArgs = {
-      'tripMongoId': widget.tripMongoId,
-      'driverId': widget.driverId,
-      'driverName': widget.driverName,
-      'driverRating': widget.driverRating,
-      'driverTrips': widget.driverTrips,
-      'driverPhotoUrl': widget.driverPhotoUrl ?? '',
-      'vehicleTypes': widget.vehicleTypes,
-    };
+    // Socket payload may be partial — refresh from API.
+    _pollCashCollectionStatus();
+  }
 
-    if (_isWallet) {
-      NavigationService().pushNamedReplacement(
-        'driver_rating',
-        arguments: ratingArgs,
-      );
+  Future<void> _pollCashCollectionStatus() async {
+    if (_navigatedAway || !mounted || widget.tripMongoId.isEmpty) return;
+
+    final response =
+        await ref.read(tripApiProvider).getTripById(widget.tripMongoId);
+    if (!mounted || _navigatedAway) return;
+    if (!response.success || response.data == null) return;
+
+    if (response.data!.isPaymentCollected) {
+      _goToPaymentCompleted();
+    }
+  }
+
+  void _goToPaymentCompleted() {
+    if (_navigatedAway || !mounted) return;
+    _navigatedAway = true;
+    _stopCashCollectionWatch();
+
+    if (widget.isRated) {
+      NavigationService().pushNamedAndRemoveUntil('thank_you');
       return;
     }
 
@@ -135,13 +233,83 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
       'payment_completed',
       arguments: {
         'paidAmount': _paidAmount,
-        ...ratingArgs,
+        ..._ratingArgs,
+      },
+    );
+  }
+
+  Future<void> _onContinue() async {
+    if (_navigatedAway) return;
+
+    if (widget.isRated) {
+      NavigationService().pushNamedAndRemoveUntil('thank_you');
+      return;
+    }
+
+    if (_isWallet) {
+      NavigationService().pushNamedReplacement(
+        'driver_rating',
+        arguments: _ratingArgs,
+      );
+      return;
+    }
+
+    // Cash: Payment Completed only after the driver marks cash as collected.
+    if (_isCash) {
+      if (widget.tripMongoId.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Trip id missing. Please reopen the trip.'),
+          ),
+        );
+        return;
+      }
+
+      final response =
+          await ref.read(tripApiProvider).getTripById(widget.tripMongoId);
+      if (!mounted || _navigatedAway) return;
+
+      if (response.success &&
+          response.data != null &&
+          response.data!.isPaymentCollected) {
+        _goToPaymentCompleted();
+        return;
+      }
+
+      if (!_waitingForCashCollection) {
+        _startCashCollectionWatch();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Waiting for the driver to confirm cash collection.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Online / other: keep existing post-trip acknowledgement flow.
+    NavigationService().pushNamedReplacement(
+      'payment_completed',
+      arguments: {
+        'paidAmount': _paidAmount,
+        ..._ratingArgs,
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final continueLabel = _isWallet
+        ? 'Continue'
+        : (_isOnline
+            ? 'Pay ${widget.remainingDue}'
+            : (_waitingForCashCollection
+                ? 'Waiting for driver…'
+                : 'Continue'));
+
     return Scaffold(
       backgroundColor: kScreenBg,
       body: SafeArea(
@@ -174,6 +342,32 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
                 textAlign: TextAlign.center,
                 style: kBookingConfirmedSubtitleR,
               ),
+              if (_isCash) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: _waitingForCashCollection
+                        ? const Color(0xFFFFF3E8)
+                        : kActiveGreenBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _waitingForCashCollection
+                        ? 'Please pay the driver in cash. Waiting for the driver to mark payment as collected…'
+                        : 'Please pay the driver in cash. Payment Completed will appear after the driver confirms collection.',
+                    textAlign: TextAlign.center,
+                    style: kStyle(
+                      kSemiBold,
+                      kSize14,
+                      color: _waitingForCashCollection
+                          ? const Color(0xFFC6934B)
+                          : kActiveGreen,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 22),
               _TripTypePill(label: widget.tripTypeLabel),
               const SizedBox(height: 18),
@@ -219,9 +413,7 @@ class _TripCompletedPageState extends State<TripCompletedPage> {
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(24, 0, 24, 16),
         child: primaryButton(
-          label: _isWallet
-              ? 'Continue'
-              : (_isOnline ? 'Pay ${widget.remainingDue}' : 'Continue'),
+          label: continueLabel,
           onPressed: _onContinue,
           buttonColor: kTripCtaBlue,
           buttonHeight: 58,

@@ -34,6 +34,7 @@ class TripModel {
   final String currency;
   final String paymentMethod;
   final String paymentStatus;
+  final DateTime? cashCollectedAt;
   final String? driverName;
   final double? driverRating;
   final int? driverTrips;
@@ -72,6 +73,7 @@ class TripModel {
     this.currency = 'INR',
     required this.paymentMethod,
     this.paymentStatus = 'pending',
+    this.cashCollectedAt,
     this.driverName,
     this.driverRating,
     this.driverTrips,
@@ -149,6 +151,7 @@ class TripModel {
       paymentStatus: json['paymentStatus']?.toString() ??
           json['payment_status']?.toString() ??
           (json['isPaid'] == true ? 'paid' : 'pending'),
+      cashCollectedAt: _parseDate(json['cashCollectedAt']),
       driverName: _userName(driver),
       driverRating: _userRating(driver),
       driverTrips: _userTotalTrips(driver),
@@ -209,6 +212,18 @@ class TripModel {
   bool get isCancelled => status == 'cancelled';
 
   bool get isWalletPayment => paymentMethod == 'wallet';
+
+  bool get isCashPayment =>
+      paymentMethod == 'cash' || paymentMethod == 'offline';
+
+  /// Cash is paid only after the driver confirms "Mark as Collected".
+  bool get isPaymentCollected =>
+      paymentStatus == 'paid' ||
+      paymentStatus == 'completed' ||
+      cashCollectedAt != null;
+
+  bool get isAwaitingCashCollection =>
+      isCashPayment && isCompleted && !isPaymentCollected;
 
   String get displayTripId =>
       tripNumber.isNotEmpty ? '# $tripNumber' : '# ${id.substring(0, 8)}';
@@ -477,7 +492,7 @@ class TripModel {
     };
   }
 
-  bool get isPaid => paymentStatus == 'paid' || paymentStatus == 'completed';
+  bool get isPaid => isPaymentCollected;
 
   bool get hasRefund => isPaid;
 
