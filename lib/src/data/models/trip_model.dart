@@ -25,6 +25,7 @@ class TripModel {
   final String? estimatedDurationLabel;
   final int durationValue;
   final String durationUnit;
+  final int additionalHours;
   final DateTime? pickupAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -72,6 +73,7 @@ class TripModel {
     this.estimatedDurationLabel,
     required this.durationValue,
     required this.durationUnit,
+    this.additionalHours = 0,
     this.pickupAt,
     this.startedAt,
     this.completedAt,
@@ -151,6 +153,9 @@ class TripModel {
       durationUnit: tripDetails is Map
           ? tripDetails['durationUnit']?.toString() ?? 'hours'
           : 'hours',
+      additionalHours: tripDetails is Map
+          ? (tripDetails['additionalHours'] as num?)?.toInt() ?? 0
+          : 0,
       pickupAt: tripDetails is Map ? _parseDate(tripDetails['pickupAt']) : null,
       startedAt: timeline is Map ? _parseDate(timeline['startedAt']) : null,
       completedAt: timeline is Map ? _parseDate(timeline['completedAt']) : null,
@@ -342,6 +347,16 @@ class TripModel {
   }
 
   String get durationLabel {
+    if (durationUnit == 'custom') {
+      final dayPart = durationValue == 1 ? '1 Day' : '$durationValue Days';
+      final hourPart =
+          additionalHours == 1 ? '1 Hour' : '$additionalHours Hours';
+      if (durationValue > 0 && additionalHours > 0) {
+        return '$dayPart • $hourPart';
+      }
+      if (durationValue > 0) return dayPart;
+      return hourPart;
+    }
     if (estimatedDurationLabel != null && estimatedDurationLabel!.isNotEmpty) {
       return estimatedDurationLabel!;
     }

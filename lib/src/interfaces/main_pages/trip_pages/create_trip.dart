@@ -256,6 +256,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
             'tripDirection': isOneWay ? 'one_way' : 'round_trip',
             'durationValue': duration.data!['durationValue'],
             'durationUnit': duration.data!['durationUnit'],
+            if (duration.data!['additionalHours'] != null)
+              'additionalHours': duration.data!['additionalHours'],
             'pickupLocation': _pickupLocation.toJson(),
             if (_dropoffLocation != null)
               'dropoffLocation': _dropoffLocation!.toJson(),
@@ -1796,6 +1798,8 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       'rideTime': isRideNow ? 'now' : 'scheduled',
       'durationValue': duration.data!['durationValue'],
       'durationUnit': duration.data!['durationUnit'],
+      if (duration.data!['additionalHours'] != null)
+        'additionalHours': duration.data!['additionalHours'],
       'vehicleId': _selectedVehicle!.id,
       'assignmentType': 'auto_assign',
       'source': 'user_app',
@@ -1835,16 +1839,26 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
     }
 
     if (selectedHour == -1) {
+      // Custom picker can set days and/or hours (e.g. 1 day + 13 hrs).
+      if (customDays > 0 && customHours > 0) {
+        return ApiResponse.success({
+          'durationValue': customDays,
+          'durationUnit': 'custom',
+          'additionalHours': customHours,
+        });
+      }
       if (customDays > 0) {
         return ApiResponse.success({
           'durationValue': customDays,
           'durationUnit': 'days',
+          'additionalHours': 0,
         });
       }
       if (customHours >= 8) {
         return ApiResponse.success({
           'durationValue': customHours,
           'durationUnit': 'hours',
+          'additionalHours': 0,
         });
       }
       return ApiResponse.error(
@@ -1865,8 +1879,10 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
   ApiResponse<Map<String, dynamic>> _resolveOvernightStay(
     Map<String, dynamic> resolvedDuration,
   ) {
-    final isDayBasedLongTrip =
-        !isShortTrip && resolvedDuration['durationUnit'] == 'days';
+    final unit = resolvedDuration['durationUnit']?.toString();
+    final days = (resolvedDuration['durationValue'] as num?)?.toInt() ?? 0;
+    final isDayBasedLongTrip = !isShortTrip &&
+        (unit == 'days' || (unit == 'custom' && days >= 1));
     final overnightRequired = isDayBasedLongTrip && isOvernightStay == true;
 
     if (!overnightRequired) {

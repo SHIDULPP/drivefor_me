@@ -12,11 +12,20 @@ class TripFareService {
     final tripType = payload['tripType']?.toString();
     final durationValue = _toInt(payload['durationValue']);
     final durationUnit = payload['durationUnit']?.toString() ?? 'hours';
+    final additionalHours = _toInt(payload['additionalHours']) ?? 0;
     final overnightStay = payload['overnightStay'] as Map<String, dynamic>? ??
         const {'required': false};
     final tripProtection = payload['tripProtection'] as Map<String, dynamic>?;
 
-    if (tripType == null || durationValue == null || durationValue < 1) {
+    if (tripType == null || durationValue == null) {
+      return null;
+    }
+    if (durationUnit != 'custom' && durationValue < 1) {
+      return null;
+    }
+    if (durationUnit == 'custom' &&
+        durationValue < 1 &&
+        additionalHours < 1) {
       return null;
     }
 
@@ -26,6 +35,7 @@ class TripFareService {
       tripType: tripType,
       durationValue: durationValue,
       durationUnit: durationUnit,
+      additionalHours: additionalHours,
       overnightStay: overnightStay,
       pickupAt: pickupAt,
     );
@@ -70,6 +80,7 @@ class TripFareService {
     required String tripType,
     required int durationValue,
     required String durationUnit,
+    int additionalHours = 0,
     required Map<String, dynamic> overnightStay,
     required DateTime pickupAt,
   }) {
@@ -87,6 +98,20 @@ class TripFareService {
       if (durationValue > baseHrs) {
         packageAdditionalCharge =
             (durationValue - baseHrs) * settings.shortTripAdditionalHourlyRate;
+      }
+    } else if (durationUnit == 'custom') {
+      // UI "1 day + 13 hrs" = 37 hours planned — long-trip hours formula.
+      // perDayRate covers first 12h; remaining hours × additionalHourlyRate.
+      // (Extra Time at trip end is actual − this planned expected, not the 13h.)
+      final totalHours = durationValue * 24 + additionalHours;
+      baseFare = settings.longTripPerDayRate;
+      if (totalHours > 12) {
+        packageAdditionalCharge =
+            (totalHours - 12) * settings.longTripAdditionalHourlyRate;
+      }
+      if (overnightStay['required'] == true && durationValue >= 1) {
+        final nights = _toInt(overnightStay['nights']) ?? 0;
+        stayAllowanceCharge = nights * settings.longTripStayAllowance;
       }
     } else if (durationUnit == 'days') {
       baseFare = durationValue * settings.longTripPerDayRate;
