@@ -45,6 +45,9 @@ class TripFareService {
       cashTotal: customerTotal,
       payOnlineTotal: customerTotal,
       baseFare: fare.baseFare,
+      // Runtime Extra Time (actual vs maps ETA) is unknown at booking.
+      extraTimeCharge: 0,
+      extraHours: 0,
       tripProtectionFee: protectionFee,
       gstAmount: fare.gstAmount,
     );
@@ -72,15 +75,18 @@ class TripFareService {
   }) {
     final isShort = tripType == 'short_trip';
     var baseFare = 0.0;
-    var extraTimeCharge = 0.0;
+    var packageAdditionalCharge = 0.0;
     var stayAllowanceCharge = 0.0;
 
     if (isShort) {
+      // Flat minimum charge for ~10 min through baseDurationHrs (default 4h).
+      // Not "rate × hours" inside that window.
       baseFare = settings.shortTripBaseHourlyRate;
-      if (durationValue > settings.shortTripBaseDurationHrs) {
-        extraTimeCharge =
-            (durationValue - settings.shortTripBaseDurationHrs) *
-            settings.shortTripAdditionalHourlyRate;
+      final baseHrs = settings.shortTripBaseDurationHrs.toInt();
+      // Booked hours beyond the minimum window only.
+      if (durationValue > baseHrs) {
+        packageAdditionalCharge =
+            (durationValue - baseHrs) * settings.shortTripAdditionalHourlyRate;
       }
     } else if (durationUnit == 'days') {
       baseFare = durationValue * settings.longTripPerDayRate;
@@ -91,12 +97,13 @@ class TripFareService {
     } else {
       baseFare = settings.longTripPerDayRate;
       if (durationValue > 12) {
-        extraTimeCharge =
+        packageAdditionalCharge =
             (durationValue - 12) * settings.longTripAdditionalHourlyRate;
       }
     }
 
-    final subtotal = baseFare + extraTimeCharge + stayAllowanceCharge;
+    final packageLabor = baseFare + packageAdditionalCharge;
+    final subtotal = packageLabor + stayAllowanceCharge;
     var oddHoursCharge = 0.0;
 
     if (settings.oddHoursEnabled) {
@@ -113,7 +120,9 @@ class TripFareService {
     final totalFare = subtotalWithTime + gstAmount;
 
     return _FareBreakdown(
-      baseFare: baseFare,
+      baseFare: packageLabor,
+      extraTimeCharge: 0,
+      extraHours: 0,
       gstAmount: gstAmount,
       totalFare: totalFare,
     );
@@ -135,11 +144,15 @@ class TripFareService {
 
 class _FareBreakdown {
   final double baseFare;
+  final double extraTimeCharge;
+  final int extraHours;
   final double gstAmount;
   final double totalFare;
 
   const _FareBreakdown({
     required this.baseFare,
+    required this.extraTimeCharge,
+    required this.extraHours,
     required this.gstAmount,
     required this.totalFare,
   });

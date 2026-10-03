@@ -7,6 +7,8 @@ class TripPriceEstimateModel {
   final double cashTotal;
   final double payOnlineTotal;
   final double baseFare;
+  final double extraTimeCharge;
+  final int extraHours;
   final double tripProtectionFee;
   final double gstAmount;
 
@@ -19,6 +21,8 @@ class TripPriceEstimateModel {
     required this.cashTotal,
     required this.payOnlineTotal,
     this.baseFare = 0,
+    this.extraTimeCharge = 0,
+    this.extraHours = 0,
     this.tripProtectionFee = 0,
     this.gstAmount = 0,
   });
@@ -40,6 +44,8 @@ class TripPriceEstimateModel {
       cashTotal: _toDouble(paymentTotals['cash']) ?? minimum,
       payOnlineTotal: _toDouble(paymentTotals['pay_online']) ?? minimum,
       baseFare: _toDouble(breakdown['baseFare']) ?? 0,
+      extraTimeCharge: _toDouble(breakdown['extraTimeCharge']) ?? 0,
+      extraHours: (breakdown['extraHours'] as num?)?.toInt() ?? 0,
       tripProtectionFee: _toDouble(breakdown['tripProtectionFee']) ?? 0,
       gstAmount: _toDouble(breakdown['gstAmount']) ?? 0,
     );

@@ -35,6 +35,14 @@ class TripModel {
   final String paymentMethod;
   final String paymentStatus;
   final DateTime? cashCollectedAt;
+  final double? paymentTotalFare;
+  final double? paymentPackageFare;
+  final double? paymentBaseFare;
+  final double? paymentExtraTimeCharge;
+  final int paymentExtraHours;
+  final int paymentOvertimeMinutes;
+  final int paymentExpectedDurationMinutes;
+  final double? paymentOtherCharge;
   final String? driverName;
   final double? driverRating;
   final int? driverTrips;
@@ -74,6 +82,14 @@ class TripModel {
     required this.paymentMethod,
     this.paymentStatus = 'pending',
     this.cashCollectedAt,
+    this.paymentTotalFare,
+    this.paymentPackageFare,
+    this.paymentBaseFare,
+    this.paymentExtraTimeCharge,
+    this.paymentExtraHours = 0,
+    this.paymentOvertimeMinutes = 0,
+    this.paymentExpectedDurationMinutes = 0,
+    this.paymentOtherCharge,
     this.driverName,
     this.driverRating,
     this.driverTrips,
@@ -98,6 +114,7 @@ class TripModel {
     final timeline = json['timeline'];
     final priceEstimate = tripDetails is Map ? tripDetails['priceEstimate'] : null;
     final vehicleDetails = json['vehicleDetails'];
+    final payment = _asMap(json['payment']);
     final driver = _resolveDriver(json);
     final rating = json['rating'];
     final ratingMap = rating is Map ? Map<String, dynamic>.from(rating) : null;
@@ -152,6 +169,16 @@ class TripModel {
           json['payment_status']?.toString() ??
           (json['isPaid'] == true ? 'paid' : 'pending'),
       cashCollectedAt: _parseDate(json['cashCollectedAt']),
+      paymentTotalFare: _toDouble(payment?['totalFare']),
+      paymentPackageFare: _toDouble(payment?['packageFare']),
+      paymentBaseFare: _toDouble(payment?['baseFare']),
+      paymentExtraTimeCharge: _toDouble(payment?['extraTimeCharge']),
+      paymentExtraHours: (payment?['extraHours'] as num?)?.toInt() ?? 0,
+      paymentOvertimeMinutes:
+          (payment?['overtimeMinutes'] as num?)?.toInt() ?? 0,
+      paymentExpectedDurationMinutes:
+          (payment?['expectedDurationMinutes'] as num?)?.toInt() ?? 0,
+      paymentOtherCharge: _toDouble(payment?['otherCharge']),
       driverName: _userName(driver),
       driverRating: _userRating(driver),
       driverTrips: _userTotalTrips(driver),
@@ -235,9 +262,61 @@ class TripModel {
   String get tripTypeChipLabel => isLongTrip ? 'LONG TRIP' : 'SHORT TRIP';
 
   String get displayPrice {
-    final amount = priceMinimum ?? priceMaximum;
+    final amount = paymentTotalFare ?? priceMinimum ?? priceMaximum;
     if (amount == null) return '—';
-    return '₹ ${amount.toStringAsFixed(0)}';
+    return _formatInr(amount);
+  }
+
+  /// Package fare (maps/booking estimate) — excludes runtime Extra Time.
+  String get tripFareDisplay {
+    final amount = paymentPackageFare ??
+        (paymentTotalFare != null && paymentExtraTimeCharge != null
+            ? paymentTotalFare! - paymentExtraTimeCharge!
+            : null) ??
+        priceMinimum ??
+        priceMaximum;
+    if (amount == null) return '—';
+    return _formatInr(amount);
+  }
+
+  String get baseFareDisplay => tripFareDisplay;
+
+  String get extraTimeAmountDisplay {
+    final amount = paymentExtraTimeCharge ?? 0;
+    if (amount <= 0) return '—';
+    return _formatInr(amount);
+  }
+
+  /// Actual overtime label (e.g. "1 hr 40 min"), not billable ceil hours.
+  String get extraTimeDurationDisplay {
+    if (paymentOvertimeMinutes <= 0 && paymentExtraHours <= 0) return '—';
+    if (paymentOvertimeMinutes > 0) {
+      return _formatDurationMinutes(paymentOvertimeMinutes);
+    }
+    return paymentExtraHours == 1 ? '1 hr' : '$paymentExtraHours hrs';
+  }
+
+  String get expectedDurationDisplay {
+    if (paymentExpectedDurationMinutes > 0) {
+      return _formatDurationMinutes(paymentExpectedDurationMinutes);
+    }
+    return durationLabel;
+  }
+
+  String get totalAmountDisplay {
+    final amount = paymentTotalFare ?? priceMinimum ?? priceMaximum;
+    if (amount == null) return '—';
+    return _formatInr(amount);
+  }
+
+  static String _formatInr(double amount) => '₹ ${amount.toStringAsFixed(0)}';
+
+  static String _formatDurationMinutes(int minutes) {
+    if (minutes < 60) return '$minutes min';
+    final hours = minutes ~/ 60;
+    final remaining = minutes % 60;
+    if (remaining == 0) return hours == 1 ? '1 hr' : '$hours hrs';
+    return '$hours hr $remaining min';
   }
 
   String get vehicleTypesLabel {
@@ -384,6 +463,8 @@ class TripModel {
   }
 
   Map<String, dynamic> toTripCompletedArguments() {
+    final total = totalAmountDisplay;
+
     return {
       'tripMongoId': id,
       'paymentType': paymentTypeKey,
@@ -391,16 +472,16 @@ class TripModel {
       'tripTypeLabel': isLongTrip ? 'Long Trip' : 'Short Trip',
       'destinationName': dropoffAddress ?? pickupAddress,
       'destinationAddress': dropoffAddress ?? pickupAddress,
-      'totalFare': displayPrice,
-      'prepaidAmount': displayPrice,
-      'prepaidDuration': durationLabel,
-      'tripFare': displayPrice,
-      'tripDuration': durationLabel,
-      'extraTimeAmount': '—',
-      'extraTimeDuration': '—',
-      'remainingDue': displayPrice,
+      'totalFare': total,
+      'prepaidAmount': tripFareDisplay,
+      'prepaidDuration': expectedDurationDisplay,
+      'tripFare': tripFareDisplay,
+      'tripDuration': expectedDurationDisplay,
+      'extraTimeAmount': extraTimeAmountDisplay,
+      'extraTimeDuration': extraTimeDurationDisplay,
+      'remainingDue': total,
       'remainingDuration': '—',
-      'totalAmount': displayPrice,
+      'totalAmount': total,
       'driverId': driverId ?? '',
       'driverName': displayDriverName,
       'driverPhone': driverPhone ?? '',
@@ -479,11 +560,11 @@ class TripModel {
       'dropoff': dropoffAddress ?? pickupAddress,
       'metaLine':
           '${formatMetaPrimary(referenceDate)}$metaRest',
-      'tripFare': displayPrice,
-      'tripFareDurationLabel': durationLabel,
-      'extraTimeFare': '—',
-      'extraTimeDurationLabel': '—',
-      'totalPaid': displayPrice,
+      'tripFare': tripFareDisplay,
+      'tripFareDurationLabel': expectedDurationDisplay,
+      'extraTimeFare': extraTimeAmountDisplay,
+      'extraTimeDurationLabel': extraTimeDurationDisplay,
+      'totalPaid': totalAmountDisplay,
       'driverName': displayDriverName,
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
