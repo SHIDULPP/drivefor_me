@@ -29,13 +29,14 @@ class _TripsPageState extends ConsumerState<TripsPage> {
   }
 
   Future<void> _loadTrips() async {
+    final requestedTab = _selectedTab;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     final api = ref.read(tripApiProvider);
-    final response = switch (_selectedTab) {
+    final response = switch (requestedTab) {
       0 => await api.listOngoingTrips(),
       1 => await api.listUpcomingTrips(),
       2 => await api.listCompletedTrips(),
@@ -44,6 +45,8 @@ class _TripsPageState extends ConsumerState<TripsPage> {
     };
 
     if (!mounted) return;
+    // Ignore stale responses after the user switched tabs.
+    if (requestedTab != _selectedTab) return;
 
     setState(() {
       _isLoading = false;
@@ -52,7 +55,17 @@ class _TripsPageState extends ConsumerState<TripsPage> {
         _errorMessage = response.message ?? 'Failed to load trips.';
         return;
       }
-      _trips = response.data!;
+      final trips = response.data!;
+      // Defense-in-depth: never mix cancelled trips into Upcoming/Ongoing.
+      _trips = switch (requestedTab) {
+        0 => trips.where((t) => t.isInProgress).toList(),
+        1 => trips
+            .where((t) => !t.isCancelled && !t.isCompleted && !t.isInProgress)
+            .toList(),
+        2 => trips.where((t) => t.isCompleted).toList(),
+        3 => trips.where((t) => t.isCancelled).toList(),
+        _ => trips,
+      };
     });
   }
 

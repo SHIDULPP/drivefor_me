@@ -52,14 +52,8 @@ class TripApi {
   }
 
   Future<ApiResponse<List<TripModel>>> listUpcomingTrips() async {
-    final response = await _listTrips(
-      queryParams: {
-        'statuses':
-            'pre_booked,awaiting_pre_auth_window,requires_admin_call,'
-            'call_completed_pending_auth,pre_authorized,confirmed,'
-            'pending_assignment,driver_assigned,scheduled',
-      },
-    );
+    // Backend `status=upcoming` maps to non-terminal booking statuses only.
+    final response = await _listTrips(status: 'upcoming');
 
     if (!response.success) {
       return ApiResponse.error(
@@ -69,6 +63,8 @@ class TripApi {
     }
 
     final trips = List<TripModel>.from(response.data ?? const [])
+        .where((trip) => !trip.isCancelled && !trip.isCompleted)
+        .toList()
       ..sort((a, b) {
         final aDate = a.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         final bDate = b.pickupAt ?? DateTime.fromMillisecondsSinceEpoch(0);
