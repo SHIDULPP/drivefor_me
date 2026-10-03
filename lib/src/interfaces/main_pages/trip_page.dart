@@ -4,6 +4,7 @@ import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:DriveForme/src/data/constants/style_constants.dart';
 import 'package:DriveForme/src/data/models/trip_model.dart';
 import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/utils/trip_lifecycle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -163,7 +164,10 @@ class _TripsPageState extends ConsumerState<TripsPage> {
               );
             },
             onBookAgain: () {
-              NavigationService().pushNamed('create_trip');
+              navigateToCreateTripIfAllowed(
+                context: context,
+                ref: ref,
+              );
             },
           ),
           _ => const SizedBox.shrink(),

@@ -1,10 +1,68 @@
 import 'package:DriveForme/src/data/apis/trip_api.dart';
 import 'package:DriveForme/src/data/models/trip_model.dart';
 import 'package:DriveForme/src/data/providers/active_trip_provider.dart';
+import 'package:DriveForme/src/data/providers/nav_provider.dart';
 import 'package:DriveForme/src/data/services/navigation_services.dart';
 import 'package:DriveForme/src/data/services/secure_storage_service.dart';
+import 'package:DriveForme/src/data/utils/trip_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Opens create-trip only when the owner has no active booking.
+/// Returns `true` if navigation happened.
+Future<bool> navigateToCreateTripIfAllowed({
+  required BuildContext context,
+  WidgetRef? ref,
+}) async {
+  final tripApi = ref != null
+      ? ref.read(tripApiProvider)
+      : ProviderScope.containerOf(context).read(tripApiProvider);
+  final response = await tripApi.findActiveOwnerTrip();
+  if (!context.mounted) return false;
+
+  if (!response.success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          response.message ?? 'Unable to verify your active trips.',
+        ),
+      ),
+    );
+    return false;
+  }
+
+  final activeTrip = response.data;
+  if (activeTrip != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'You already have an active trip (${activeTrip.tripNumber.isNotEmpty ? activeTrip.tripNumber : activeTrip.displayTripId}). '
+          'Complete or cancel it before booking a new one.',
+        ),
+        action: SnackBarAction(
+          label: 'View',
+          onPressed: () {
+            final target = tripNavigationTarget(activeTrip);
+            if (target != null) {
+              NavigationService().pushNamed(
+                target.route,
+                arguments: target.arguments,
+              );
+              return;
+            }
+            final container = ProviderScope.containerOf(context);
+            container.read(selectedIndexProvider.notifier).updateIndex(1);
+            NavigationService().resetToNavbar();
+          },
+        ),
+      ),
+    );
+    return false;
+  }
+
+  NavigationService().pushNamed('create_trip');
+  return true;
+}
 
 String _formatChargeAmount(num? amount) {
   final value = (amount ?? 0).toDouble();

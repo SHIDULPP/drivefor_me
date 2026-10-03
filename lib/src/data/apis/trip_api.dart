@@ -26,10 +26,38 @@ class TripApi {
     return _listTrips(status: 'cancelled');
   }
 
+  /// Any non-completed / non-cancelled trip that blocks a new booking.
+  static const activeOwnerTripStatuses =
+      'pre_booked,awaiting_pre_auth_window,requires_admin_call,'
+      'call_completed_pending_auth,pre_authorized,confirmed,'
+      'pending_assignment,driver_assigned,scheduled,in_progress';
+
+  Future<ApiResponse<TripModel?>> findActiveOwnerTrip() async {
+    final response = await _listTrips(
+      queryParams: {'statuses': activeOwnerTripStatuses},
+    );
+
+    if (!response.success) {
+      return ApiResponse.error(
+        response.message ?? 'Failed to check active trips.',
+        response.statusCode,
+      );
+    }
+
+    final trips = response.data ?? const <TripModel>[];
+    if (trips.isEmpty) {
+      return ApiResponse.success(null, response.statusCode);
+    }
+    return ApiResponse.success(trips.first, response.statusCode);
+  }
+
   Future<ApiResponse<List<TripModel>>> listUpcomingTrips() async {
     final response = await _listTrips(
       queryParams: {
-        'statuses': 'pending_assignment,driver_assigned,scheduled',
+        'statuses':
+            'pre_booked,awaiting_pre_auth_window,requires_admin_call,'
+            'call_completed_pending_auth,pre_authorized,confirmed,'
+            'pending_assignment,driver_assigned,scheduled',
       },
     );
 

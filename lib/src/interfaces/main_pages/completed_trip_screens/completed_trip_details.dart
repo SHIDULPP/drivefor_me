@@ -2,6 +2,7 @@ import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:DriveForme/src/data/constants/style_constants.dart';
 import 'package:DriveForme/src/data/models/trip_model.dart';
 import 'package:DriveForme/src/data/services/navigation_services.dart';
+import 'package:DriveForme/src/data/utils/trip_lifecycle.dart';
 import 'package:DriveForme/src/interfaces/main_pages/trip_pages/driver_rating.dart';
 import 'package:flutter/material.dart';
 
@@ -176,7 +177,7 @@ class CompletedTripDetailsPage extends StatelessWidget {
                     fillColor: AppColors.fillBlueGrey,
                     textColor: kTripCtaBlue,
                     onPressed: () {
-                      NavigationService().pushNamed('create_trip');
+                      navigateToCreateTripIfAllowed(context: context);
                     },
                   ),
                 ),

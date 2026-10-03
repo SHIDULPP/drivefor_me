@@ -6,6 +6,7 @@ import 'package:DriveForme/src/data/providers/user_provider.dart';
 import 'package:DriveForme/src/data/providers/notification_provider.dart';
 import 'package:DriveForme/src/data/services/navigation_services.dart';
 import 'package:DriveForme/src/data/utils/phone_launcher.dart';
+import 'package:DriveForme/src/data/utils/trip_lifecycle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -319,7 +320,7 @@ class _BookingCard extends StatelessWidget {
                     SizedBox(height: cardWidth * (14 / 342)),
                     GestureDetector(
                       onTap: () {
-                        NavigationService().pushNamed('create_trip');
+                        navigateToCreateTripIfAllowed(context: context);
                       },
                       child: Container(
                         height: searchHeight,

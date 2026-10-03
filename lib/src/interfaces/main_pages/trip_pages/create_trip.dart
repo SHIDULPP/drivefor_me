@@ -1670,6 +1670,21 @@ class _CreateTripPageState extends ConsumerState<CreateTripPage> {
       return;
     }
 
+    final activeCheck = await ref.read(tripApiProvider).findActiveOwnerTrip();
+    if (!mounted) return;
+    if (!activeCheck.success) {
+      _showError(activeCheck.message ?? 'Unable to verify your active trips.');
+      return;
+    }
+    final activeTrip = activeCheck.data;
+    if (activeTrip != null) {
+      _showError(
+        'You already have an active trip (${activeTrip.tripNumber.isNotEmpty ? activeTrip.tripNumber : activeTrip.displayTripId}). '
+        'Complete or cancel it before booking a new one.',
+      );
+      return;
+    }
+
     final payloadResult = _buildTripPayload(userResponse.data!.userId);
     if (!payloadResult.success || payloadResult.data == null) {
       _showError(payloadResult.message ?? 'Please review trip details.');
