@@ -58,6 +58,10 @@ class TripModel {
   final int? ratingStars;
   final String? ratingComment;
   final List<String> feedbackTags;
+  final double cancellationChargeAmount;
+  final double cancellationCompensationAmount;
+  final String? cancellationChargeMessage;
+  final String? cancellationChargeStage;
 
   const TripModel({
     required this.id,
@@ -106,6 +110,10 @@ class TripModel {
     this.ratingStars,
     this.ratingComment,
     this.feedbackTags = const [],
+    this.cancellationChargeAmount = 0,
+    this.cancellationCompensationAmount = 0,
+    this.cancellationChargeMessage,
+    this.cancellationChargeStage,
   });
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
@@ -120,6 +128,7 @@ class TripModel {
     final driver = _resolveDriver(json);
     final rating = json['rating'];
     final ratingMap = rating is Map ? Map<String, dynamic>.from(rating) : null;
+    final charges = _resolveCancellationCharges(json);
 
     return TripModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
@@ -214,8 +223,19 @@ class TripModel {
               .map((e) => e.toString())
               .toList()
           : const [],
+      cancellationChargeAmount:
+          _toDouble(charges?['customerChargeAmount']) ?? 0,
+      cancellationCompensationAmount:
+          _toDouble(charges?['driverCompensationAmount']) ?? 0,
+      cancellationChargeMessage: charges?['message']?.toString(),
+      cancellationChargeStage: charges?['stage']?.toString(),
     );
   }
+
+  bool get hasCancellationCharge => cancellationChargeAmount > 0;
+
+  String get cancellationChargeDisplay =>
+      hasCancellationCharge ? _formatInr(cancellationChargeAmount) : '₹ 0';
 
   bool get isLongTrip => tripType == 'long_trip';
   bool get isOneWay => tripDirection == 'one_way';
@@ -609,6 +629,9 @@ class TripModel {
           : '—',
       'isPaid': isPaid,
       'hasRefund': hasRefund,
+      'cancellationCharge': cancellationChargeDisplay,
+      'hasCancellationCharge': hasCancellationCharge,
+      'cancellationChargeMessage': cancellationChargeMessage ?? '',
       'driverName': displayDriverName,
       'driverRating': driverRating ?? 5.0,
       'driverTrips': driverTrips ?? 0,
@@ -616,6 +639,15 @@ class TripModel {
       'vehicleTypes': vehicleTypesLabel,
       'hasDriver': hasDriver,
     };
+  }
+
+  static Map<String, dynamic>? _resolveCancellationCharges(
+    Map<String, dynamic> json,
+  ) {
+    final topLevel = _asMap(json['cancellationCharges']);
+    if (topLevel != null) return topLevel;
+    final cancellation = _asMap(json['cancellation']);
+    return _asMap(cancellation?['charges']);
   }
 
   static Map<String, dynamic>? _asMap(dynamic value) {

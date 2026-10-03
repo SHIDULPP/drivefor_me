@@ -228,6 +228,12 @@ Route<dynamic> generateRoute(RouteSettings? settings) {
             cancelledDetailsArgs?['refundInitiatedAt'] as String? ?? '—',
         isPaid: cancelledDetailsArgs?['isPaid'] == true,
         hasRefund: cancelledDetailsArgs?['hasRefund'] == true,
+        cancellationCharge:
+            cancelledDetailsArgs?['cancellationCharge'] as String? ?? '₹ 0',
+        hasCancellationCharge:
+            cancelledDetailsArgs?['hasCancellationCharge'] == true,
+        cancellationChargeMessage:
+            cancelledDetailsArgs?['cancellationChargeMessage'] as String? ?? '',
         driverName: TripModel.resolveDriverName(
           cancelledDetailsArgs?['driverName'] as String?,
         ),

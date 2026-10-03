@@ -17,6 +17,9 @@ class CancelledTripDetailsPage extends StatelessWidget {
   final String refundInitiatedAt;
   final bool isPaid;
   final bool hasRefund;
+  final String cancellationCharge;
+  final bool hasCancellationCharge;
+  final String cancellationChargeMessage;
   final String driverName;
   final double driverRating;
   final int driverTrips;
@@ -38,6 +41,9 @@ class CancelledTripDetailsPage extends StatelessWidget {
     this.refundInitiatedAt = '—',
     this.isPaid = false,
     this.hasRefund = false,
+    this.cancellationCharge = '₹ 0',
+    this.hasCancellationCharge = false,
+    this.cancellationChargeMessage = '',
     this.driverName = TripModel.noNameFound,
     this.driverRating = 0,
     this.driverTrips = 0,
@@ -136,6 +142,9 @@ class CancelledTripDetailsPage extends StatelessWidget {
                       refundInitiatedAt: refundInitiatedAt,
                       isPaid: isPaid,
                       hasRefund: hasRefund,
+                      cancellationCharge: cancellationCharge,
+                      hasCancellationCharge: hasCancellationCharge,
+                      cancellationChargeMessage: cancellationChargeMessage,
                     ),
                   ],
                 ),
@@ -555,6 +564,9 @@ class _CancelledFareBreakdownCard extends StatelessWidget {
   final String refundInitiatedAt;
   final bool isPaid;
   final bool hasRefund;
+  final String cancellationCharge;
+  final bool hasCancellationCharge;
+  final String cancellationChargeMessage;
 
   const _CancelledFareBreakdownCard({
     required this.amountPaid,
@@ -562,6 +574,9 @@ class _CancelledFareBreakdownCard extends StatelessWidget {
     required this.refundInitiatedAt,
     required this.isPaid,
     required this.hasRefund,
+    required this.cancellationCharge,
+    required this.hasCancellationCharge,
+    required this.cancellationChargeMessage,
   });
 
   @override
@@ -581,6 +596,24 @@ class _CancelledFareBreakdownCard extends StatelessWidget {
           const _DashedDivider(),
           const SizedBox(height: 12),
           _FareRow(label: 'Amount Paid', value: amountPaid),
+          const SizedBox(height: 12),
+          _FareRow(
+            label: 'Cancellation Charge',
+            value: cancellationCharge,
+          ),
+          if (hasCancellationCharge &&
+              cancellationChargeMessage.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              cancellationChargeMessage,
+              style: kStyle(
+                kRegular,
+                kSize13,
+                color: kTripBodyMuted,
+                height: 1.4,
+              ),
+            ),
+          ],
           if (hasRefund) ...[
             const SizedBox(height: 12),
             const _DashedDivider(),
