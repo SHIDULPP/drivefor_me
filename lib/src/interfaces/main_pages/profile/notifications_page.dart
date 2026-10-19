@@ -1,3 +1,4 @@
+import 'package:DriveForme/src/interfaces/main_pages/support/support_pages.dart';
 import 'package:DriveForme/src/data/apis/notification_api.dart';
 import 'package:DriveForme/src/data/apis/trip_api.dart';
 import 'package:DriveForme/src/data/constants/colour_constants.dart';
@@ -93,8 +94,10 @@ class NotificationsPage extends ConsumerWidget {
                   for (var i = 0; i < section.items.length; i++) ...[
                     _DismissibleNotificationTile(
                       item: section.items[i],
-                      onTap: () => _onNotificationTap(context, ref, section.items[i]),
-                      onDelete: () => _deleteNotification(context, ref, section.items[i]),
+                      onTap: () =>
+                          _onNotificationTap(context, ref, section.items[i]),
+                      onDelete: () =>
+                          _deleteNotification(context, ref, section.items[i]),
                     ),
                     if (i < section.items.length - 1)
                       const Divider(height: 1, indent: 72, color: kLineGrey),
@@ -114,14 +117,31 @@ class NotificationsPage extends ConsumerWidget {
     NotificationModel item,
   ) async {
     if (!item.isRead) {
-      final response =
-          await ref.read(notificationApiProvider).markAsRead(item.id);
+      final response = await ref
+          .read(notificationApiProvider)
+          .markAsRead(item.id);
       if (!response.success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to mark as read.')),
+          SnackBar(
+            content: Text(response.message ?? 'Failed to mark as read.'),
+          ),
         );
       }
       ref.invalidate(notificationsProvider);
+    }
+
+    if (!context.mounted) return;
+    if (item.type == 'support' ||
+        item.payload['action'] == 'open_support_chat') {
+      final ticketId = item.payload['ticketId']?.toString();
+      if (ticketId != null && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(ticketId)) {
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => SupportChatPage(ticketId: ticketId),
+          ),
+        );
+      }
+      return;
     }
 
     if (item.type != 'trip_accepted' &&
@@ -158,10 +178,7 @@ class NotificationsPage extends ConsumerWidget {
     final target = tripNavigationTarget(trip);
     if (target == null) return;
 
-    NavigationService().pushNamed(
-      target.route,
-      arguments: target.arguments,
-    );
+    NavigationService().pushNamed(target.route, arguments: target.arguments);
   }
 
   Future<void> _deleteNotification(
@@ -169,8 +186,9 @@ class NotificationsPage extends ConsumerWidget {
     WidgetRef ref,
     NotificationModel item,
   ) async {
-    final response =
-        await ref.read(notificationApiProvider).deleteNotification(item.id);
+    final response = await ref
+        .read(notificationApiProvider)
+        .deleteNotification(item.id);
     if (!context.mounted) return;
 
     if (!response.success) {
@@ -199,10 +217,8 @@ class NotificationsPage extends ConsumerWidget {
 
     return map.entries
         .map(
-          (entry) => _NotificationSection(
-            dateLabel: entry.key,
-            items: entry.value,
-          ),
+          (entry) =>
+              _NotificationSection(dateLabel: entry.key, items: entry.value),
         )
         .toList();
   }
@@ -238,10 +254,7 @@ class _NotificationSection {
   final String dateLabel;
   final List<NotificationModel> items;
 
-  const _NotificationSection({
-    required this.dateLabel,
-    required this.items,
-  });
+  const _NotificationSection({required this.dateLabel, required this.items});
 }
 
 class _DateHeader extends StatelessWidget {

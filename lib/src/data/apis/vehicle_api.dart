@@ -13,17 +13,19 @@ class VehicleApi {
     required String vehicleNumber,
     required String vehicleType,
     required String transmission,
+    required String registrationUrl,
+    required String insuranceUrl,
+    required String pollutionUrl,
   }) async {
-    final response = await _api.post(
-      '/vehicles',
-      {
-        'vehicleName': vehicleName,
-        'vehicleNumber': vehicleNumber,
-        'vehicleType': vehicleType,
-        'transmission': transmission,
-      },
-      requireAuth: true,
-    );
+    final response = await _api.post('/vehicles', {
+      'vehicleName': vehicleName,
+      'vehicleNumber': vehicleNumber,
+      'vehicleType': vehicleType,
+      'transmission': transmission,
+      'registrationUrl': registrationUrl,
+      'insuranceUrl': insuranceUrl,
+      'pollutionUrl': pollutionUrl,
+    }, requireAuth: true);
 
     if (!response.success) {
       return ApiResponse.error(
@@ -43,6 +45,21 @@ class VehicleApi {
     );
   }
 
+  Future<ApiResponse<Map<String, dynamic>>> extractDocument(
+    String type,
+    String url,
+  ) async {
+    final response = await _api.post('/vehicles/documents/extract', {
+      'documentType': type,
+      'documentUrl': url,
+    }, requireAuth: true);
+    if (!response.success) return response;
+    final data = nestedData(response.data);
+    return data == null
+        ? ApiResponse.error('Invalid document response')
+        : ApiResponse.success(data, response.statusCode);
+  }
+
   Future<ApiResponse<List<VehicleModel>>> getMyVehicles() async {
     final response = await _api.get('/vehicles', requireAuth: true);
     if (!response.success) {
@@ -52,9 +69,9 @@ class VehicleApi {
       );
     }
 
-    final items = nestedListData(response.data)
-        .map(VehicleModel.fromJson)
-        .toList();
+    final items = nestedListData(
+      response.data,
+    ).map(VehicleModel.fromJson).toList();
 
     return ApiResponse.success(items, response.statusCode);
   }
@@ -89,22 +106,19 @@ class VehicleApi {
       return ApiResponse.error('Invalid vehicle types response');
     }
 
-    final vehicleTypes = (data['vehicleTypes'] as List?)
-            ?.map((e) => e.toString())
-            .toList() ??
+    final vehicleTypes =
+        (data['vehicleTypes'] as List?)?.map((e) => e.toString()).toList() ??
         const <String>[];
-    final transmissionTypes = (data['transmissionTypes'] as List?)
+    final transmissionTypes =
+        (data['transmissionTypes'] as List?)
             ?.map((e) => e.toString())
             .toList() ??
         const <String>[];
 
-    return ApiResponse.success(
-      {
-        'vehicleTypes': vehicleTypes,
-        'transmissionTypes': transmissionTypes,
-      },
-      response.statusCode,
-    );
+    return ApiResponse.success({
+      'vehicleTypes': vehicleTypes,
+      'transmissionTypes': transmissionTypes,
+    }, response.statusCode);
   }
 }
 

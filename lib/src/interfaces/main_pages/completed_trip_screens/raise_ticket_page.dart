@@ -1,3 +1,5 @@
+import 'package:DriveForme/src/data/utils/phone_launcher.dart';
+import 'package:DriveForme/src/interfaces/main_pages/support/support_pages.dart';
 import 'package:DriveForme/src/data/apis/support_api.dart';
 import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:DriveForme/src/data/constants/style_constants.dart';
@@ -46,10 +48,13 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
 
     setState(() => _isSubmitting = true);
 
-    final tripMongoId = widget.tripMongoId ??
+    final tripMongoId =
+        widget.tripMongoId ??
         (isMongoObjectId(widget.tripId) ? widget.tripId : null);
 
-    final response = await ref.read(supportApiProvider).createTicket(
+    final response = await ref
+        .read(supportApiProvider)
+        .createTicket(
           category: widget.category.trim().isEmpty
               ? 'General Support'
               : widget.category.trim(),
@@ -62,9 +67,9 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
     setState(() => _isSubmitting = false);
 
     if (!response.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_friendlyError(response.message))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_friendlyError(response.message))));
       return;
     }
 
@@ -82,12 +87,16 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
         ),
       ),
     );
-    Navigator.of(context).pop({
-      'subject': subject,
-      'description': description,
-      'tripId': widget.tripId,
-      if (ticketId != null && ticketId.isNotEmpty) 'ticketId': ticketId,
-    });
+    final mongoId = ticketData is Map ? ticketData['_id']?.toString() : null;
+    if (mongoId != null && isMongoObjectId(mongoId)) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => SupportChatPage(ticketId: mongoId),
+        ),
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   String _friendlyError(String? message) {
@@ -126,9 +135,16 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
           ),
         ),
         title: Text(
-          'Raise a ticket',
+          'Support',
           style: kStyle(kSemiBold, kSize18, color: kTextColor),
         ),
+        actions: [
+          IconButton(
+            onPressed: () => launchPhoneCall('+916282359916'),
+            tooltip: 'Call support',
+            icon: const Icon(Icons.phone_outlined),
+          ),
+        ],
         titleSpacing: 0,
       ),
       body: Column(
@@ -140,6 +156,20 @@ class _RaiseTicketPageState extends ConsumerState<RaiseTicketPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  OutlinedButton.icon(
+                    onPressed: _isSubmitting
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const SupportTicketsPage(),
+                            ),
+                          ),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: const Text('View my tickets & replies'),
+                  ),
+                  const SizedBox(height: 24),
+                  Text('Raise a ticket', style: kTripSubSectionSB),
+                  const SizedBox(height: 20),
                   Text('Subject', style: kTripSubSectionSB),
                   const SizedBox(height: 12),
                   InputField(

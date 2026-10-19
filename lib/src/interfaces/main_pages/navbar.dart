@@ -1,4 +1,4 @@
-import 'package:DriveForme/src/data/constants/app_colors.dart';
+import 'package:DriveForme/src/data/services/notification_token_service.dart';
 import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:DriveForme/src/data/constants/style_constants.dart';
 import 'package:DriveForme/src/data/providers/live_driver_location_provider.dart';
@@ -57,6 +57,16 @@ class _NavBarState extends ConsumerState<NavBar> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final push = ref.read(pushNotificationServiceProvider);
+      try {
+        await push.initialize();
+        if (mounted) await push.openPendingSupportChat();
+      } catch (_) {
+        // Support remains available in-app if push services are unavailable.
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(liveTripTrackingProvider);
       _resumeActiveTrip();

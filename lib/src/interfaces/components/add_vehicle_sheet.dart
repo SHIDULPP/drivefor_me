@@ -1,3 +1,4 @@
+import 'package:DriveForme/src/interfaces/components/vehicle_document_field.dart';
 import 'package:DriveForme/src/data/constants/colour_constants.dart';
 import 'package:DriveForme/src/data/constants/style_constants.dart';
 import 'package:DriveForme/src/data/apis/vehicle_api.dart';
@@ -31,6 +32,10 @@ class AddVehicleBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
+  final Map<String, String> _documentUrls = {};
+  final Set<String> _busyDocuments = {};
+  bool get _busy => _isSubmitting || _busyDocuments.isNotEmpty;
+
   String transmission = 'Manual';
   int selectedVehicle = -1;
   bool _isSubmitting = false;
@@ -49,7 +54,9 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
   List<Map<String, String>> vehicleTypes = List.of(_fallbackVehicleTypes);
 
   bool get _isFormValid {
-    return nameController.text.trim().isNotEmpty &&
+    return _documentUrls.length == 3 &&
+        !_busy &&
+        nameController.text.trim().isNotEmpty &&
         numberController.text.trim().isNotEmpty &&
         transmission.isNotEmpty &&
         selectedVehicle >= 0 &&
@@ -135,7 +142,7 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: _busy ? null : () => Navigator.pop(context),
                   child: Container(
                     height: 44,
                     width: 44,
@@ -257,9 +264,46 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
                             );
                           },
                         ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Vehicle documents',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Upload clear photos of your RC, insurance and PUC. Expiry dates are read automatically.',
+                        ),
+                        for (final entry in const {
+                          'registration': 'Registration Certificate (RC)',
+                          'insurance': 'Insurance',
+                          'pollution': 'Pollution Certificate (PUC)',
+                        }.entries)
+                          VehicleDocumentField(
+                            key: ValueKey(entry.key),
+                            type: entry.key,
+                            label: entry.value,
+                            enabled: !_busy,
+                            onChanged: (url) => setState(() {
+                              if (url == null) {
+                                _documentUrls.remove(entry.key);
+                              } else {
+                                _documentUrls[entry.key] = url;
+                              }
+                            }),
+                            onBusyChanged: (busy) => setState(() {
+                              if (busy) {
+                                _busyDocuments.add(entry.key);
+                              } else {
+                                _busyDocuments.remove(entry.key);
+                              }
+                            }),
+                          ),
                         const SizedBox(height: 40),
                         GestureDetector(
-                          onTap: _isSubmitting ? null : _submitVehicle,
+                          onTap: _isFormValid ? _submitVehicle : null,
                           child: Opacity(
                             opacity: _isSubmitting ? 0.7 : 1,
                             child: Container(
@@ -334,6 +378,7 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
   }
 
   Future<void> _submitVehicle() async {
+    if (!_isFormValid) return;
     final vehicleName = nameController.text.trim();
     final vehicleNumber = numberController.text.trim().toUpperCase();
 
@@ -358,6 +403,7 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
         : 'manual';
 
     final token = await ref.read(secureStorageServiceProvider).getAuthToken();
+    if (!mounted) return;
     if (token == null || token.isEmpty) {
       _showMessage('Session expired. Please log in again.');
       return;
@@ -372,6 +418,9 @@ class _AddVehicleBottomSheetState extends ConsumerState<AddVehicleBottomSheet> {
           vehicleNumber: vehicleNumber,
           vehicleType: vehicleType,
           transmission: transmissionValue,
+          registrationUrl: _documentUrls['registration']!,
+          insuranceUrl: _documentUrls['insurance']!,
+          pollutionUrl: _documentUrls['pollution']!,
         );
 
     if (!mounted) return;

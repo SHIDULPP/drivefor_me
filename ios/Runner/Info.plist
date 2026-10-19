@@ -61,6 +61,10 @@
 	</array>
 	<key>GMSApiKey</key>
 	<string>$(GOOGLE_MAPS_IOS_KEY)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos of your vehicle documents for registration.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Select vehicle document photos for registration.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>DriveForme uses your location to show pickup and dropoff on the map.</string>
 	<key>UIBackgroundModes</key>

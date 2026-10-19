@@ -6,6 +6,7 @@ import 'package:DriveForme/src/data/services/navigation_services.dart';
 import 'package:DriveForme/src/data/services/secure_storage_service.dart';
 import 'package:DriveForme/src/data/utils/date_utils.dart';
 import 'package:DriveForme/src/interfaces/animations/index.dart' as anim;
+import 'package:DriveForme/src/interfaces/components/add_vehicle_sheet.dart';
 import 'package:DriveForme/src/interfaces/components/dropdown.dart';
 import 'package:DriveForme/src/interfaces/components/input_field.dart';
 import 'package:DriveForme/src/interfaces/components/primaryButton.dart';
@@ -56,15 +57,24 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       return;
     }
 
-    ref.read(loadingProvider.notifier).startLoading();
-
     try {
+      final dateOfBirth = dobUiToApi(_dobController.text.trim());
+      final vehicle = await showAddVehicleBottomSheet(context);
+      if (!mounted) return;
+      if (vehicle == null) {
+        _showMessage(
+          'Add a vehicle and its documents to complete registration.',
+        );
+        return;
+      }
+
+      ref.read(loadingProvider.notifier).startLoading();
       final response = await ref
           .read(onboardingApiProvider)
           .submitVehicleOwnerProfile(
             fullName: _nameController.text.trim(),
             email: _emailController.text.trim(),
-            dateOfBirth: dobUiToApi(_dobController.text.trim()),
+            dateOfBirth: dateOfBirth,
             gender: genderUiToApi(selectedGender!),
           );
 
@@ -135,7 +145,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                         duration: anim.AnimationDuration.normal,
                         delayMilliseconds: 80,
                         child: const Text(
-                          "Let's get you started",
+                          'Add your vehicle and its documents to complete registration.',
                           style: TextStyle(
                             fontFamily: 'ClashGrotesk',
                             fontSize: 14,
